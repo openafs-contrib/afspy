@@ -21,7 +21,7 @@ class VolumeDAO(object) :
         moves this volume to a new Destination. In case of a RO, do 
         an remove/addsite/release
         """
-        CmdList=["vos", "move","%s" % ID]
+        CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
@@ -29,7 +29,7 @@ class VolumeDAO(object) :
         """
         release this volume
         """
-        CmdList=["vos", "release","%s" % ID]
+        CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
@@ -38,7 +38,7 @@ class VolumeDAO(object) :
         """
         sets Blockquota
         """
-        CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota]
+        CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
         
@@ -46,7 +46,7 @@ class VolumeDAO(object) :
         """
         locks volume in VLDB
         """
-        CmdList=["vos", "lock","-id" ,"%s" % ID]
+        CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
@@ -54,7 +54,7 @@ class VolumeDAO(object) :
         """
         unlocks volume in VLDB
         """
-        CmdList=["vos", "unlock","-id" ,"%s" % ID]
+        CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
@@ -63,7 +63,7 @@ class VolumeDAO(object) :
         """
         Sync Volumeinfo on VLDB
         """
-        CmdList=["vos", "syncvldb","-volume" ,"%s" % ID]
+        CmdList=["vos", "syncvldb","-volume" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
@@ -71,7 +71,7 @@ class VolumeDAO(object) :
         """
         Dumps a volume into a file
         """
-        CmdList=["vos", "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile]
+        CmdList=["vos", "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
@@ -79,7 +79,7 @@ class VolumeDAO(object) :
         """
         Restores this (abstract) volume from a file.
         """
-        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile]
+        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
@@ -87,7 +87,7 @@ class VolumeDAO(object) :
         """
         converts this RO-Volume to a RW
         """
-        CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName]
+        CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
@@ -95,7 +95,7 @@ class VolumeDAO(object) :
         """
         creates this abstract Volume
         """
-        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota]
+        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
@@ -103,7 +103,7 @@ class VolumeDAO(object) :
         """
         creates a RO-Volume on Dst
         """
-        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName ]
+        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
     
@@ -111,7 +111,7 @@ class VolumeDAO(object) :
         """
         remove this Volume from the Server
         """
-        CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName ]
+        CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
 
