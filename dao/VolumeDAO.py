@@ -16,16 +16,16 @@ class VolumeDAO(object) :
     def __init__(self) :
         pass
 
-    def move(self,ID, DstServer,DstPartition) :
+    def move(self,ID, DstServer,DstPartition, cellname, token, dryrun=0, lethal=1) :
         """
         moves this volume to a new Destination. In case of a RO, do 
         an remove/addsite/release
         """
         CmdList=["vos", "move","%s" % ID]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=0)
+        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def release(self,ID, dryrun=0,lethal=1) :
+    def release(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
         release this volume
         """
@@ -34,7 +34,7 @@ class VolumeDAO(object) :
         return rc,output,outerr
     
 
-    def setBlockQuota(self,ID, BlockQuota, dryrun=0,lethal=1) :
+    def setBlockQuota(self,ID, BlockQuota, cellname, token,dryrun=0,lethal=1) :
         """
         sets Blockquota
         """
@@ -42,7 +42,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
         
-    def lock(self,ID, dryrun=0,lethal=1) :
+    def lock(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
         locks volume in VLDB
         """
@@ -50,7 +50,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
-    def unlock(self,ID, dryrun=0,lethal=1) :
+    def unlock(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
         unlocks volume in VLDB
         """
@@ -59,7 +59,7 @@ class VolumeDAO(object) :
         return rc,output,outerr
 
     
-    def sync(self,ID, dryrun=0,lethal=1) :
+    def sync(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
         Sync Volumeinfo on VLDB
         """
@@ -67,7 +67,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
-    def dump(self,ID, DumpFile,dryrun=0,lethal=1) :
+    def dump(self,ID, DumpFile,cellname, token,dryrun=0,lethal=1) :
         """
         Dumps a volume into a file
         """
@@ -75,7 +75,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def restore(self,VolName,Server,Partition,DumpFile,dryrun=0,lethal=1) :
+    def restore(self,VolName,Server,Partition,DumpFile,cellname, token,dryrun=0,lethal=1) :
         """
         Restores this (abstract) volume from a file.
         """
@@ -83,7 +83,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
-    def convert(self,VolName,Server,Partition,dryrun=0,lethal=1) :
+    def convert(self,VolName,Server,Partition,cellname, token,dryrun=0,lethal=1) :
         """
         converts this RO-Volume to a RW
         """
@@ -91,7 +91,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def create(self,VolName,Server,Partition,MaxQuota=5000, dryrun=0,lethal=1) :
+    def create(self,VolName,Server,Partition,MaxQuota=5000, cellname, token,dryrun=0,lethal=1) :
         """
         creates this abstract Volume
         """
@@ -99,7 +99,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def addsite(self,VolName,DstServer,DstPartition,dryrun=0,lethal=1) :
+    def addsite(self,VolName,DstServer,DstPartition,cellname, token,dryrun=0,lethal=1) :
         """
         creates a RO-Volume on Dst
         """
@@ -107,15 +107,15 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
     
-    def remove(self,vol,dryrun=1,lethal=1) :
+    def remove(self,VolName,Server, Partition, cellname, token,dryrun=1,lethal=1) :
         """
         remove this Volume from the Server
         """
-        CmdList=["vos", "remove","-server", "%s" % vol.Server, "-partition", "%s" % vol.Partition, "-id", "%s" % vol.Name ]
+        CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
 
-    def getVolume(self, ID , vol, cellname, dryrun=0, lethal=0) :
+    def getVolume(self, ID, cellname,token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
