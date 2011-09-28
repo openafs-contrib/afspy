@@ -7,6 +7,7 @@ VOSBIN="/usr/sbin/vos"
 RXDEBUGBIN="/usr/sbin/rxdebug"
 FSBIN="/usr/bin/fs"
 OSDBIN="osd"
+BOSBIN="/usr/sbin/bos"
 
 def execute(CmdList,dryrun=0,lethal=1) :
     if dryrun :
