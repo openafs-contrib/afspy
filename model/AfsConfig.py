@@ -24,8 +24,4 @@ class AfsConfig(object):
 			return       
 		
 		self.DB_CACHE = eval(options.DB_CACHE)
-		
-		
-			
-        	
-        	
+
