@@ -15,14 +15,13 @@ class VolumeDAO(object) :
     
     def __init__(self) :
         pass
-     
 
-    def move(self,DstServer,DstPartition) :
+    def move(self,ID, DstServer,DstPartition) :
         """
         moves this volume to a new Destination. In case of a RO, do 
         an remove/addsite/release
         """
-        CmdList=["vos", "move","%s" % self.ID]
+        CmdList=["vos", "move","%s" % ID]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=0)
         return rc,output,outerr
 
@@ -76,43 +75,35 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    #FIXME change interface
-    def restore(self, vol, DumpFile,dryrun=0,lethal=1) :
+    def restore(self,VolName,Server,Partition,DumpFile,dryrun=0,lethal=1) :
         """
         Restores this (abstract) volume from a file.
         """
-        if self.doesExist :
-            raise Volumealready
-        CmdList=["vos", "restore","-server", "%s" % vol.Server, "-partition", "%s" % vol.Partition, "-name", "%s" % vol.Name, "-file" ,"%s" % DumpFile]
+        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
     
-    def convert(self, vol , dryrun=0,lethal=1) :
+    def convert(self,VolName,Server,Partition,dryrun=0,lethal=1) :
         """
         converts this RO-Volume to a RW
         """
-        CmdList=["vos", "convertROtoRW","-server", "%s" % vol.Server, "-partition", "%s" % vol.Partition, "-id", "%s" % vol.Name]
+        CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def create(self,vol,dryrun=0,lethal=1) :
+    def create(self,VolName,Server,Partition,MaxQuota=5000, dryrun=0,lethal=1) :
         """
         creates this abstract Volume
         """
-        CmdList=["vos", "create","-server", "%s" % vol.Server, "-partition", "%s" % vol.Partition, "-name", "%s" % vol.Name ]
-        if self.BlockQuota  != -1 :
-            CmdList += ["-maxquota","%s" % self.BlockQuota]
-        if self.FileQuota  != -1 :
-            CmdList += ["-maxquota","%s" % self.FileQuota]
+        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    #FIXME
-    def addsite(self,DstServer,DstPartition,dryrun=0,lethal=1) :
+    def addsite(self,VolName,DstServer,DstPartition,dryrun=0,lethal=1) :
         """
         creates a RO-Volume on Dst
         """
-        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % self.DstPartition, "-name", "%s" % self.Name ]
+        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
     
@@ -133,27 +124,19 @@ class VolumeDAO(object) :
              CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % ID , "-format","-cell", "%s" %  cellname]
         else :
             raise AttributeError,"Neither Volume Name or ID known"
-        #self.Log.add(5,"Issuing command: "+cmd)
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc :
             return rc,output,outerr
 
         line_no = 0
         line = output[line_no]
-        #FIXME reise exception
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
-            # There are many two different outputs
-            #self.Log.add(0,"volume-method update: Volume with ID "+str(self.ID)+" not existent.")
             return 1, [""], ["Vol with ID %s not existant" % (ID)]
-        # first line gives Name, ID, Type, Used and Status      
-        #self.Log.add(20,line)
-        
-       
-        for line in output:
-            print line
-            splits = line.split()
             
+        # first line gives Name, ID, Type, Used and Status      
+        for line in output:
+            splits = line.split()
             if splits[0] == "name":
                 vol.name = splits[1]
             elif splits[0] == "id":
@@ -205,9 +188,7 @@ class VolumeDAO(object) :
             elif splits[0] == "spare3":
                 vol.spare3 = splits[1]     
                 
-                
-        
-        #return vol
+        return
 
 
    
