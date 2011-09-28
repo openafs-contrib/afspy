@@ -91,7 +91,7 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         return rc,output,outerr
 
-    def create(self,VolName,Server,Partition,MaxQuota=5000, cellname, token,dryrun=0,lethal=1) :
+    def create(self,VolName,Server,Partition,MaxQuota, cellname, token,dryrun=0,lethal=1) :
         """
         creates this abstract Volume
         """
