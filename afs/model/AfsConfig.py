@@ -4,7 +4,9 @@ from afs.util.options import define, options
 
 class AfsConfig(object):
     """
-    Representation of config
+    Representation of config.
+    To use a custom config, instantiate this w/o parameters, set CONF_FILE to your
+    Path and then call load().
     """
     ## Path to configuration file
     CONF_FILE = "./afspy.cfg"
