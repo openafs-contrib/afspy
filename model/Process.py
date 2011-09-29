@@ -15,6 +15,6 @@ class Process(BaseModel):
         self.numStarts=0
         self.BNodeType=BNodeType
         # FIXME : what to do with procs of type cron ? Need to check, man pages dont say much
-        self.generalRestart=-1
-        self.binaryRestart=-1
+        self.generalRestartTime=""
+        self.binaryRestartTime=""
         self.Commands= []
