@@ -11,12 +11,8 @@ class Volume(BaseModel) :
     
     def __init__(self) :
         """
-        initializes to an empty Volume, if ID=-1 is given.
-        To get a volume by Name, ID=0 must be given.
-        Optional arg. Server is used when getting a RO-Volume. 
-        Otherwise the resulting Object can be on any server
+        initializes to an empty Volume
         """
-        #afs.rxosd.OSDVolume.__init__(self)
         ##Name of the Volume in the VLDB
         
         self.name     = ''
@@ -25,8 +21,10 @@ class Volume(BaseModel) :
         ## Servername, where this volume is stored
         self.serv     = ""
         ## Partitionname, where this volume is stored.
-        self.part     =""
+        self.part     = ""
+        ## numerical ID of  RW Volume
         self.parentID = 0
+        ## numerical ID of Backup Volume
         self.backupID = 0
         self.cloneID  = 0
         self.inUse         = ""

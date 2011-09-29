@@ -179,6 +179,9 @@ class _Options(dict):
 
 
 class _Option(object):
+    """
+    internal object to parse and return a single option
+    """
     def __init__(self, name, default=None, type=str, help=None, metavar=None,
                  multiple=False, file_name=None):
         if default is None and multiple:
@@ -299,6 +302,9 @@ class _Option(object):
 
 
 class Error(Exception):
+    """
+    Our own Error-class ... to be implemented
+    """
     pass
 
 
@@ -331,6 +337,7 @@ def enable_pretty_logging():
 
 
 class _LogFormatter(logging.Formatter):
+    """Our nice own Logformatter"""
     def __init__(self, color, *args, **kwargs):
         logging.Formatter.__init__(self, *args, **kwargs)
         self._color = color

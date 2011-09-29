@@ -4,6 +4,11 @@ import afs.model.Token
 
 
 class TokenService():
+    """
+    Provides Service about  Token Management.
+    TokenDAO is not trivial yet.
+    ...
+    """
     
     def __init__(self,config=None):
         pass

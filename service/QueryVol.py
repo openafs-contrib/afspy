@@ -1,8 +1,7 @@
-
-
-
 class QueryVol(object):
-    
+    """
+    Query the DB or live data
+    """
     limit  = -1
     offset = -1
     field  = "name"

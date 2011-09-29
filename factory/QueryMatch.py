@@ -1,6 +1,9 @@
 
 
 class QueryMatch(object):
+    """
+    Provides DB-Query keywords
+    """
     
     EXACT = "EXACT"
     LIKE  = "LIKE"

@@ -182,6 +182,4 @@ class VolService (object):
                      self._volDAO.getVolume(vid, vol, cellname)
                 session.flush()
             session.commit()      
-            
-    
-       
+ 
