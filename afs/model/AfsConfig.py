@@ -18,8 +18,9 @@ class AfsConfig(object):
             self.load()
     
     def load(self):
-        define("DB_CACHE",  default="False", help="")
-        define("CONF_FILE", default=self.CONF_FILE, help="")
+        if  not options.has_key("DB_CACHE") :
+            define("DB_CACHE",  default="False", help="")
+            define("CONF_FILE", default=self.CONF_FILE, help="")
 
         try :
             afs.util.options.parse_config_file(self.CONF_FILE) 
