@@ -144,7 +144,7 @@ class VolumeDAO(object) :
             elif splits[0] == "serv" :
                 vol.serv = splits[1]
             elif splits[0] == "part":
-                vol.part = splits[1]
+                vol.part = afsutil.canonicalizePartition(splits[1])
             elif splits[0] =="parentID":
                 vol.parentID = splits[1]
             elif splits[0] == "backupID":
