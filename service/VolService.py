@@ -62,7 +62,7 @@ class VolService (object):
     
         vol = Volume()
         #ALWAYS REAL DATA on single volume  
-        self._volDAO.getVolume(name, vol, cellname)
+        self._volDAO.getVolume(name, vol, cellname, self._TOKEN)
         
         #STORE info intp CACHE
         if self._CFG.DB_CACHE:
@@ -179,7 +179,7 @@ class VolService (object):
                 session.flush()
                 for vid in volSvrList:
                      vol = Volume()
-                     self._volDAO.getVolume(vid, vol, cellname)
+                     self._volDAO.getVolume(vid, vol, cellname, self._TOKEN)
                 session.flush()
             session.commit()      
  

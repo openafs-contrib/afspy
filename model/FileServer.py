@@ -1,6 +1,8 @@
 
-from afs.factory.ServerTypeFactory import ServerType, BNodeType
-from afs.model.BaseModel import BaseModel, Process
+from afs.factory.ServerTypeFactory import ServerType
+from afs.factory.BNodeTypeFactory import BNodeType
+from afs.model.BaseModel import BaseModel
+from afs.model.Process import Process
 
 
 class FileServer(BaseModel):
