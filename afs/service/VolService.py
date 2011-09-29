@@ -48,7 +48,7 @@ class VolService (object):
     
         vol = Volume()
         #ALWAYS REAL DATA on single volume    
-        self._volDAO.getVolume(id, vol, cellname)
+        self._volDAO.getVolume(id, vol, cellname, self._TOKEN)
         return vol
     
     """
