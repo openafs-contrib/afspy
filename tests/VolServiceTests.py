@@ -30,18 +30,25 @@ class TestVolServiceMethods(unittest.TestCase):
         self.volMng = VolService(token)
         self.VolID=self.TestCfg.get("VolService", "VolID")
         self.VolName=self.TestCfg.get("VolService", "VolName")
+        self.FS=self.TestCfg.get("VolService", "FS")
+        self.Part=self.TestCfg.get("VolService", "Part")
         return
     
     def test_getVolbyName(self) :
         vol = self.volMng.getVolByName(self.VolName)
         self.assertEqual(vol.vid, self.VolID)
+        self.assertEqual(vol.serv, self.FS)
+        self.assertEqual(vol.part, self.Part)
         return
         
     def test_getVolbyID(self) :
         vol = self.volMng.getVolByID(self.VolID)
         self.assertEqual(vol.name, self.VolName)
+        self.assertEqual(vol.serv, self.FS)
+        self.assertEqual(vol.part, self.Part)
         return
     
+
 
 if __name__ == '__main__' :
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceMethods)
