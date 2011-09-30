@@ -7,15 +7,28 @@ from sqlalchemy.orm import sessionmaker, mapper
 from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
 from sqlalchemy     import ForeignKey, UniqueConstraint
 
+
+def setupOptions():
+    """
+    Only to be called from AfsConfig
+    """
+    define("DB_CACHE",  default="False", help="Flag")
+    define("DB_DEBUG", default="False", help="")
+    define("DB_SID" , default="db/afspy", help="")
+    define("DB_TYPE" , default="sqlite", help="")
+    # mysql options
+    define("DB_HOST", default="", help="")
+    define("DB_PORT", default="", help="", type=int)
+    define("DB_USER", default="", help="")
+    define("DB_PASSWD" , default="", help="")
+
+
 def DbMapper(tblList):
     
     # Option definition
     ###########################################
     driver = ""
-    define("DB_DEBUG", default="False", help="")
-    define("DB_SID" , default="db/afspy", help="")
-    define("DB_TYPE" , default="sqlite", help="")
- 
+    
     # Connection
     ###########################################
    
@@ -23,14 +36,6 @@ def DbMapper(tblList):
     engine = 0
      
     if options.DB_TYPE == "mysql":
-        define("DB_HOST", default="", help="")
-        define("DB_PORT", default="", help="", type=int)
-        define("DB_USER", default="", help="")
-        define("DB_PASSWD" , default="", help="")
-        
-        # read conf file again
-        afs.util.options.parse_config_file(options.CONF_FILE)
-            
         host   = options.DB_HOST
         port   = options.DB_PORT 
         sid    = options.DB_SID
@@ -41,15 +46,12 @@ def DbMapper(tblList):
             driver = 'mysql://%s:%s@%s:%s/%s' % (user, passwd, host, port, sid)
         else:
             driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (user, passwd, host, port, sid)
-        engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=debug)
-         
+        engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=debug)         
     elif options.DB_TYPE == "sqlite":    
-        afs.util.options.parse_config_file(options.CONF_FILE)
         driver = 'sqlite:///'+options.DB_SID
         engine = create_engine(driver, echo=debug)
         
     metadata = MetaData()
-   
    
     # Scheduler
     ##################################################
