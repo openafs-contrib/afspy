@@ -22,16 +22,61 @@ class FsService (object):
         if self._CFG.DB_CACHE:
             from afs.orm.DbMapper import DbMapper
             self.DbSession     = DbMapper(['Process'])
-            
+
     ###############################################
-    # Process Section
-     ##############################################
-        
-        def getRestartTimes(self,name, **kwargs):
-    
+    # BNode Section
+    ##############################################
+
+    def getRestartTimes(self,name, **kwargs):
+            """
+            Ask Bosserver about the restart times of the fileserver
+            """
             cellname = self._TOKEN._CELL_NAME
             if kwargs.get("cellname"):
                 cellname = kwargs.get("cellname")
             self._procDAO.getRestartTimes()
             return
+            
     
+    ###############################################
+    # Volume Section
+    ###############################################    
+    
+    
+    def getVolIdList(self,servername, partname=None,**kwargs):
+        """
+        Retrieve Volume ID List
+        """
+        cellname = self._TOKEN._CELL_NAME
+        vols = []
+        if kwargs.get("cellname"):
+            cellname = kwargs.get("cellname")
+            
+        if partname:    
+            vols = self._svrDAO.getVolIdList(partname, servername,cellname)
+        else:
+            parts = self._svrDAO.getPartList(servername,cellname)
+            for part in parts:
+                vols.extend(self._svrDAO.getVolIdList(part.name, servername,cellname))
+    
+        return vols
+    
+    ###############################################
+    # File Server Section
+    ###############################################
+    
+    
+    def getFileServer(self,servername,**kwargs):
+        """
+        Retrieve Server 
+        """
+        cellname = self._TOKEN._CELL_NAME
+     
+        if kwargs.get("cellname"):
+            cellname = kwargs.get("cellname")
+            
+        server = self._svrDAO.getServer(self,servername,cellname)
+        parts = self._svrDAO.getPartList(server.name,cellname)
+        server.parts = parts
+
+        return server

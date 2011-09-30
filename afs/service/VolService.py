@@ -6,12 +6,11 @@ from afs.model.Volume import Volume
 from afs.model.AfsConfig import AfsConfig
 
 
-
-
 class VolService (object):
     """
     Provides Service about a Volume management.
-    ...
+    The cellname is set in the methods so that we 
+    can use this for more than one cell.
     """
 
     _CFG    = None
@@ -30,8 +29,8 @@ class VolService (object):
         
         # DB INIT    
         if self._CFG.DB_CACHE:
-             from afs.orm.DbMapper import DbMapper
-             self.DbSession     = DbMapper(['Volume'])
+            from afs.orm.DbMapper import DbMapper
+            self.DbSession     = DbMapper(['Volume'])
          
          
     ###############################################
@@ -64,7 +63,7 @@ class VolService (object):
         #ALWAYS REAL DATA on single volume  
         self._volDAO.getVolume(name, vol, cellname, self._TOKEN)
         
-        #STORE info intp CACHE
+        #STORE info into  CACHE
         if self._CFG.DB_CACHE:
             session = self.DbSession()
             # Do update

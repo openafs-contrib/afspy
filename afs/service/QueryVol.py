@@ -16,4 +16,8 @@ class QueryVol(object):
     def getQuery(self):
         pass
     
-    
+    """
+    Retrieve Volume List
+    """
+    def getVolList(self,volQuery,**kwargs):
+        pass
