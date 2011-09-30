@@ -1,4 +1,4 @@
-
+from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
 class Process(BaseModel):
@@ -10,7 +10,6 @@ class Process(BaseModel):
         """
         initialize an empty object
         """
-        self.Status=""
         self.lastStart=0
         self.numStarts=0
         self.BNodeType=BNodeType
@@ -18,3 +17,23 @@ class Process(BaseModel):
         self.generalRestartTime=""
         self.binaryRestartTime=""
         self.Commands= []
+        
+        #FIXME create a map for db
+        self.name   = ''
+        self.status = ''
+        self.startdate = ''
+        self.startcount = ''
+        self.exitdate   = ''
+        self.notifier   = ''
+        self.state      = ''
+        self.errorstop  = ''
+        self.core       = ''
+        self.errorexitdate = ''
+        self.errorexitdue = ''
+        self.errorexitsignal = ''
+        self.errorexitcode = ''
+        self.cdate   = datetime.now()
+        self.udate   = datetime.now()
+        self.sync    = 0
+  
+  

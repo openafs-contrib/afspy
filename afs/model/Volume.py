@@ -8,13 +8,13 @@ class Volume(BaseModel) :
     """
     Provides information about AFS-Volumes and methods to change them
     """
-    
+    #FIXME param in the call
     def __init__(self) :
         """
         initializes to an empty Volume
         """
         ##Name of the Volume in the VLDB
-        
+        self.id       = ''
         self.name     = ''
         ##numerical ID of the Volume
         self.vid      = -1
@@ -39,7 +39,7 @@ class Volume(BaseModel) :
         self.diskused = 0
         self.maxquota = 0 
         self.minquota = 0
-        self.status = VolStatus.OK
+        self.status   = VolStatus.OK
         self.filecount = 0
         self.dayUse  = 0
         self.weekUse = 0
@@ -51,18 +51,7 @@ class Volume(BaseModel) :
         
 
 
-
-
-
-
-
-
-
-
-
-
-
     def __repr__(self):
-        return "<Volume('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % (   self.id, self.name, self.vid, self.serv,  self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
+        return "<Volume('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % (self.id, self.name, self.vid, self.serv,  self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
 
    

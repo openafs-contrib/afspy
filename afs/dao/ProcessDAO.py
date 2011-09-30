@@ -16,7 +16,7 @@ class ProcessDAO() :
     def __init__(self) :
         return
     
-    def getRestartTimes(self, servername):
+    def getRestartTimes(self, servername, cellname):
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
         if rc :
@@ -26,3 +26,50 @@ class ProcessDAO() :
         generalRestart=generalRestartRegEX.match(output[0]).groups()[1]
         binaryRestart=binaryRestartRegEX.match(output[1]).groups()[1]
         return generalRestart, binaryRestart
+
+    def addUser(self, user, servername, cellname):
+        pass
+    
+    def removeUser(self, user, servername, cellname):
+        pass
+    
+    def getUserList(self, servername, cellname):
+        pass
+    
+    def getFileDate(self,file, servername, cellname):
+        pass
+    
+    def cmd(self, cmd, servername, cellname):
+        pass
+    
+    def getLog(self, log, servername, cellname):
+        pass
+    
+    def pruneLog(self, type, servername, cellname):
+        pass
+
+    
+    def runRestart(self, process, servername, cellname):
+        pass
+    
+    def runStart(self, process, servername, cellname):
+        pass
+    
+    def runShutdown(self, process, servername, cellname):
+        pass
+    
+    def runStartup(self, process, servername, cellname):
+        pass
+    
+    def runStop(self, process, servername, cellname):
+        pass
+    
+    def setRestart(self, time, servername, cellname, option):
+        pass
+
+    def salvage(self, vid, part, servername, cellname, **kwargs):
+        pass
+    
+    def status(self, process, servername, cellname, **kwargs):
+        pass
+
