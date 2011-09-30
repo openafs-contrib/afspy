@@ -4,7 +4,7 @@ from afs.util.options import define, options
    
 from sqlalchemy     import create_engine
 from sqlalchemy.orm import sessionmaker, mapper
-from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, Text
+from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
 from sqlalchemy     import ForeignKey, UniqueConstraint
 
 def DbMapper(tblList):
@@ -99,7 +99,7 @@ def DbMapper(tblList):
           ) 
     #Mapping Table
     from afs.model.Partition import Partition
-    mapper(Volume,tbl_partition) 
+    mapper(Partition,tbl_partition) 
   
   
     #  Process
