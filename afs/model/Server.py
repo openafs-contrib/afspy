@@ -7,7 +7,7 @@ from afs.model.Process import Process
 
 class Server(BaseModel):
     """
-    Model object of a Fileserver
+    Model object of a server of any type
     """
     
     def __init__(self):

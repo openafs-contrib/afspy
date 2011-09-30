@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
+import sys, os
 from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
 from afs.model.AfsConfig import AfsConfig
+from afs.util.options import define, options
 from afs.service.VolService import VolService
 from afs.model.Token import Token
-from TestConfig import TestConfig
-
 
 class TestVolServiceMethods(unittest.TestCase):
     """
@@ -22,7 +21,7 @@ class TestVolServiceMethods(unittest.TestCase):
         setup token and VolService
         """
         self.TestCfg=ConfigParser()
-        self.TestCfg.read("tests.cfg")
+        self.TestCfg.read(options.setup)
         self.Cell=self.TestCfg.get("general", "Cell")
         self.User=self.TestCfg.get("general", "User")
         self.Pass=self.TestCfg.get("general", "Pass")
@@ -48,8 +47,11 @@ class TestVolServiceMethods(unittest.TestCase):
         self.assertEqual(vol.part, self.Part)
         return
     
-
-
 if __name__ == '__main__' :
+    define("setup", default="./VolServiceTest.cfg", help="path to Testconfig")
+    conf=AfsConfig(fresh=True)
+    if not os.path.exists(options.setup) :
+        sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
+        sys.exit(2)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)
