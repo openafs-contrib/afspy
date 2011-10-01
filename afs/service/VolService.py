@@ -5,33 +5,22 @@ from afs.dao.FileServerDAO import FileServerDAO
 from afs.model.Volume import Volume
 from afs.model.AfsConfig import AfsConfig
 
-
 class VolService (object):
     """
     Provides Service about a Volume management.
     The cellname is set in the methods so that we 
     can use this for more than one cell.
     """
-
-    _CFG    = None
     
-    def __init__(self,token,conf=None):
+    def __init__(self,token,conf):
         self._TOKEN  = token
         self._volDAO = VolumeDAO()
         self._srvDAO = FileServerDAO()
-        
-        # LOAD Configuration from file if exist
-        # FIXME Move in decorator
-        if conf:
-            self._CFG = conf
-        else:
-            self._CFG = AfsConfig("file")
-        
-        # DB INIT    
+        self._CFG = conf
         if self._CFG.DB_CACHE:
-            from afs.orm.DbMapper import DbMapper
-            self.DbSession     = DbMapper(['Volume'])
-
+            import sqlalchemy.orm
+            self.DbSession= sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
+    
     ###############################################
     # Volume Section
     ###############################################    
@@ -44,9 +33,21 @@ class VolService (object):
         if kwargs.get("cellname"):
             cellname = kwargs.get("cellname")
     
-        vol = Volume()
         #ALWAYS REAL DATA on single volume    
-        self._volDAO.getVolume(id, vol, cellname, self._TOKEN)
+        vol=self._volDAO.getVolume(id,cellname, self._TOKEN)
+        
+        #STORE info into  CACHE
+        if self._CFG.DB_CACHE:
+            import sqlalchemy.orm
+            session=self.DbSession()
+            # update by simple delete and re-add
+            session.query(Volume.vid, Volume.serv, Volume.part).filter(Volume.vid == vol.vid).filter(Volume.serv == vol.serv).filter(Volume.part == vol.part).delete()
+            session.add(vol)
+            session.commit()
+            session.refresh(vol)
+            session.close()
+            # detach vol-object from the session
+            sqlalchemy.orm.session.make_transient(vol)
         return vol
     
     """
@@ -58,17 +59,21 @@ class VolService (object):
         if kwargs.get("cellname"):
             cellname = kwargs.get("cellname")
     
-        vol = Volume()
         #ALWAYS REAL DATA on single volume  
-        self._volDAO.getVolume(name, vol, cellname, self._TOKEN)
+        vol=self._volDAO.getVolume(name, cellname, self._TOKEN)
         
         #STORE info into  CACHE
         if self._CFG.DB_CACHE:
-            session = self.DbSession()
-            # Do update
-            
+            import sqlalchemy.orm
+            session  = self.DbSession()
+            # update by simple delete and re-add
+            session.query(Volume.vid, Volume.serv, Volume.part).filter(Volume.vid == vol.vid).filter(Volume.serv == vol.serv).filter(Volume.part == vol.part).delete()
+            session.add(vol)
+            session.commit()
+            session.refresh(vol)
             session.close()
-          
+            # detach vol-object from the session
+            sqlalchemy.orm.session.make_transient(vol)
         return  vol
     
     """

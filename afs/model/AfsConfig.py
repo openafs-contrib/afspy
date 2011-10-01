@@ -1,6 +1,7 @@
 import sys, os
 import afs.util.options
 from afs.util.options import define, options
+import afs.orm.DbMapper    
 
 
 def setupOptions():
@@ -8,7 +9,6 @@ def setupOptions():
     setup all available options
     """
     define("conf", default="",help="path to configuration file")
-    import afs.orm.DbMapper    
     afs.orm.DbMapper.setupOptions() 
     return
 
@@ -42,7 +42,21 @@ class AfsConfig(object):
             # 5. reparse command line to give it the highest priority
             afs.util.options.parse_command_line()
             # setup DB_CACHE if required
-            self.DB_CACHE = eval(options.DB_CACHE)
+            try: 
+                self.DB_CACHE = eval(options.DB_CACHE)
+            except:
+                self.DB_CACHE = False
+                
+            if self. DB_CACHE :
+                self.DB_TYPE=options.DB_TYPE
+                self.DB_DEBUG=eval(options.DB_DEBUG)
+                self.DB_SID=options.DB_SID
+                self.DB_HOST=options.DB_HOST
+                self.DB_PORT=options.DB_PORT
+                self.DB_USER=options.DB_USER
+                self.DB_PASSWD=options.DB_PASSWD
+                self.DB_ENGINE=afs.orm.DbMapper.createDbEngine(self)
+                afs.orm.DbMapper.setupDbMappers(self)
         return
     
     def load(self, conf_file):
@@ -52,5 +66,4 @@ class AfsConfig(object):
             print "Error: " , sys.exc_info()[1]
             sys.exit()
         except:
-            return       
-        
+            return

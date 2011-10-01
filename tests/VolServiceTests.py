@@ -11,11 +11,15 @@ from afs.util.options import define, options
 from afs.service.VolService import VolService
 from afs.model.Token import Token
 
+global conf
+conf=None
+
+
 class TestVolServiceMethods(unittest.TestCase):
     """
     Tests VolService Methods
     """
-        
+    
     def setUp(self):
         """
         setup token and VolService
@@ -26,11 +30,14 @@ class TestVolServiceMethods(unittest.TestCase):
         self.User=self.TestCfg.get("general", "User")
         self.Pass=self.TestCfg.get("general", "Pass")
         token = Token(self.User, self.Pass, self.Cell)
-        self.volMng = VolService(token)
-        self.VolID=self.TestCfg.get("VolService", "VolID")
+        self.volMng = VolService(token, conf=conf)
+        self.VolID=int(self.TestCfg.get("VolService", "VolID"))
         self.VolName=self.TestCfg.get("VolService", "VolName")
         self.FS=self.TestCfg.get("VolService", "FS")
         self.Part=self.TestCfg.get("VolService", "Part")
+        if conf.DB_CACHE :
+            from sqlalchemy.orm import sessionmaker
+            self.DbSession= sessionmaker(bind=conf.DB_ENGINE)
         return
     
     def test_getVolbyName(self) :
@@ -48,7 +55,7 @@ class TestVolServiceMethods(unittest.TestCase):
         return
     
 if __name__ == '__main__' :
-    define("setup", default="./VolServiceTest.cfg", help="path to Testconfig")
+    define("setup", default="./VolServiceTest_RZG.cfg", help="path to Testconfig")
     conf=AfsConfig(fresh=True)
     if not os.path.exists(options.setup) :
         sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)

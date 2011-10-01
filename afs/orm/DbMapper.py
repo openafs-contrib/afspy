@@ -3,10 +3,9 @@ import afs.util.options
 from afs.util.options import define, options
    
 from sqlalchemy     import create_engine
-from sqlalchemy.orm import sessionmaker, mapper
+from sqlalchemy.orm import mapper
 from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
 from sqlalchemy     import ForeignKey, UniqueConstraint
-
 
 def setupOptions():
     """
@@ -22,35 +21,29 @@ def setupOptions():
     define("DB_USER", default="", help="")
     define("DB_PASSWD" , default="", help="")
 
-
-def DbMapper(tblList):
-    
+def createDbEngine(conf):
+    """
+    using conf, setup the core DB-engine
+    and return it.
+    The returned engine must be incorporated in the 
+    used AfsConfig object
+    """
     # Option definition
     ###########################################
     driver = ""
     
     # Connection
     ###########################################
-   
-    debug = eval(options.DB_DEBUG)
     engine = 0
-     
-    if options.DB_TYPE == "mysql":
-        host   = options.DB_HOST
-        port   = options.DB_PORT 
-        sid    = options.DB_SID
-        user   = options.DB_USER 
-        passwd = options.DB_PASSWD
-        
-        if options.DB_TYPE == "mysql":
-            driver = 'mysql://%s:%s@%s:%s/%s' % (user, passwd, host, port, sid)
-        else:
-            driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (user, passwd, host, port, sid)
+    if conf.DB_TYPE == "mysql":
+        driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (conf.DB_USER,  conf.DB_PASSWD,conf.DB_HOST, conf.DB_PORT, conf.DB_SID)
         engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=debug)         
     elif options.DB_TYPE == "sqlite":    
         driver = 'sqlite:///'+options.DB_SID
-        engine = create_engine(driver, echo=debug)
-        
+        engine = create_engine(driver, echo=conf.DB_DEBUG)
+    return engine
+
+def setupDbMappers(conf):
     metadata = MetaData()
    
     # Scheduler
@@ -204,7 +197,7 @@ def DbMapper(tblList):
     mapper(VolumeExtra,tbl_volume_extra) 
     
     try  :
-        metadata.create_all(engine) 
+        metadata.create_all(conf.DB_ENGINE) 
     except :
         sys.stderr.write("Cannot connect to %s-Database.\n" % options.DB_TYPE)
         if options.DB_TYPE == "mysql":
@@ -212,6 +205,5 @@ def DbMapper(tblList):
         elif options.DB_TYPE == "sqlite":
             sys.stderr.write("Is the path \"%s\" to the sqlite-DB accessible ?\n" % options.DB_SID)
         sys.exit(1)
-           
-        
-    return sessionmaker(bind=engine)
+    return
+    
