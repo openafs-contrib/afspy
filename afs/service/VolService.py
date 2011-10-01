@@ -68,7 +68,7 @@ class VolService (object):
     
     
     """
-    Retrieve Volume Information by Name
+    Retrieve Volume Information by Name or ID
     """
     def getVolume(self, name, serv, part, **kwargs):
         cellname = self._TOKEN._CELL_NAME
@@ -77,15 +77,15 @@ class VolService (object):
             cellname = kwargs.get("cellname")
     
         #ALWAYS REAL DATA on single volume  
-        vol = Volume()
-        rc, err = self._volDAO.getVolume(name, serv, part, vol, cellname, self._TOKEN)
+
+        rc, vol_or_err = self._volDAO.getVolume(name, serv, part, vol, cellname, self._TOKEN)
         
         if  rc != 0:
-            raise VolumeError('Not Found:'+err)
+            raise VolumeError('Not Found:'+vol_or_err)
         
-        self._setIntoCache(vol)
+        self._setIntoCache(vol_or_err)
        
-        return  vol
+        return  vol_or_err
     
     """
     Retrieve Volume extended information

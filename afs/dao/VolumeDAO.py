@@ -167,7 +167,7 @@ class VolumeDAO(object) :
         return 0,outerr,volList
        
 
-    def getVolume(self, vid, serv, part, vol, cellname, token,  dryrun=0, lethal=1) :
+    def getVolume(self, vid, serv, part,cellname, token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
@@ -180,14 +180,15 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc :
             return rc,outerr
-
+        
         line_no = 0
         line = output[line_no]
        
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
             return 1, ["Vol with ID %s not existant" % (vid)]
-            
+       
+        vol=Volume()     
         # first line gives Name, ID, Type, Used and Status 
         find = False    
          
@@ -263,9 +264,10 @@ class VolumeDAO(object) :
         
         if find:
             rc = 0
+            return rc,vol
         else:
             rc = 1      
-        return rc, "Not Found"
+            return rc, "Not Found"
 
 
    
