@@ -26,8 +26,10 @@ class VolService (object):
             self._CFG = AfsConfig(True)
         
         # DB INIT    
-        self._CFG = conf
-    
+        if self._CFG.DB_CACHE :
+            import sqlalchemy.orm
+            self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
+
     ###############################################
     # Volume Section
     ###############################################    
