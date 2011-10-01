@@ -78,7 +78,7 @@ class VolService (object):
     
         #ALWAYS REAL DATA on single volume  
 
-        rc, vol_or_err = self._volDAO.getVolume(name, serv, part, vol, cellname, self._TOKEN)
+        rc, vol_or_err = self._volDAO.getVolume(name, serv, part, cellname, self._TOKEN)
         
         if  rc != 0:
             raise VolumeError('Not Found:'+vol_or_err)
