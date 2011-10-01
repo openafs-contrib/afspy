@@ -23,7 +23,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
 
     def release(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
@@ -31,7 +31,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
     
 
     def setBlockQuota(self,ID, BlockQuota, cellname, token,dryrun=0,lethal=1) :
@@ -40,7 +40,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
         
     def lock(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
@@ -48,7 +48,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
     
     def unlock(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
@@ -56,7 +56,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
 
     
     def sync(self,ID, cellname, token,dryrun=0,lethal=1) :
@@ -65,7 +65,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "syncvldb","-volume" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
     
     def dump(self,ID, DumpFile,cellname, token,dryrun=0,lethal=1) :
         """
@@ -81,7 +81,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
     
     def convert(self,VolName,Server,Partition,cellname, token,dryrun=0,lethal=1) :
         """
@@ -89,7 +89,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
 
     def create(self,VolName,Server,Partition,MaxQuota, cellname, token,dryrun=0,lethal=1) :
         """
@@ -97,7 +97,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        return rc,output,outerr
+        return rc,outerr
 
     def addsite(self,VolName,DstServer,DstPartition,cellname, token,dryrun=0,lethal=1) :
         """
@@ -105,7 +105,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
-        return rc,output,outerr
+        return rc,outerr
     
     def remove(self,VolName,Server, Partition, cellname, token,dryrun=1,lethal=1) :
         """
@@ -113,83 +113,159 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
-        return rc,output,outerr
-
-    def getVolume(self, ID, cellname,token,  dryrun=0, lethal=1) :
+        return rc,outerr
+    
+    
+    def getVolGroup(self, vid, cellname, token, dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
-        vol=Volume()
-        if ID : 
-            CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % ID , "-format","-cell", "%s" %  cellname]
+        if vid : 
+             CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % vid , "-format","-cell", "%s" %  cellname]
         else :
-            raise AttributeError,"Neither Volume Name or ID known"
+            return 1 ,"Neither Volume Name or ID known"
+        
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
+       
         if rc :
-            return rc,output,outerr
+            return rc,outerr
 
         line_no = 0
         line = output[line_no]
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
-            return 1, [""], ["Vol with ID %s not existant" % (ID)]
+            return 1, ["Vol with ID %s not existant" % (vid)]
             
-        # first line gives Name, ID, Type, Used and Status      
+        # first line gives Name, ID, Type, Used and Status  
+        volList = {"RW": [], "RO": [] }
+        roID = 0
+        rwId = 0
+        numSite = 0
+        numServer = 0
         for line in output:
             splits = line.split()
-            if splits[0] == "name":
-                vol.name = splits[1]
-            elif splits[0] == "id":
-                vol.vid = int(splits[1])
-            elif splits[0] == "serv" :
-                vol.serv = splits[1]
-            elif splits[0] == "part":
-                vol.part = afsutil.canonicalizePartition(splits[1])
-            elif splits[0] =="parentID":
-                vol.parentID = int(splits[1])
-            elif splits[0] == "backupID":
-                vol.backupID = splits[1]
-            elif splits[0] =="cloneID":
-                vol.cloneID = int(splits[1])
-            elif splits[0] =="inUse":
-                vol.inUse = splits[1]
-            elif splits[0] =="needsSalvaged":
-                vol.needsSalvaged = splits[1]
-            elif splits[0] == "destroyMe":
-                vol.destroyMe = splits[1]
-            elif splits[0] == "type":
-                vol.type = splits[1]
-            elif splits[0] == "creationDate":
-                vol.creationDate = datetime.fromtimestamp(long(splits[1])) 
-            elif splits[0] == "updateDate":
-                vol.updateDate = datetime.fromtimestamp(long(splits[1]))
-            elif splits[0] == "backupDate":
-                vol.backupDate = datetime.fromtimestamp(long(splits[1]))
-            elif splits[0] == "copyDate":
-                vol.copyDate = datetime.fromtimestamp(long(splits[1]))
-            elif splits[0] =="flags":
-                vol.flags = splits[1] 
-            elif splits[0] == "diskused":
-                vol.diskused = splits[1]
-            elif splits[0] == "maxquota":
-                vol.maxquota = splits[1]  
-            elif splits[0] == "minquota":
-                vol.minquota = splits[1]
-            elif splits[0] == "status":
-                vol.status = splits[1]  
-            elif splits[0] == "filecount":
-                vol.filecount = splits[1]   
-            elif splits[0] == "dayUse":
-                vol.dayUse = splits[1]    
-            elif splits[0] == "weekUse":
-                vol.weekUse = splits[1] 
-            elif splits[0] == "spare2":
-                vol.spare2 = splits[1] 
-            elif splits[0] == "spare3":
-                vol.spare3 = splits[1]     
+            #search server list section
+            if splits[0] == "RWrite:":
+                rwID = splits[1]
+                roID = splits[3]
+            
+            if splits[0] == "number":  
+                numSite =  splits[4] 
                 
-        return vol
+            # 1 = server, 3 = partitions, 4 type
+            if splits[0] == "server":
+                numServer = numServer +1
+                if splits[4] =="RW":                  
+                    volList["RW"].append({"id":rwID,"serv":splits[1],"part":splits[3]})
+                else:
+                    volList["RO"].append({"id":roID,"serv":splits[1],"part":splits[3]})
+                
+                if numSite == numServer:
+                    break
+          
+        return 0,outerr,volList
+       
+
+    def getVolume(self, vid, serv, part, vol, cellname, token,  dryrun=0, lethal=1) :
+        """
+        update entry via vos examine from vol-server. 
+        If Name is given, it takes precedence over ID
+        """
+        if vid : 
+             CmdList = [afs.dao.bin.VOSBIN,"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  cellname]
+        else :
+            return 1 ,"Neither Volume Name or ID known"
+        
+        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
+        if rc :
+            return rc,outerr
+
+        line_no = 0
+        line = output[line_no]
+       
+        if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
+            or re.search("does not exist in VLDB",line) :
+            return 1, ["Vol with ID %s not existant" % (vid)]
+            
+        # first line gives Name, ID, Type, Used and Status 
+        find = False    
+         
+        for i in range(0, len(output)):
+            splits = output[i].split()
+            #Beginnig block
+            if splits[0] == "BEGIN_OF_ENTRY":
+                line1 = output[i+1].split()
+                line2 = output[i+2].split()
+                line3 = output[i+3].split()
+                line4 = output[i+4].split()
+                if ((line1[1] == vid or\
+                     line2[1] == vid ) and \
+                     (line3[1] == serv or\
+                      line3[2] == serv) and\
+                      (line4[1] == part)):
+
+                    find = True
+                    splits = output[i+1].split()
+                    vol.name     = splits[1]
+                    splits = output[i+2].split()
+                    vol.vid      = splits[1]
+                    splits = output[i+3].split()
+                    vol.serv     = splits[1]
+                    splits = output[i+4].split()
+                    vol.part     = splits[1]
+                    splits = output[i+5].split()
+                    vol.status     = splits[1]
+                    splits = output[i+6].split()
+                    vol.backupID = splits[1]
+                    splits = output[i+7].split()
+                    vol.parentID = splits[1]
+                    splits = output[i+8].split()
+                    vol.cloneID  = splits[1]
+                    splits = output[i+9].split()
+                    vol.inUse    = splits[1]
+                    splits = output[i+10].split()
+                    vol.needsSalvaged = splits[1]
+                    splits = output[i+11].split()
+                    vol.destroyMe     = splits[1]
+                    splits = output[i+12].split()
+                    vol.type          = splits[1]
+                    splits = output[i+13].split()
+                    vol.creationDate  =  datetime.fromtimestamp(float(splits[1]))
+                    splits = output[i+14].split()
+                    vol.updateDate    = datetime.fromtimestamp(float(splits[1]))
+                    splits = output[i+15].split()
+                    vol.backupDate     = datetime.fromtimestamp(float(splits[1]))
+                    splits = output[i+16].split()
+                    vol.copyDate      = datetime.fromtimestamp(float(splits[1]))
+                    splits = output[i+17].split()
+                    vol.flags         = splits[1]
+                    splits = output[i+18].split()
+                    vol.diskused      = splits[1]
+                    splits = output[i+19].split()
+                    vol.maxquota      = splits[1]
+                    splits = output[i+20].split()
+                    vol.minquota      = splits[1]
+                    splits = output[i+21].split()
+                    vol.filecount     = splits[1]
+                    splits = output[i+22].split()
+                    vol.dayUse        = splits[1]
+                    splits = output[i+23].split()
+                    vol.weekUse       = splits[1]
+                    splits = output[i+24].split()
+                    vol.spare2        = splits[1]
+                    splits = output[i+25].split()
+                    vol.spare3        = splits[1]
+                    splits = output[i+26].split()
+                    break
+                else:
+                    i = i+26
+        
+        if find:
+            rc = 0
+        else:
+            rc = 1      
+        return rc, "Not Found"
 
 
    

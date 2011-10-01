@@ -25,22 +25,26 @@ class AfsConfig(object):
     DB_CACHE = "False"
     
     def __init__(self,fresh=False):
+        define("DB_CACHE",  default="False", help="Flag")
+        
         if fresh:
-            # 1. load system-wide config /etc/sysconfig/afspy
-            if os.path.exists(self.BASE_CFG_FILE) :
-                self.load(self.BASE_CFG_FILE)
-            # 2. load personal config $HOME/.config/afspy
             HOME=os.environ.get("HOME","")
-            if HOME :
-                if os.path.exists("%s/.config/afspy") :
-                    self.load("%s/.config/afspy")
-            # 4. parse command line to get config-file
-            afs.util.options.parse_command_line()
-            # 5. load config-file given on command line
+            #LOCAL
             if options.conf :
                 self.load(options.conf)
-            # 5. reparse command line to give it the highest priority
+            elif os.path.exists("./afspy.cfg") :
+                 self.load("./afspy.cfg")
+            # load personal config $HOME/.config/afspy  
+            elif HOME :
+                if os.path.exists("%s/.config/afspy.cfg") :
+                    self.load("%s/.config/afspy.cfg")
+            # 1. load system-wide config /etc/sysconfig/afspy
+            elif os.path.exists(self.BASE_CFG_FILE) :
+                self.load(self.BASE_CFG_FILE)
+            
+            # Overwrite from commandline
             afs.util.options.parse_command_line()
+            
             # setup DB_CACHE if required
             try: 
                 self.DB_CACHE = eval(options.DB_CACHE)

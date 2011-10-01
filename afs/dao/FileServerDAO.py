@@ -1,7 +1,7 @@
 import re,string,os,sys
 import afs.dao.bin
 
-from afs.model.FileServer import FileServer
+from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil
 

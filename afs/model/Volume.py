@@ -14,7 +14,7 @@ class Volume(BaseModel) :
         initializes to an empty Volume
         """
         ##Name of the Volume in the VLDB
-        self.id       = ''
+        
         self.name     = ''
         ##numerical ID of the Volume
         self.vid      = -1
@@ -31,10 +31,10 @@ class Volume(BaseModel) :
         self.needsSalvaged = "N"
         self.destroyMe     = "N"
         self.type          = "RW"
-        self.creationDate  = 0 
-        self.updateDate    = 0
-        self.backupDate    = 0 
-        self.copyDate = 0
+        self.creationDate  = datetime.fromtimestamp(0)
+        self.updateDate    = datetime.fromtimestamp(0)
+        self.backupDate    = datetime.fromtimestamp(0)
+        self.copyDate      = datetime.fromtimestamp(0)
         self.flags    = 0
         self.diskused = 0
         self.maxquota = 0 

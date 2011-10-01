@@ -11,7 +11,6 @@ def setupOptions():
     """
     Only to be called from AfsConfig
     """
-    define("DB_CACHE",  default="False", help="Flag")
     define("DB_DEBUG", default="False", help="")
     define("DB_SID" , default="db/afspy", help="")
     define("DB_TYPE" , default="sqlite", help="")
