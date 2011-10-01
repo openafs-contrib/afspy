@@ -5,33 +5,12 @@ from afs.model.FileServer import FileServer
 from afs.model.Partition import Partition
 from afs.util import afsutil
 
-
 class FileServerDAO() :
         """
-        Provides Information about a FileServer
+        low level access to a  FileServer
         """
         def __init__(self) :
             pass
-        
-        def getServer(self,servername,cellname):
-            """
-            List of Servers
-            """
-            
-            CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host","%s" % servername, "-printuuid", "-cell","%s" % cellname ]
-            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
-            if rc :
-                return rc,output,outerr
-           
-            server = FileServer()
-            for i in range (0,len(output)) :
-                if output[i].startswith("UUID:"):
-                    splits = output[i].split()
-                    server.uuid = splits[1]
-                    i = i +1
-                    server.name = output[i]                                   
-                    
-            return server
         
         def getServerList(self, cellname):
             """
