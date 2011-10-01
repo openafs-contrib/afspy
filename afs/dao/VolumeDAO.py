@@ -122,7 +122,7 @@ class VolumeDAO(object) :
         """
         vol=Volume()
         if ID : 
-             CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % ID , "-format","-cell", "%s" %  cellname]
+            CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % ID , "-format","-cell", "%s" %  cellname]
         else :
             raise AttributeError,"Neither Volume Name or ID known"
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
@@ -141,17 +141,17 @@ class VolumeDAO(object) :
             if splits[0] == "name":
                 vol.name = splits[1]
             elif splits[0] == "id":
-                vol.vid = splits[1]
+                vol.vid = int(splits[1])
             elif splits[0] == "serv" :
                 vol.serv = splits[1]
             elif splits[0] == "part":
                 vol.part = afsutil.canonicalizePartition(splits[1])
             elif splits[0] =="parentID":
-                vol.parentID = splits[1]
+                vol.parentID = int(splits[1])
             elif splits[0] == "backupID":
                 vol.backupID = splits[1]
             elif splits[0] =="cloneID":
-                vol.cloneID = splits[1]
+                vol.cloneID = int(splits[1])
             elif splits[0] =="inUse":
                 vol.inUse = splits[1]
             elif splits[0] =="needsSalvaged":
