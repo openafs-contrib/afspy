@@ -115,11 +115,12 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         return rc,output,outerr
 
-    def getVolume(self, ID, vol, cellname,token,  dryrun=0, lethal=1) :
+    def getVolume(self, ID, cellname,token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
+        vol=Volume()
         if ID : 
              CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % ID , "-format","-cell", "%s" %  cellname]
         else :
@@ -188,7 +189,7 @@ class VolumeDAO(object) :
             elif splits[0] == "spare3":
                 vol.spare3 = splits[1]     
                 
-        return
+        return vol
 
 
    
