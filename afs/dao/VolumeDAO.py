@@ -167,7 +167,7 @@ class VolumeDAO(object) :
         return 0,outerr,volList
        
 
-    def getVolume(self, vid, serv, part,cellname, token,  dryrun=0, lethal=1) :
+    def getVolume(self, vid, serv, part, vol, cellname, token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
@@ -188,10 +188,9 @@ class VolumeDAO(object) :
             or re.search("does not exist in VLDB",line) :
             return 1, ["Vol with ID %s not existant" % (vid)]
        
-        vol=Volume()     
         # first line gives Name, ID, Type, Used and Status 
         find = False    
-         
+        
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -200,8 +199,8 @@ class VolumeDAO(object) :
                 line2 = output[i+2].split()
                 line3 = output[i+3].split()
                 line4 = output[i+4].split()
-                if ((line1[1] == vid or\
-                     line2[1] == vid ) and \
+                if ((line1[1] == str(vid) or\
+                     line2[1] == str(vid) ) and \
                      (line3[1] == serv or\
                       line3[2] == serv) and\
                       (line4[1] == part)):
@@ -264,7 +263,7 @@ class VolumeDAO(object) :
         
         if find:
             rc = 0
-            return rc,vol
+            return rc
         else:
             rc = 1      
             return rc, "Not Found"
