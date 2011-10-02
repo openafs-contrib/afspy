@@ -2,10 +2,6 @@ import sys
 import afs.util.options
 from afs.util.options import define, options
    
-from sqlalchemy     import create_engine
-from sqlalchemy.orm import mapper
-from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
-from sqlalchemy     import ForeignKey, UniqueConstraint
 
 def setupOptions():
     """
@@ -27,6 +23,7 @@ def createDbEngine(conf):
     The returned engine must be incorporated in the 
     used AfsConfig object
     """
+    from sqlalchemy     import create_engine
     # Option definition
     ###########################################
     driver = ""
@@ -43,6 +40,9 @@ def createDbEngine(conf):
     return engine
 
 def setupDbMappers(conf):
+    from sqlalchemy.orm import mapper
+    from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
+    from sqlalchemy     import ForeignKey, UniqueConstraint
     metadata = MetaData()
    
     # Scheduler
