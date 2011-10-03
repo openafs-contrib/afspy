@@ -16,6 +16,11 @@ class BaseModel(object):
         return res
     
     
+    def setValues(self,list):      
+        for key, value in list.iteritems():
+            setattr(self,key,value)
+    
+    
     def getDict(self):
         """
         Get a dictionary representation of the model object
@@ -24,5 +29,9 @@ class BaseModel(object):
         for attr, value in self.__dict__.iteritems():
              if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType:
                 res.append(attr, value)
+             elif isinstance(attr, datetime.datetime):
+                 pass
+             
         return res
         
+    

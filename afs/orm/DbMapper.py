@@ -51,7 +51,7 @@ def setupDbMappers(conf):
     #  Servers
     ##################################################
     tbl_server = Table('tbl_server', metadata,
-          Column('id'           , String(255), primary_key=True),
+          Column('id'           , Integer, primary_key=True),
           Column('uuid'         , String(255), index=True),
           Column('afsip'        , String(15),  index=True),
           Column('serv'         , String(255)),
@@ -66,7 +66,8 @@ def setupDbMappers(conf):
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer )
+          Column('sync'         , Integer ),
+          sqlite_autoincrement=True
           )
     #Mapping Table
     from afs.model.Server import Server
@@ -75,7 +76,7 @@ def setupDbMappers(conf):
     #  Partition
     ##################################################
     tbl_partition = Table('tbl_partition', metadata,
-          Column('id'           , String(18), primary_key=True),
+          Column('id'           , Integer, primary_key=True),
           Column('serv'         , String(255), index=True),
           Column('part'         , String(2)),
           Column('device'       , String(255)),
@@ -89,7 +90,8 @@ def setupDbMappers(conf):
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer )
+          Column('sync'         , Integer ),
+          sqlite_autoincrement=True
           ) 
     #Mapping Table
     from afs.model.Partition import Partition
@@ -99,7 +101,7 @@ def setupDbMappers(conf):
     #  Process
     ##################################################
     tbl_process = Table('tbl_process', metadata,
-          Column('id'           , String(32), primary_key=True),
+          Column('id'           , Integer, primary_key=True),
           Column('name'         , String(2)),
           Column('status'       , String(2)),
           Column('startdate'    , String(255)),
@@ -115,7 +117,8 @@ def setupDbMappers(conf):
           Column('errorexitcode' , String(255) ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer )
+          Column('sync'         , Integer ),
+          sqlite_autoincrement=True
           ) 
     #Mapping Table
     from afs.model.Process import Process
@@ -124,11 +127,11 @@ def setupDbMappers(conf):
     #  Volume
     ##################################################
     tbl_volume = Table('tbl_volume', metadata,
-          Column('id'           , String(32), primary_key=True),
-          Column('name'         , String(255), index=True),
-          Column('vid'          , Integer, index=True ),
-          Column('serv'         , String(255)),
-          Column('part'         , String(2)),
+          Column('id'           , Integer, primary_key=True),
+          Column('name'         , String(255),),
+          Column('vid'          , Integer,     index=True ),
+          Column('serv'         , String(255), index=True),
+          Column('part'         , String(2),   index=True),
           Column('parantID'     , Integer ),
           Column('backupID'     , Integer ),
           Column('cloneID'      , Integer ),
@@ -154,6 +157,7 @@ def setupDbMappers(conf):
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
           UniqueConstraint('vid', 'serv', 'part', name='uix_1'),
+          sqlite_autoincrement=True
           )
              
     #Mapping Table
@@ -163,7 +167,7 @@ def setupDbMappers(conf):
     #  Volume OSD Param
     ##################################################
     tbl_volume_osd = Table('tbl_volume_osd', metadata,
-          Column('id'           , String(18), primary_key=True),
+          Column('id'           , Integer, primary_key=True),
           Column('fquota'       , Integer),
           Column('blockfs'      , Integer),
           Column('block_osd_on' , Integer),
@@ -181,7 +185,7 @@ def setupDbMappers(conf):
     #  Volume Ext Param
     ##################################################
     tbl_volume_extra= Table('tbl_volume_extra', metadata,
-          Column('id'           , String(18), primary_key=True),
+          Column('id'           , Integer, primary_key=True),
           Column('mincopy'      , Integer),
           Column('owner'        , String(255)),
           Column('project'        , String(255)),

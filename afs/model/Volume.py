@@ -9,7 +9,7 @@ class Volume(BaseModel) :
     Provides information about AFS-Volumes and methods to change them
     """
     #FIXME param in the call
-    def __init__(self) :
+    def __init__(self, list=None) :
         """
         initializes to an empty Volume
         """
@@ -32,6 +32,7 @@ class Volume(BaseModel) :
         self.destroyMe     = "N"
         self.type          = "RW"
         self.creationDate  = datetime.fromtimestamp(0)
+        self.accessDate    = datetime.fromtimestamp(0)
         self.updateDate    = datetime.fromtimestamp(0)
         self.backupDate    = datetime.fromtimestamp(0)
         self.copyDate      = datetime.fromtimestamp(0)
@@ -49,9 +50,14 @@ class Volume(BaseModel) :
         self.udate   = datetime.now()
         self.sync    = 0
         
-
-
+        if list:
+            self.setValues(list)
+    
+    
+    #@property
+    #  create property for timestamp
+  
     def __repr__(self):
-        return "<Volume('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % (self.id, self.name, self.vid, self.serv,  self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
+        return "<Volume('%s','%s', %s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % ( self.id, self.name, self.vid, self.serv,  self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.accessDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
 
    

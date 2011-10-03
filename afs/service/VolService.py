@@ -42,30 +42,10 @@ class VolService (object):
         if kwargs.get("cellname"):
             cellname = kwargs.get("cellname")
 
-        rc , err, list = self._volDAO.getVolGroup(id, cellname, self._TOKEN );
-        if rc != 0:
-            raise VolumeError('Not Found:'+ err)
-        
+        list = self._volDAO.getVolGroup(id, cellname, self._TOKEN );
+      
         return list 
        
-    
-        #ALWAYS REAL DATA on single volume    
-        vol=self._volDAO.getVolume(id,cellname, self._TOKEN)
-        
-        #STORE info into  CACHE
-        if self._CFG.DB_CACHE:
-            import sqlalchemy.orm
-            session=self.DbSession()
-            # update by simple delete and re-add
-            session.query(Volume.vid, Volume.serv, Volume.part).filter(Volume.vid == vol.vid).filter(Volume.serv == vol.serv).filter(Volume.part == vol.part).delete()
-            session.add(vol)
-            session.commit()
-            session.refresh(vol)
-            session.close()
-            # detach vol-object from the session
-            sqlalchemy.orm.session.make_transient(vol)
-        return vol
-    
     
     """
     Retrieve Volume Information by Name or ID
@@ -76,13 +56,11 @@ class VolService (object):
         if kwargs.get("cellname"):
             cellname = kwargs.get("cellname")
     
-        #ALWAYS REAL DATA on single volume  
-        vol = Volume()
-        rc, err = self._volDAO.getVolume(name, serv, part, vol,cellname, self._TOKEN)
+
+        vdict = self._volDAO.getVolume(name, serv, part, cellname, self._TOKEN)
         
-        if  rc != 0:
-            raise VolumeError('Not Found:'+err)
-        
+        vol = Volume(vdict)
+       
         self._setIntoCache(vol)
        
         return  vol
@@ -116,13 +94,17 @@ class VolService (object):
             return 1, None
         
         session = self.DbSession()
-        session.add(vol)  
+        try :
+            session.add(vol) 
+            session.commit()  
+            session.close()
+ 
+        except:
+            session.rollback()
+        
         print "add"
         
-        session.commit()  
-        session.close()
-        
-        return 0,vol
+        return 
     
     def _delCache(self,vol):
          #STORE info into  CACHE
