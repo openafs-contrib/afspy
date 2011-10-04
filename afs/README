@@ -20,6 +20,32 @@ Of course the application can modify AfsConfig beforehand.
 # FixMe: we could store the default AfsConfig-Object in the module afs
 # and use that if no config-object is given
 
+Contents of the AfsConfig :
+=====================
+
+- Credential to use :
+    """
+    - use present
+    - use keytab from file ...
+    - pagsh; kinit  -k -t  $KRB5CCNAME; aklog ; call child..
+    """
+- Cellname
+- DAO-implementation to use
+- DB-implementation to use.
+
+Policies :
+========
+
+* DAO returns dictionary of list of dicts
+* DAO always raises an execption on error
+* DAO are agnostic of the model.
+* Partitions are used canonicalized only
+* Id are integer. DAO has to convert it.  Same for quota,  number of files access
+* Timestamps are datetime.
+* DAOs are distinguished on the RPC-Level.
+* Services never call another service,  but multiple DAOs
+
+
 DB-Cacheing
 ===========
 
@@ -31,4 +57,10 @@ it just has to create a session and go on with its business.
 
 Any Instance of a Model-Object has to be detached from the sqlalchemy-session, so it 
 can be used as a normal object.
+
+
+
+Names:
+=======
+BNode instead of Process.
 
