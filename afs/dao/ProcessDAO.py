@@ -1,8 +1,6 @@
 import re,string,os,sys
 import afs.dao.bin
 
-from afs.model.FileServer import FileServer
-from afs.model.Partition import Partition
 from afs.util import afsutil
 
 
@@ -27,6 +25,18 @@ class ProcessDAO() :
         binaryRestart=binaryRestartRegEX.match(output[1]).groups()[1]
         return generalRestart, binaryRestart
 
+    def setRestart(self, time, restarttype, servername, cellname):
+        if restarttype == "general" :
+            option = "-general"
+        elif restarttype == "binary" :
+            option = "-newbinary"
+        else :
+             return False
+        CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
+        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
+        if rc :
+            raise Error
+
     def addUser(self, user, servername, cellname):
         pass
     
@@ -48,7 +58,6 @@ class ProcessDAO() :
     def pruneLog(self, type, servername, cellname):
         pass
 
-    
     def runRestart(self, process, servername, cellname):
         pass
     
@@ -62,9 +71,6 @@ class ProcessDAO() :
         pass
     
     def runStop(self, process, servername, cellname):
-        pass
-    
-    def setRestart(self, time, servername, cellname, option):
         pass
 
     def salvage(self, vid, part, servername, cellname, **kwargs):
