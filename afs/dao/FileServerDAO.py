@@ -1,89 +1,54 @@
 import re,string,os,sys
 import afs.dao.bin
-
-from afs.model.Server import Server
-from afs.model.Partition import Partition
 from afs.util import afsutil
 
 class FileServerDAO() :
-        """
-        low level access to a  FileServer
-        """
-        def __init__(self) :
-            pass
-        
-        def getServerList(self, cellname):
-            """
-            List of Servers
-            """
+    """
+    low level access to a  FileServer.
+    ATM this requires a cache-manager, since most of 
+    it is done through an AFS-path
+    """
+    def __init__(self) :
+        pass
             
-            CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
-            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
-            if rc :
-                return rc,output,outerr
-            serverList = []
-            for i in range (0,len(output)) :
-                if output[i].startswith("UUID:"):
-                    server = FileServer()
-                    splits = output[i].split()
-                    server.uuid = splits[1]
-                    i = i +1
-                    server.name = output[i]                 
-                    serverList.append(server)
-                    
-            return serverList
 
-   
-        def getPartList(self,  servername, cellname) :
-            """
-            return attribute Partitions
-            """
-            RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
-            CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % servername, "-cell","%s" % cellname]
-            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
-            if rc :
-                return rc,output,outerr
-            partitions= []
-            for line in output :
-                m=RX.match(line)
-                if not m :
-                    return rc,"Error parsing output %s" % line
-                part = Partition()
-                part.name, part.free, part.total=m.groups()
-                part.name = afsutil.canonicalizePartition(part.name)
-                part.used = long(part.total)-long(part.free)
-                partitions.append(part)
-                
-            return partitions
+    def  makeMountpoint(self, path, target) :
+        return
         
-        def getVolIdList(self, part, server, cell):
-            """
-            return  Volumes in partitions
-            """
-            RX=re.compile("^(\d+)")
-            if part:
-                CmdList=[afs.dao.bin.VOSBIN,"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % cell]
- 
-            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
-            if rc :
-                return rc,output,outerr
-            volIds = {}
-            
-            for line in output :
-                m=RX.match(line)
-                if m :
-                   vid = m.groups()
-                   volIds[vid] = vid 
-                
-            return volIds
+    def removeMountpoint(self, path) :
+        return
         
+    def listMountpoint(self, path):
+        """
+        Return target volume of a mount point
+        """
+        mountpoint=""
+        return mountpoint
         
-        def getServerByName(self, name, cell):
-            pass
+    def getCellByPath(self, path):
+        """
+        Returns the cell to which a file or directory belongs
+        """
+        cellname=""
+        return cellname
         
-        def getServerByUUID(self, uuid, cell):
-            pass
+    def setQuota(self, path):
+        """
+        Set a volume-quota by path
+        """
+        return
         
-        def getServerByIP(self, ip, cell):
-            pass
+    def listQuota(self, path):
+        """
+        list a volume quota by path
+        """
+        quota=-1
+        return quota
+    
+    def returnVolumeByPath(self, path):
+        """
+        Basically a fs examine
+        """
+        volume=""
+        return volume
         

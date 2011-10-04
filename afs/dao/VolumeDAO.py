@@ -10,7 +10,7 @@ from afs.util import afsutil
 
 class VolumeDAO(object) :
     """
-    Provides information about AFS-Volumes and methods to change them
+    Provides Methods to query and modify live AFS-Volumes
     """
     
     def __init__(self) :
@@ -24,7 +24,7 @@ class VolumeDAO(object) :
         CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc:
-             raise VolError("Error", outerr)
+            raise VolError("Error", outerr)
 
     def release(self,ID, cellname, token,dryrun=0,lethal=1) :
         """
@@ -33,9 +33,8 @@ class VolumeDAO(object) :
         CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc:
-             raise VolError("Error", outerr)
+            raise VolError("Error", outerr)
     
-
     def setBlockQuota(self,ID, BlockQuota, cellname, token,dryrun=0,lethal=1) :
         """
         sets Blockquota
@@ -43,35 +42,8 @@ class VolumeDAO(object) :
         CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc:
-             raise VolError("Error", outerr)
+            raise VolError("Error", outerr)
         
-    def lock(self,ID, cellname, token,dryrun=0,lethal=1) :
-        """
-        locks volume in VLDB
-        """
-        CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        if rc:
-             raise VolError("Error", outerr)
-    
-    def unlock(self,ID, cellname, token,dryrun=0,lethal=1) :
-        """
-        unlocks volume in VLDB
-        """
-        CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        if rc:
-             raise VolError("Error", outerr)
-    
-    def sync(self,ID, cellname, token,dryrun=0,lethal=1) :
-        """
-        Sync Volumeinfo on VLDB
-        """
-        CmdList=["vos", "syncvldb","-volume" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
-        if rc:
-             raise VolError("Error", outerr)
-    
     def dump(self,ID, DumpFile,cellname, token,dryrun=0,lethal=1) :
         """
         Dumps a volume into a file
@@ -101,9 +73,8 @@ class VolumeDAO(object) :
 
     def create(self,VolName,Server,Partition,MaxQuota, cellname, token,dryrun=0,lethal=1) :
         """
-        creates this abstract Volume
+        create a Volume
         """
-        #FIXME create
         id = 0
         CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
@@ -111,16 +82,6 @@ class VolumeDAO(object) :
              raise VolError("Error", outerr)
         
         return id
-
-    def addsite(self,VolName,DstServer,DstPartition,cellname, token,dryrun=0,lethal=1) :
-        """
-        creates a RO-Volume on Dst
-        """
-        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
-        if rc:
-             raise VolError("Error", outerr)
-        
     
     def remove(self,VolName,Server, Partition, cellname, token,dryrun=1,lethal=1) :
         """
@@ -130,13 +91,10 @@ class VolumeDAO(object) :
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal) 
         if rc:
              raise VolError("Error", outerr)
-
-    
     
     def getVolGroup(self, vid, cellname, token, dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
-        If Name is given, it takes precedence over ID
         """
         
         CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % vid , "-format","-cell", "%s" %  cellname]
@@ -157,7 +115,7 @@ class VolumeDAO(object) :
         #volList = {"RW": [], "RO": [] }
         
         roID = 0
-        rwId = 0
+        rwID = 0
         numSite = 0
         numServer = 0
         for line in output:
@@ -213,7 +171,6 @@ class VolumeDAO(object) :
         # first line gives Name, ID, Type, Used and Status 
         find = False    
 
-        
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -286,9 +243,7 @@ class VolumeDAO(object) :
                 else:
                     i = i+25
         return vol
-       
-
-
+    
     def getBulkVolumeLoad(self, serv, part,  cellname, token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
@@ -365,6 +320,47 @@ class VolumeDAO(object) :
                     vol['spare3']        = splits[1]
                     volList.append(vol)
                     i = i+26
-                
+              
         return volList
         
+        def getVolIdList(self, part, server, cell):
+            """
+            return  Volumes in partitions
+            """
+            RX=re.compile("^(\d+)")
+            if part:
+                CmdList=[afs.dao.bin.VOSBIN,"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % cell]
+ 
+            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
+            if rc :
+                return rc,output,outerr
+            volIds = {}
+            
+            for line in output :
+                m=RX.match(line)
+                if m :
+                   vid = m.groups()
+                   volIds[vid] = vid 
+                
+            return volIds
+        
+        def getPartList(self,  servername, cellname) :
+            """
+            return dict of  Partitions
+            """
+            RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
+            CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % servername, "-cell","%s" % cellname]
+            rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
+            if rc :
+                return rc,output,outerr
+            partitions= {}
+            for line in output :
+                m=RX.match(line)
+                if not m :
+                    return rc,"Error parsing output %s" % line
+                part={}
+                name, free, total=m.groups()
+                name = afsutil.canonicalizePartition(name)
+                used = long(total)-long(free)
+                partitions[name] = {"total" : total,  "used" : used,  "free" : free}
+            return partitions
