@@ -28,6 +28,7 @@ class VolService (object):
         # DB INIT    
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm
+            from sqlalchemy import func, or_
             self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
 
     ###############################################
@@ -70,16 +71,49 @@ class VolService (object):
     """
     def getVolExtended(self,id):
         pass
+ 
+ 
+    ################################################
+    #  Cache Query 
+    ################################################
+    def getVolCountByQuery(self,query):
+         if not self._CFG.DB_CACHE:
+            raise VolError('Error, no db Cache defined ',None)
+        
+         query._tbl= "Volume"
+         session = self.DbSession()
+         queryc = query.getQueryCount()
+         count  = eval(queryc)
+         
+         session.close()
+         
+         return count
+         
+ 
+    def getVolByQuery(self,query):
+         if not self._CFG.DB_CACHE:
+            raise VolError('Error, no db Cache defined ',None)
+        
+         query._tbl= "Volume"
+         session = self.DbSession()
+         query  = query.getQuery()
+         res    = eval(query)
+         session.close()
+         
+         return res
+         
+ 
     
     
     ################################################
-    #  Cache Management 
+    #  Internal Cache Management 
     ################################################
+
 
     def _getFromCache(self,id, serv, part):
         #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return 1, None
+            return None
         session = self.DbSession()
         # Do update
         vol = session.query(Volume).filter(Volume.vid == id).filter(Volume.serv == serv).filter(Volume.part == part).first
@@ -91,25 +125,26 @@ class VolService (object):
     def _setIntoCache(self,vol):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return 1, None
+            return None
         
         session = self.DbSession()
-        try :
-            session.add(vol) 
-            session.commit()  
-            session.close()
- 
-        except:
-            session.rollback()
+        volCache = session.query(Volume).filter(Volume.id == vol.id).filter(Volume.serv == vol.serv).filter(Volume.part == vol.part)
         
-        print "add"
+        if volCache:
+            print "updated"
+        else:
+            session.add(vol)   
+            print "add"
+        session.commit()  
+        session.close()
+       
         
         return 
     
     def _delCache(self,vol):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return 1, None
+            return None
         session = self.DbSession()
         # Do update
         session.delete(vol)
@@ -121,9 +156,10 @@ class VolService (object):
     def _updateCache(self,vol):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return 1
+            return None
         
         session = self.DbSession()
+        session.query()
             
         session.commit()
         session.close()

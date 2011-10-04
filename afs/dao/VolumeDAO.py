@@ -333,11 +333,13 @@ class VolumeDAO(object) :
  
             rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
             if rc :
-                return rc,output,outerr
+                 raise VolError("Error", outerr)
             volIds = {}
             
             for line in output :
                 m=RX.match(line)
+                if not m :
+                    raise VolError("Error parsing output" , line)
                 if m :
                    vid = m.groups()
                    volIds[vid] = vid 
@@ -352,12 +354,12 @@ class VolumeDAO(object) :
             CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % servername, "-cell","%s" % cellname]
             rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
             if rc :
-                return rc,output,outerr
+                 raise VolError("Error", outerr)
             partitions= {}
             for line in output :
                 m=RX.match(line)
                 if not m :
-                    return rc,"Error parsing output %s" % line
+                    raise VolError("Error parsing output" , line)
                 part={}
                 name, free, total=m.groups()
                 name = afsutil.canonicalizePartition(name)
