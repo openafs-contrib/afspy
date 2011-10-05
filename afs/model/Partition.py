@@ -11,7 +11,6 @@ class Partition(BaseModel):
         """
         initialize an empty object
         """
-        self.id     = id
         self.serv   = serv
         self.part   = part
         self.device = ''

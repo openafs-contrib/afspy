@@ -4,7 +4,7 @@ from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.FileServerDAO import FileServerDAO
 from afs.model.Volume import Volume
 from afs.model.AfsConfig import AfsConfig
-from afs.model.VolumeError import VolumeError
+from afs.model.VolError import VolError
 from sqlalchemy import func, or_
 from afs.util import afsutil
 
@@ -18,8 +18,7 @@ class VolService (object):
     def __init__(self,token,conf=None):
         self._TOKEN  = token
         self._volDAO = VolumeDAO()
-        self._srvDAO = FileServerDAO()
-        
+               
         # LOAD Configuration from file if exist
         # FIXME Move in decorator
         if conf:
@@ -36,6 +35,7 @@ class VolService (object):
     ###############################################
     # Volume Section
     ###############################################    
+    #FIXME list or object ... no DICT ! 
     """
     Retrieve Volume Group
     """
@@ -62,8 +62,8 @@ class VolService (object):
 
         vdict = self._volDAO.getVolume(name, serv, part, cellname, self._TOKEN)
         
-        vol = Volume(vdict)
-       
+        vol = Volume()
+        vol.setByDict(vdict)
         self._setIntoCache(vol)
        
         return  vol
@@ -117,34 +117,40 @@ class VolService (object):
         list = self._volDAO.getVolList( serv, part, cellname, self._TOKEN)
         #Convert into dictionary
         idVolDict = {}
+        cUpdate = len(list)
         for el in list:
-            idVolDict[el['vid']] = Volume(el)
+            idVolDict[el['vid']] = el
+            
         session = self.DbSession()
+        
         res  = session.query(Volume).filter(or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
         
         flush = 0
-        for el in res:
-            print el
+        for vol in res:
             flush +=1
-            if idVolDict.has_key(el.vid):
-                idVolDict[el.vid].id = el.id
-                session.add(idVolDict[el.vid])
-                del idVolDict[el.vid]
+            if idVolDict.has_key(vol.vid):
+                vol.setByDict(idVolDict[vol.vid])
+                del idVolDict[vol.vid]
             else:     
-                session.delete(idVolDict[el['vid']]) 
+                session.delete(vol) 
             
             if flush > 100:    
                 session.flush() 
         session.flush()
         
+        
         # ADD section 
-        for el in idVolDict.keys():
-            print el
-            session.add(idVolDict[el])    
+        flush = 0
+        for key in idVolDict.keys():
+            flush +=1
+            vol = Volume()
+            vol.setByDict(idVolDict[key])
+            session.add(vol)    
             if flush > 100:    
                 session.flush() 
         session.flush()
         session.commit()
+        return cUpdate
     
     ################################################
     #  Internal Cache Management 
@@ -155,13 +161,14 @@ class VolService (object):
         #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
             return None
+        
+        part = afsutil.canonicalizePartition(part)
         session = self.DbSession()
         # Do update
         vol = session.query(Volume).filter(Volume.vid == id).filter(Volume.serv == serv).filter(Volume.part == part).first
-        
-        session.commit()
+
         session.close()
-        return 0,vol
+        return vol
         
     def _setIntoCache(self,vol):
          #STORE info into  CACHE
@@ -173,8 +180,7 @@ class VolService (object):
        
         
         if volCache:
-            vol.id = volCache.id
-            vol.cdate = volCache.cdate
+            volCache.update(vol)
             session.flush()
         else:
             session.add(vol)   

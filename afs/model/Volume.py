@@ -9,7 +9,7 @@ class Volume(BaseModel) :
     Provides information about AFS-Volumes and methods to change them
     """
     #FIXME param in the call
-    def __init__(self, list=None) :
+    def __init__(self) :
         """
         initializes to an empty Volume
         """
@@ -50,9 +50,7 @@ class Volume(BaseModel) :
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
-        
-        if list:
-            self.setValues(list)
+
     
     
     #@property

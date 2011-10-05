@@ -140,11 +140,11 @@ class VolumeDAO(object) :
                     volGroup[type] = []
                
                 if type =="RW":                 
-                    volGroup["RW"].append({"id":rwID,"serv":splits[1],"part":splits[3]})
+                    volGroup["RW"].append({"id":rwID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
                 elif type =="RO":
-                    volGroup["RO"].append({"id":roID,"serv":splits[1],"part":splits[3]})
+                    volGroup["RO"].append({"id":roID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
                 else:
-                    volGroup["BK"].append({"id":bkID,"serv":splits[1],"part":splits[3]})
+                    volGroup["BK"].append({"id":bkID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
                     
                 if numSite == numServer:
                     break
@@ -196,7 +196,7 @@ class VolumeDAO(object) :
                     splits = output[i+2].split()
                     vol['serv']     = splits[1]
                     if len(splits) > 2:
-                        vol['servname']     = splits[2]
+                        vol['servername']     = splits[2]
                     splits = output[i+3].split()
                     vol['part']     = afsutil.canonicalizePartition(splits[1])
                     splits = output[i+4].split()
@@ -280,7 +280,7 @@ class VolumeDAO(object) :
                     splits = output[i+3].split()
                     vol['serv']     = splits[1]
                     if len(splits) > 2:
-                        vol['servname']     = splits[2]
+                        vol['servername']     = splits[2]
                     splits = output[i+4].split()
                     vol['part']     = afsutil.canonicalizePartition(splits[1])
                     splits = output[i+5].split()
@@ -330,7 +330,7 @@ class VolumeDAO(object) :
               
         return volList
         
-        def getIdVolList(self, part, server, cell):
+    def getIdVolList(self, part, server, cell):
             """
             return  Volumes in partitions
             """
@@ -352,25 +352,29 @@ class VolumeDAO(object) :
                    volIds.append(vid) 
                 
             return volIds
+
         
-        def getPartList(self,  servername, cellname) :
+        
+    def getPartList(self,  serv, cellname) :
             """
             return dict of  Partitions
             """
             RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
-            CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % servername, "-cell","%s" % cellname]
+            CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
             rc,output,outerr=afs.dao.bin.execute(CmdList)
             if rc :
                  raise VolError("Error", outerr)
             
-            partitions= {}
+            partitions= []
             for line in output :
                 m=RX.match(line)
                 if not m :
                     raise VolError("Error parsing output" , line)
 
-                name, free, total=m.groups()
-                name = afsutil.canonicalizePartition(name)
-                used = long(total)-long(free)
-                partitions.append({"name":name,"total" : total,  "used" : used,  "free" : free})
+                part, free, size=m.groups()
+                used = long(size)-long(free)
+                if size != 0:
+                    perc = (used/long(size))*100
+                perc= 0
+                partitions.append({"serv":serv, "part":afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
             return partitions

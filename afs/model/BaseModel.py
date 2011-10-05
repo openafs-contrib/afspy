@@ -16,9 +16,15 @@ class BaseModel(object):
         return res
     
     
-    def setValues(self,list):      
-        for key, value in list.iteritems():
+    def setByDict(self,objByDict):      
+        for key, value in objByDict.iteritems():
             setattr(self,key,value)
+    
+    def update(self,obj):
+        for attr, value in obj.__dict__.iteritems():
+            if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType\
+                or isinstance(attr, datetime.datetime):
+                setattr(self,attr,value)
     
     
     def getDict(self):
@@ -28,9 +34,9 @@ class BaseModel(object):
         res = {}
         for attr, value in self.__dict__.iteritems():
              if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType:
-                res.append(attr, value)
+                res[attr] = value
              elif isinstance(attr, datetime.datetime):
-                 pass
+                res[attr] = value.isoformat('-')
              
         return res
         

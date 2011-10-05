@@ -1,5 +1,6 @@
 import re,string,os,sys
 import afs.dao.bin
+from afs.model.VLDbError import VLDbError
 
 class VLDbDAO() :
     """
@@ -8,24 +9,24 @@ class VLDbDAO() :
     def __init__(self) :
         return
     
-    def getFsServerList(self,servername,cellname):
+    def getFsServerList(self,cellname):
         """
         get Information about a single Server
         """
         
-        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host","%s" % servername, "-printuuid", "-cell","%s" % cellname ]
+        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
-            raise VolError("Error", outerr)
+            raise VLDbError("Error", outerr)
        
-        server = FileServer()
+        servers = []
         for i in range (0,len(output)) :
             if output[i].startswith("UUID:"):
                 splits = output[i].split()
-                server.uuid = splits[1]
+                server['uuid'] = splits[1]
                 i = i +1
-                server.name = output[i]                                   
-        return server
+                server['serv'] = output[i]                            
+        return servers.append(server)
         
     def syncVLDb(self):
         """
@@ -58,7 +59,7 @@ class VLDbDAO() :
         CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList) 
         if rc:
-            raise VolError("Error", outerr)
+            raise VLDbError("Error", outerr)
     
     def remsite(self,VolName,Server,Partition,cellname, token) :
         """
@@ -67,7 +68,7 @@ class VLDbDAO() :
         CmdList=["vos", "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList) 
         if rc:
-            raise VolError("Error", outerr)
+            raise VLDbError("Error", outerr)
         
     def lock(self,ID, cellname, token) :
         """
@@ -76,7 +77,7 @@ class VLDbDAO() :
         CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc:
-            raise VolError("Error", outerr)
+            raise VLDbError("Error", outerr)
     
     def unlock(self,ID, cellname, token) :
         """
@@ -85,5 +86,5 @@ class VLDbDAO() :
         CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc:
-            raise VolError("Error", outerr)
+            raise VLDbError("Error", outerr)
     
