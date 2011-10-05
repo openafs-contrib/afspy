@@ -25,7 +25,7 @@ class VolService (object):
         if conf:
             self._CFG = conf
         else:
-            self._CFG = AfsConfig(True)
+            self._CFG = afs.defaultConfig
         
         # DB INIT    
         if self._CFG.DB_CACHE :
