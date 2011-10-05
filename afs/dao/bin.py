@@ -8,6 +8,7 @@ RXDEBUGBIN="/usr/sbin/rxdebug"
 FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
+TOKENBIN="/usr/bin/tokens"
 
 def execute(CmdList) :
     pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
