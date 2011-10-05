@@ -15,8 +15,8 @@ class VolService (object):
     can use this for more than one cell.
     """
     
-    def __init__(self,token,conf=None):
-        self._TOKEN  = token
+    def __init__(self,conf=None):
+        
         self._volDAO = VolumeDAO()
                
         # LOAD Configuration from file if exist
@@ -39,28 +39,18 @@ class VolService (object):
     """
     Retrieve Volume Group
     """
-    def getVolGroup(self, id,  **kwargs):
-        cellname = self._TOKEN._CELL_NAME
-        
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
-
-        list = self._volDAO.getVolGroup(id, cellname, self._TOKEN );
+    def getVolGroup(self, id ):
+    
+        list = self._volDAO.getVolGroup(id, self._CFG.cellname, self._CFG.token);
       
         return list 
        
-    
     """
     Retrieve Volume Information by Name or ID
     """
-    def getVolume(self, name, serv, part, **kwargs):
-        cellname = self._TOKEN._CELL_NAME
-        
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
-    
+    def getVolume(self, name, serv, part):
 
-        vdict = self._volDAO.getVolume(name, serv, part, cellname, self._TOKEN)
+        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.AFSCell, self._CFG.token)
         
         vol = Volume()
         vol.setByDict(vdict)
@@ -105,16 +95,12 @@ class VolService (object):
          return res
          
  
-    def refreshCache(self, serv, part,**kwargs):
+    def refreshCache(self, serv, part):
         if not self._CFG.DB_CACHE:
             raise VolError('Error, no db Cache defined ',None)
        
-        cellname = self._TOKEN._CELL_NAME
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
-            
         part = afsutil.canonicalizePartition(part)
-        list = self._volDAO.getVolList( serv, part, cellname, self._TOKEN)
+        list = self._volDAO.getVolList( serv, part,  self._CFG.cellname, self._CFG.token)
         #Convert into dictionary
         idVolDict = {}
         cUpdate = len(list)
@@ -187,8 +173,6 @@ class VolService (object):
             
         session.commit()  
         session.close()
-       
-        
         return 
     
     def _delCache(self,vol):
@@ -220,12 +204,3 @@ class VolService (object):
             
         session.commit()  
         session.close()
-       
-            
-    
-
-    
-    
-    
- 
-    
