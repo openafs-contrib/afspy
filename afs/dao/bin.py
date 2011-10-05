@@ -10,9 +10,6 @@ OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
 
 def execute(CmdList) :
-    if dryrun :
-        print "DRYRUN: exec \"%s\"" % (string.join(CmdList))
-        return 0,[],[]
     pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     _output,_outerr=pipo.communicate()
     if pipo.returncode != 0 :
