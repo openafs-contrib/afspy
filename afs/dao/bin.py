@@ -9,13 +9,13 @@ FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
 
-def execute(CmdList,dryrun=0,lethal=1) :
+def execute(CmdList,dryrun=0) :
     if dryrun :
         print "DRYRUN: exec \"%s\"" % (string.join(CmdList))
         return 0,[],[]
     pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     _output,_outerr=pipo.communicate()
-    if pipo.returncode != 0 and lethal :
+    if pipo.returncode != 0 :
         sys.stderr.write("cmd: \"%s\" failed with %d\n" % (string.join(CmdList),pipo.returncode))
         sys.stderr.write("STDERR: %s\n" % _outerr)
         sys.exit(pipo.returncode)

@@ -16,7 +16,7 @@ class ProcessDAO() :
     
     def getRestartTimes(self, servername, cellname):
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
+        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0)
         if rc :
             return rc,output,outerr
         if len(output) != 2 :
@@ -33,7 +33,7 @@ class ProcessDAO() :
         else :
              return False
         CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
+        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0)
         if rc :
             raise Error
 

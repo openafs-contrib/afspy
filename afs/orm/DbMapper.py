@@ -148,7 +148,7 @@ def setupDbMappers(conf):
     ##################################################
     tbl_volume = Table('tbl_volume', metadata,
           Column('id'           , Integer, primary_key=True),
-          Column('name'         , String(255),),
+          Column('name'         , String(255)),
           Column('vid'          , Integer,     index=True ),
           Column('serv'         , String(255), index=True),
           Column('servername'     , String(255), index=True),

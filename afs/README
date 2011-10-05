@@ -58,6 +58,9 @@ it just has to create a session and go on with its business.
 Any Instance of a Model-Object has to be detached from the sqlalchemy-session, so it 
 can be used as a normal object.
 
+LiveCommand Execution
+====================
+Live commands are executed in a separate process.
 
 
 Names:

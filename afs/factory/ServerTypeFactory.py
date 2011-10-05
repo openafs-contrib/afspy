@@ -1,5 +1,3 @@
-
-
 class ServerType(object):
   """
   Provides static information on Server Type values  

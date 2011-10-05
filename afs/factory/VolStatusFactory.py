@@ -1,6 +1,3 @@
-
-      
-      
 class VolStatus(object):
   """
   Provides static information on  Volumes Type values  

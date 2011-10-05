@@ -1,6 +1,3 @@
-
-
-
 class VolType():
     """
     Provides static information on  Volumes Status values 
