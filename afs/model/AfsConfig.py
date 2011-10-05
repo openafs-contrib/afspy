@@ -70,6 +70,7 @@ class AfsConfig(object):
             self.DB_CACHE=False
             self.AFSCell=""
             self.AFSID=-1
+            self.Token=None
         return
     
     def load(self, conf_file):

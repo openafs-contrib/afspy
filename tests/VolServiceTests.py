@@ -9,7 +9,6 @@ sys.path.append("..")
 from afs.model.AfsConfig import AfsConfig, setupDefaultConfig
 from afs.util.options import define, options
 from afs.service.VolService import VolService
-from afs.model.Token import Token
 import afs
 
 class TestVolServiceMethods(unittest.TestCase):
@@ -24,15 +23,15 @@ class TestVolServiceMethods(unittest.TestCase):
         self.TestCfg=ConfigParser()
         self.TestCfg.read(options.setup)
         self.Cell=self.TestCfg.get("general", "Cell")
+        afs.defaultConfig.AFSCell=self.Cell
         self.User=self.TestCfg.get("general", "User")
         self.Pass=self.TestCfg.get("general", "Pass")
-        token = Token(self.User, self.Pass, self.Cell)
-        self.volMng = VolService(token)
+        self.volMng = VolService()
         self.VolID=int(self.TestCfg.get("VolService", "VolID"))
         self.VolName=self.TestCfg.get("VolService", "VolName")
         self.FS=self.TestCfg.get("VolService", "FS")
         self.Part=self.TestCfg.get("VolService", "Part")
-        if  afs.defaultConfig.DB_CACHE :
+        if afs.defaultConfig.DB_CACHE :
             from sqlalchemy.orm import sessionmaker
             self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
         return
@@ -44,9 +43,8 @@ class TestVolServiceMethods(unittest.TestCase):
         self.assertEqual(vol.part, self.Part)
         return
     
-    
 if __name__ == '__main__' :
-    define("setup", default="./VolServiceTest_RZG.cfg", help="path to Testconfig")
+    define("setup", default="./Test.cfg", help="path to Testconfig")
     setupDefaultConfig()
     if not os.path.exists(options.setup) :
         sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)

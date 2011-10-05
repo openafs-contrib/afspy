@@ -50,7 +50,7 @@ class VolService (object):
     """
     def getVolume(self, name, serv, part):
 
-        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.AFSCell, self._CFG.token)
+        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.AFSCell, self._CFG.Token)
         
         vol = Volume()
         vol.setByDict(vdict)
