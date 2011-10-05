@@ -2,7 +2,7 @@
 from afs.factory.ServerTypeFactory import ServerType
 from afs.factory.BNodeTypeFactory import BNodeType
 from afs.model.BaseModel import BaseModel
-from afs.model.Process import Process
+from datetime import datetime
 
 
 class Server(BaseModel):
@@ -14,10 +14,9 @@ class Server(BaseModel):
         """
         initialize an empty object
         """
-        self.id   = ''
         self.serv = ""
         self.uuid = ""
-        self.afsid = ''
+        self.afsip = ''
         self.serv = ""
         self.filserver = 0
         self.dbserver  = 0
@@ -34,4 +33,4 @@ class Server(BaseModel):
 
 
     def __repr__(self):
-        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s')>" % (self.id, self.serv, self.uuid, self.afsid, self.serv, self.filserver, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     
+        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s')>" % (self.id, self.serv, self.uuid, self.afsip, self.serv, self.filserver, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     

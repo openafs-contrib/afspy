@@ -1,5 +1,6 @@
 import re,string,os,sys
 import afs.dao.bin
+
 from afs.model.VLDbError import VLDbError
 
 class VLDbDAO() :
@@ -22,11 +23,13 @@ class VLDbDAO() :
         servers = []
         for i in range (0,len(output)) :
             if output[i].startswith("UUID:"):
+                server = {}
                 splits = output[i].split()
                 server['uuid'] = splits[1]
                 i = i +1
                 server['serv'] = output[i]                            
-        return servers.append(server)
+                servers.append(server)
+        return servers
         
     def syncVLDb(self):
         """

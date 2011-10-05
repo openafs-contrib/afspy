@@ -55,6 +55,7 @@ class CellService(object):
             serv.setByDict(el)
             fsList.append(serv)
             # Cache Stuff
+            self._setServIntoCache(serv)
         return  fsList
           
     """
@@ -75,4 +76,78 @@ class CellService(object):
             part.setByDict(el)
             partList.append(part)
             # Cache Stuff
+            self._setPartIntoCache(part)
         return partList
+    
+    
+    
+    ################################################
+    #  Internal Cache Management 
+    ################################################
+
+
+    def _getPartFromCache(self, serv, part):
+        #STORE info into  CACHE
+        if not self._CFG.DB_CACHE:
+            return None
+        
+        part = afsutil.canonicalizePartition(part)
+        session = self.DbSession()
+        # Do update
+        part = session.query(Partition).filter(Partition.part == part).filter(Partition.serv == serv).first
+
+        session.close()
+        return part
+        
+    def _setPartIntoCache(self,part):
+         #STORE info into  CACHE
+        if not self._CFG.DB_CACHE:
+            return None
+        
+        session = self.DbSession()
+        partCache = session.query(Partition).filter(Partition.part == part.part).filter(Partition.serv == part.serv).first()
+       
+        
+        if partCache:
+            partCache.update(part)
+            session.flush()
+        else:
+            session.add(part)   
+            
+        session.commit()  
+        session.close()
+       
+        
+        return 
+    
+    def _delPartFromCache(self,part):
+         #STORE info into  CACHE
+        if not self._CFG.DB_CACHE:
+            return None
+        session = self.DbSession()
+        # Do update
+        session.delete(part)
+            
+        session.commit()
+        session.close()
+
+
+    def _setServIntoCache(self,serv):
+         #STORE info into  CACHE
+        if not self._CFG.DB_CACHE:
+            return None
+        
+        session = self.DbSession()
+        servCache = session.query(Server).filter(Server.serv == serv.serv).first()
+       
+        
+        if servCache:
+            servCache.update(serv)
+            session.flush()
+        else:
+            session.add(serv)   
+            
+        session.commit()  
+        session.close()
+
+    
