@@ -154,7 +154,7 @@ class VolumeDAO(object) :
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
-        
+        part = afsutil.canonicalizePartition(part)
         CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-format","-cell", "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
         if rc :
@@ -183,7 +183,7 @@ class VolumeDAO(object) :
                      line2[1] == str(vid) ) and \
                      (line3[1] == serv or\
                       line3[2] == serv) and\
-                      (line4[1] == part)):
+                      (afsutil.canonicalizePartition(line4[1]) == part)):
 
                     find = True
                     splits = output[i].split()
@@ -192,8 +192,10 @@ class VolumeDAO(object) :
                     vol['vid']      = splits[1]
                     splits = output[i+2].split()
                     vol['serv']     = splits[1]
+                    if len(splits) > 2:
+                        vol['servname']     = splits[2]
                     splits = output[i+3].split()
-                    vol['part']     = splits[1]
+                    vol['part']     = afsutil.canonicalizePartition(splits[1])
                     splits = output[i+4].split()
                     vol['status']     = splits[1]
                     splits = output[i+5].split()
@@ -244,12 +246,12 @@ class VolumeDAO(object) :
                     i = i+25
         return vol
     
-    def getBulkVolumeLoad(self, serv, part,  cellname, token,  dryrun=0, lethal=1) :
+    def getVolList(self, serv, part,  cellname, token,  dryrun=0, lethal=1) :
         """
         update entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
-         
+        part = afsutil.canonicalizePartition(part)
         CmdList = [afs.dao.bin.VOSBIN,"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  cellname]
         
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
@@ -274,8 +276,10 @@ class VolumeDAO(object) :
                     vol['vid']      = splits[1]
                     splits = output[i+3].split()
                     vol['serv']     = splits[1]
+                    if len(splits) > 2:
+                        vol['servname']     = splits[2]
                     splits = output[i+4].split()
-                    vol['part']     = splits[1]
+                    vol['part']     = afsutil.canonicalizePartition(splits[1])
                     splits = output[i+5].split()
                     vol['status']     = splits[1]
                     splits = output[i+6].split()
@@ -323,13 +327,13 @@ class VolumeDAO(object) :
               
         return volList
         
-        def getVolIdList(self, part, server, cell):
+        def getIdVolList(self, part, server, cell):
             """
             return  Volumes in partitions
             """
+            part = afsutil.canonicalizePartition(part)
             RX=re.compile("^(\d+)")
-            if part:
-                CmdList=[afs.dao.bin.VOSBIN,"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % cell]
+            CmdList=[afs.dao.bin.VOSBIN,"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % cell]
  
             rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
             if rc :
@@ -342,7 +346,7 @@ class VolumeDAO(object) :
                     raise VolError("Error parsing output" , line)
                 if m :
                    vid = m.groups()
-                   volIds[vid] = vid 
+                   volIds.append(vid) 
                 
             return volIds
         
@@ -355,14 +359,15 @@ class VolumeDAO(object) :
             rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
             if rc :
                  raise VolError("Error", outerr)
+            
             partitions= {}
             for line in output :
                 m=RX.match(line)
                 if not m :
                     raise VolError("Error parsing output" , line)
-                part={}
+
                 name, free, total=m.groups()
                 name = afsutil.canonicalizePartition(name)
                 used = long(total)-long(free)
-                partitions[name] = {"total" : total,  "used" : used,  "free" : free}
+                partitions.append({"name":name,"total" : total,  "used" : used,  "free" : free})
             return partitions

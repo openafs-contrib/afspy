@@ -1,7 +1,7 @@
 from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
-class Process(BaseModel):
+class BNode(BaseModel):
     """
     Model object of a process (bnode)
     """
@@ -10,16 +10,10 @@ class Process(BaseModel):
         """
         initialize an empty object
         """
-        self.lastStart=0
-        self.numStarts=0
         self.BNodeType=BNodeType
         # FIXME : what to do with procs of type cron ? Need to check, man pages dont say much
-        self.generalRestartTime=""
-        self.binaryRestartTime=""
-        self.Commands= []
-        
+        self.Commands= []       
         #FIXME create a map for db
-        self.name   = ''
         self.status = ''
         self.startdate = ''
         self.startcount = ''

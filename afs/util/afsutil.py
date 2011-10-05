@@ -30,6 +30,17 @@ def canonicalizePartition(part) :
        partition=MObj.groups()[0] 
    return partition
  
+ 
+def canonicalizeVolume(volname):
+    
+    if volname.endswith(".readonly"):
+        return volname[0:len(volname)-9]
+    
+    if volname.endswith(".backup"):
+         return volname[0:len(volname)-6]
+
+ 
+ 
 if __name__ == "__main__"  :
    print "Some basic methods used for afspy"
    print humanReadableSize(32768*29+2342)

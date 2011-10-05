@@ -100,9 +100,29 @@ def setupDbMappers(conf):
   
     #  Process
     ##################################################
-    tbl_process = Table('tbl_process', metadata,
+    tbl_bos = Table('tbl_bos', metadata,
           Column('id'           , Integer, primary_key=True),
-          Column('name'         , String(2)),
+          Column('serv'         , String(255)),
+          Column('generalRestartTime' , DateTime),
+          Column('binaryRestartTime'  , DateTime),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          Column('sync'         , Integer ),
+          sqlite_autoincrement=True
+          ) 
+    #Mapping Table
+    from afs.model.Bos import Bos
+    mapper(Bos,tbl_bos) 
+  
+  
+  
+  
+    #  Process
+    ##################################################
+    tbl_bnode = Table('tbl_bnode', metadata,
+          Column('id'           , Integer, primary_key=True),
+          Column('bos_id'       , Integer),
+          Column('type'         , String(2)),
           Column('status'       , String(2)),
           Column('startdate'    , String(255)),
           Column('startcount'   , String(255)),
@@ -121,8 +141,8 @@ def setupDbMappers(conf):
           sqlite_autoincrement=True
           ) 
     #Mapping Table
-    from afs.model.Process import Process
-    mapper(Process,tbl_process) 
+    from afs.model.BNode import BNode
+    mapper(BNode,tbl_bnode) 
 
     #  Volume
     ##################################################
@@ -131,6 +151,7 @@ def setupDbMappers(conf):
           Column('name'         , String(255),),
           Column('vid'          , Integer,     index=True ),
           Column('serv'         , String(255), index=True),
+          Column('servername'     , String(255), index=True),
           Column('part'         , String(2),   index=True),
           Column('parantID'     , Integer ),
           Column('backupID'     , Integer ),

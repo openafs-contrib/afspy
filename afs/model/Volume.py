@@ -20,6 +20,7 @@ class Volume(BaseModel) :
         self.vid      = -1
         ## Servername, where this volume is stored
         self.serv     = ""
+        self.servername = ""
         ## Partitionname, where this volume is stored.
         self.part     = ""
         ## numerical ID of  RW Volume
@@ -58,6 +59,6 @@ class Volume(BaseModel) :
     #  create property for timestamp
   
     def __repr__(self):
-        return "<Volume('%s','%s', %s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % ( self.id, self.name, self.vid, self.serv,  self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.accessDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
+        return "<Volume('%s','%s', %s', '%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % ( self.id, self.name, self.vid, self.serv, self.servername, self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.accessDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
 
    

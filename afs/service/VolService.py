@@ -5,6 +5,8 @@ from afs.dao.FileServerDAO import FileServerDAO
 from afs.model.Volume import Volume
 from afs.model.AfsConfig import AfsConfig
 from afs.model.VolumeError import VolumeError
+from sqlalchemy import func, or_
+from afs.util import afsutil
 
 class VolService (object):
     """
@@ -103,7 +105,46 @@ class VolService (object):
          return res
          
  
-    
+    def refreshCache(self, serv, part,**kwargs):
+        if not self._CFG.DB_CACHE:
+            raise VolError('Error, no db Cache defined ',None)
+       
+        cellname = self._TOKEN._CELL_NAME
+        if kwargs.get("cellname"):
+            cellname = kwargs.get("cellname")
+            
+        part = afsutil.canonicalizePartition(part)
+        list = self._volDAO.getVolList( serv, part, cellname, self._TOKEN)
+        #Convert into dictionary
+        idVolDict = {}
+        for el in list:
+            idVolDict[el['vid']] = Volume(el)
+        session = self.DbSession()
+        res  = session.query(Volume).filter(or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
+        
+        flush = 0
+        for el in res:
+            print el
+            flush +=1
+            if idVolDict.has_key(el.vid):
+                idVolDict[el.vid].id = el.id
+                session.add(idVolDict[el.vid])
+                del idVolDict[el.vid]
+            else:     
+                session.delete(idVolDict[el['vid']]) 
+            
+            if flush > 100:    
+                session.flush() 
+        session.flush()
+        
+        # ADD section 
+        for el in idVolDict.keys():
+            print el
+            session.add(idVolDict[el])    
+            if flush > 100:    
+                session.flush() 
+        session.flush()
+        session.commit()
     
     ################################################
     #  Internal Cache Management 
@@ -128,13 +169,16 @@ class VolService (object):
             return None
         
         session = self.DbSession()
-        volCache = session.query(Volume).filter(Volume.id == vol.id).filter(Volume.serv == vol.serv).filter(Volume.part == vol.part)
+        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
+       
         
         if volCache:
-            print "updated"
+            vol.id = volCache.id
+            vol.cdate = volCache.cdate
+            session.flush()
         else:
             session.add(vol)   
-            print "add"
+            
         session.commit()  
         session.close()
        
@@ -152,17 +196,25 @@ class VolService (object):
         session.commit()
         session.close()
     
-    #MERGE ?    
+    #MERGE ?  
+    
+      
     def _updateCache(self,vol):
-         #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
             return None
         
         session = self.DbSession()
-        session.query()
+        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
+       
+        
+        if volCache:
+            vol.id = volCache.id
+            vol.cdate = volCache.cdate
+            session.flush()
             
-        session.commit()
+        session.commit()  
         session.close()
+       
             
     
 

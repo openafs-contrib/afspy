@@ -16,7 +16,7 @@ class VLDbDAO() :
         CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host","%s" % servername, "-printuuid", "-cell","%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0,lethal=1)
         if rc :
-            return rc,output,outerr
+            raise VolError("Error", outerr)
        
         server = FileServer()
         for i in range (0,len(output)) :
