@@ -14,7 +14,7 @@ class VLDbDAO() :
         """
         
         CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host","%s" % servername, "-printuuid", "-cell","%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0)
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
             raise VolError("Error", outerr)
        
@@ -45,45 +45,45 @@ class VLDbDAO() :
         """
         pass
 
-    def setFSaddrs(self, UUID, hostlist, cellname, token,dryrun=0): 
+    def setFSaddrs(self, UUID, hostlist, cellname, token): 
         """
         set the list of IP address for a given UUID in the VLDB
         """
         pass
         
-    def addsite(self,VolName,DstServer,DstPartition,cellname, token,dryrun=0) :
+    def addsite(self,VolName,DstServer,DstPartition,cellname, token) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
         CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun) 
+        rc,output,outerr=afs.dao.bin.execute(CmdList) 
         if rc:
             raise VolError("Error", outerr)
     
-    def remsite(self,VolName,Server,Partition,cellname, token,dryrun=0) :
+    def remsite(self,VolName,Server,Partition,cellname, token) :
         """
         removes entry for a RO-Volume in VLDB
         """
         CmdList=["vos", "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun) 
+        rc,output,outerr=afs.dao.bin.execute(CmdList) 
         if rc:
             raise VolError("Error", outerr)
         
-    def lock(self,ID, cellname, token,dryrun=0) :
+    def lock(self,ID, cellname, token) :
         """
         locks volume in VLDB
         """
         CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun)
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
     
-    def unlock(self,ID, cellname, token,dryrun=0) :
+    def unlock(self,ID, cellname, token) :
         """
         unlocks volume in VLDB
         """
         CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun)
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
     

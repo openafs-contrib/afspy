@@ -14,7 +14,7 @@ class RXPeerDAO():
         
     def getVersionandBuildDate(self, servername, port):
         CmdList=[afs.dao.bin.RXDebugBIN,"-server", "%s"  % servername, "-port", "%s" % port, "-version"]
-        rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=0)
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
             return ""
         if len(output) != 2 :

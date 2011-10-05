@@ -9,7 +9,7 @@ FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
 
-def execute(CmdList,dryrun=0) :
+def execute(CmdList) :
     if dryrun :
         print "DRYRUN: exec \"%s\"" % (string.join(CmdList))
         return 0,[],[]
