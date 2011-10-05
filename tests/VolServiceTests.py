@@ -38,18 +38,12 @@ class TestVolServiceMethods(unittest.TestCase):
         return
     
     def test_getVolbyName(self) :
-        vol = self.volMng.getVolByName(self.VolName)
+        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part)
         self.assertEqual(vol.vid, self.VolID)
         self.assertEqual(vol.serv, self.FS)
         self.assertEqual(vol.part, self.Part)
         return
-        
-    def test_getVolbyID(self) :
-        vol = self.volMng.getVolByID(self.VolID)
-        self.assertEqual(vol.name, self.VolName)
-        self.assertEqual(vol.serv, self.FS)
-        self.assertEqual(vol.part, self.Part)
-        return
+    
     
 if __name__ == '__main__' :
     define("setup", default="./VolServiceTest_RZG.cfg", help="path to Testconfig")
