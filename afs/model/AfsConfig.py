@@ -1,5 +1,6 @@
 import sys, os
 import afs.util.options
+
 from afs.util.options import define, options
 import afs.orm.DbMapper    
 import afs
@@ -16,8 +17,14 @@ def setupOptions():
 def setupDefaultConfig():
     
         HOME=os.environ.get("HOME","")
+        ## System-wide Configuration file
+        BASE_CFG_FILE="/etc/sysconfig/afspy"
+        
+        afs.util.options.parse_command_line()
         #LOCAL
-        if options.conf :
+        if os.path.exists(BASE_CFG_FILE) :
+            afs.defaultConfig.load(BASE_CFG_FILE)
+        elif options.conf :
             afs.defaultConfig.load(options.conf)
         elif os.path.exists("./afspy.cfg") :
              afs.defaultConfig.load("./afspy.cfg")
@@ -25,10 +32,7 @@ def setupDefaultConfig():
         elif HOME :
             if os.path.exists("%s/.config/afspy.cfg") :
                 afs.defaultConfig.load("%s/.config/afspy.cfg")
-        # 1. load system-wide config /etc/sysconfig/afspy
-        elif os.path.exists(defaultConfig.BASE_CFG_FILE) :
-            afs.defaultConfig.load(defaultConfig.BASE_CFG_FILE)
-        
+
         # Overwrite from commandline
         afs.util.options.parse_command_line()
         
@@ -58,12 +62,14 @@ class AfsConfig(object):
     not parse the config files directly, but
     set the attributes directly
     """
-    ## System-wide Configuration file
-    BASE_CFG_FILE="/etc/sysconfig/afspy"
-    ## Flag if database cache should be used
-    DB_CACHE = "False"
     
-    def __init__(self,fresh=False):
+    def __init__(self,useDefaults=True):
+        # define defaults here
+        if useDefaults :
+            self.CRED_TYPE="ShellToken"
+            self.DB_CACHE=False
+            self.AFSCell=""
+            self.AFSID=-1
         return
     
     def load(self, conf_file):
@@ -74,3 +80,5 @@ class AfsConfig(object):
             sys.exit()
         except:
             return
+    
+    
