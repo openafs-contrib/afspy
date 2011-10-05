@@ -23,6 +23,7 @@ class VolumeDAO(object) :
         """
         CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList,dryrun=dryrun,lethal=lethal)
+        # use output for logging.
         if rc:
             raise VolError("Error", outerr)
 
@@ -124,6 +125,8 @@ class VolumeDAO(object) :
             if splits[0] == "RWrite:":
                 rwID = splits[1]
                 roID = splits[3]
+                if len(splits) > 4 :
+                   bkID= splits[5] 
             
             if splits[0] == "number":  
                 numSite =  splits[4] 
@@ -141,7 +144,7 @@ class VolumeDAO(object) :
                 elif type =="RO":
                     volGroup["RO"].append({"id":roID,"serv":splits[1],"part":splits[3]})
                 else:
-                    volGroup["BK"].append({"id":roID,"serv":splits[1],"part":splits[3]})
+                    volGroup["BK"].append({"id":bkID,"serv":splits[1],"part":splits[3]})
                     
                 if numSite == numServer:
                     break
@@ -248,8 +251,8 @@ class VolumeDAO(object) :
     
     def getVolList(self, serv, part,  cellname, token,  dryrun=0, lethal=1) :
         """
-        update entry via vos examine from vol-server. 
-        If Name is given, it takes precedence over ID
+        update entry via vos listvol from vol-server. 
+        return list of dictionaries
         """
         part = afsutil.canonicalizePartition(part)
         CmdList = [afs.dao.bin.VOSBIN,"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  cellname]
