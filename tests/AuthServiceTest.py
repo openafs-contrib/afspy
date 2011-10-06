@@ -6,7 +6,7 @@ from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
-from afs.model.AfsConfig import AfsConfig, setupDefaultConfig
+from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
 from afs.util.options import define, options
 from afs.service import AuthService
 import afs
