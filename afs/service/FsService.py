@@ -1,3 +1,7 @@
+from afs.dao.FileSystemDAO import FileSystemDAO
+from afs.dao.ProcessDAO import ProcessDAO
+
+
 class FsService (object):
     """
     Provides Service about a FileServer
@@ -6,9 +10,9 @@ class FsService (object):
     
     _CFG    = None
     
-    def __init__(self,token,conf=None):
-        self._TOKEN  = token
-        self._srvDAO = FileServerDAO()
+    def __init__(self,conf=None):
+
+        self._srvDAO = FileSystemDAO()
         self._procDAO = ProcessDAO()
         
         # LOAD Configuration from file if exist
@@ -16,7 +20,7 @@ class FsService (object):
         if conf:
             self._CFG = conf
         else:
-            self._CFG = AfsConfig("file")
+            self._CFG = defaultConfig
         
         # DB INIT    
         if self._CFG.DB_CACHE:

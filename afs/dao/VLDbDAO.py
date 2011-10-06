@@ -1,7 +1,7 @@
 import re,string,os,sys
 import afs.dao.bin
 
-from afs.model.VLDbError import VLDbError
+from afs.exceptions.VLDbError import VLDbError
 
 class VLDbDAO() :
     """

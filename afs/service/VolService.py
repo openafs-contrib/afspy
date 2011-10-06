@@ -1,10 +1,9 @@
 import afs.util.options
 
 from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.FileServerDAO import FileServerDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
-from afs.model.VolError import VolError
+from afs.exceptions.VolError import VolError
 from afs.util import afsutil
 
 class VolService (object):

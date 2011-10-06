@@ -3,8 +3,8 @@ import afs.util.options
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
 from afs.util.AfsConfig import AfsConfig
-from afs.model.VLDbError import VLDbError
-from afs.model.VolError import VolError
+from afs.exceptions.VLDbError import VLDbError
+from afs.exceptions.VolError import VolError
 from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil

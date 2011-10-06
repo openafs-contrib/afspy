@@ -2,7 +2,7 @@ import string,re,sys,time
 import afs.dao.bin
 
 from datetime import datetime
-from afs.model.VolError import VolError
+from afs.exceptions.VolError import VolError
 from afs.util import afsutil
 
 

@@ -2,9 +2,9 @@ import re,string,os,sys
 import afs.dao.bin
 from afs.util import afsutil
 
-class FileServerDAO() :
+class FileSystemDAO() :
     """
-    low level access to a  FileServer.
+    low level access to the FileSystem
     ATM this requires a cache-manager, since most of 
     it is done through an AFS-path
     """
