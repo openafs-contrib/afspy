@@ -2,10 +2,9 @@ import afs.util.options
 
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.FileServerDAO import FileServerDAO
+from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
-from afs.model.AfsConfig import AfsConfig
 from afs.model.VolError import VolError
-from sqlalchemy import func, or_
 from afs.util import afsutil
 
 class VolService (object):
@@ -80,7 +79,6 @@ class VolService (object):
          session.close()
          
          return count
-         
  
     def getVolByQuery(self,query):
          if not self._CFG.DB_CACHE:
@@ -93,7 +91,6 @@ class VolService (object):
          session.close()
          
          return res
-         
  
     def refreshCache(self, serv, part):
         if not self._CFG.DB_CACHE:
@@ -123,7 +120,6 @@ class VolService (object):
             if flush > 100:    
                 session.flush() 
         session.flush()
-        
         
         # ADD section 
         flush = 0

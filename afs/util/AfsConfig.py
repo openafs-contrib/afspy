@@ -4,6 +4,7 @@ import afs.util.options
 from afs.util.options import define, options
 import afs.orm.DbMapper    
 import afs
+from afs.model.BaseModel import BaseModel
 
 def setupOptions():
     """
@@ -58,7 +59,7 @@ def setupDefaultConfig():
         return
 
 
-class AfsConfig(object):
+class AfsConfig(BaseModel):
     """
     Representation of config.
     For a secondary configuration object, do

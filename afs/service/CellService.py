@@ -2,7 +2,7 @@ import afs.util.options
 
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
-from afs.model.AfsConfig import AfsConfig
+from afs.util.AfsConfig import AfsConfig
 from afs.model.VLDbError import VLDbError
 from afs.model.VolError import VolError
 from afs.model.Server import Server

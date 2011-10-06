@@ -2,8 +2,8 @@
 
 # setup options for command-line and configuration files
 
-import model.AfsConfig
+import util.AfsConfig
 global defaultConfig
-defaultConfig=model.AfsConfig.AfsConfig()
-model.AfsConfig.setupOptions()
+defaultConfig=util.AfsConfig.AfsConfig()
+util.AfsConfig.setupOptions()
 
