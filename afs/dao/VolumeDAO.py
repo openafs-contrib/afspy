@@ -3,8 +3,6 @@ import afs.dao.bin
 
 from datetime import datetime
 from afs.model.VolError import VolError
-from afs.factory.VolStatusFactory import VolStatus
-from afs.factory.VolTypeFactory import VolType
 from afs.util import afsutil
 
 
