@@ -14,7 +14,7 @@ class Volume(BaseModel) :
         initializes to an empty Volume
         """
         ##Name of the Volume in the VLDB
-        
+        self.id       = None
         self.name     = ''
         ##numerical ID of the Volume
         self.vid      = -1

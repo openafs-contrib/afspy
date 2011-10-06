@@ -12,6 +12,7 @@ def setupOptions():
     define("conf", default="",help="path to configuration file")
     define("DB_CACHE",  default="False", help="Flag")
     define("CELL_NAME", default="beolink.org", help="Default Cell")
+
     afs.orm.DbMapper.setupOptions() 
     return
 
@@ -45,7 +46,7 @@ def setupDefaultConfig():
         except:
             afs.defaultConfig.DB_CACHE = False
             
-        if afs.defaultConfig. DB_CACHE :
+        if afs.defaultConfig.DB_CACHE :
             afs.defaultConfig.DB_TYPE=options.DB_TYPE
             afs.defaultConfig.DB_DEBUG=eval(options.DB_DEBUG)
             afs.defaultConfig.DB_SID=options.DB_SID
@@ -53,6 +54,7 @@ def setupDefaultConfig():
             afs.defaultConfig.DB_PORT=options.DB_PORT
             afs.defaultConfig.DB_USER=options.DB_USER
             afs.defaultConfig.DB_PASSWD=options.DB_PASSWD
+            afs.defaultConfig.DB_FLUSH=options.DB_FLUSH
             afs.defaultConfig.DB_ENGINE=afs.orm.DbMapper.createDbEngine(afs.defaultConfig)
             afs.orm.DbMapper.setupDbMappers(afs.defaultConfig)
         return
@@ -72,6 +74,7 @@ class AfsConfig(object):
             self.CRED_TYPE="ShellToken"
             self.DB_CACHE=False
             self.AFSCell=""
+            self.DB_FLUSH=100
             self.AFSID=-1
             self.Token=None
         return
@@ -85,6 +88,7 @@ class AfsConfig(object):
         except:
             return
 
+    #FIXME put in the utils used in two places
     def getDict(self):
         """
         Get a dictionary representation of the configuration

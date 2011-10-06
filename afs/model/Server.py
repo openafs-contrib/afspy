@@ -14,6 +14,7 @@ class Server(BaseModel):
         """
         initialize an empty object
         """
+        self.id = None
         self.serv = ""
         self.uuid = ""
         self.servername = ""

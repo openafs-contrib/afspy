@@ -5,6 +5,7 @@ from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
+from sqlalchemy import func, or_
 
 class VolService (object):
     """
@@ -24,7 +25,7 @@ class VolService (object):
         else:
             self._CFG = afs.defaultConfig
         
-        # DB INIT    
+        # DB INIT 
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm
             from sqlalchemy import func, or_
@@ -116,7 +117,7 @@ class VolService (object):
             else:     
                 session.delete(vol) 
             
-            if flush > 100:    
+            if flush > self._CFG.DB_FLUSH:    
                 session.flush() 
         session.flush()
         
@@ -127,10 +128,11 @@ class VolService (object):
             vol = Volume()
             vol.setByDict(idVolDict[key])
             session.add(vol)    
-            if flush > 100:    
+            if flush > self._CFG.DB_FLUSH:    
                 session.flush() 
         session.flush()
         session.commit()
+        
         return cUpdate
     
     ################################################
@@ -154,21 +156,22 @@ class VolService (object):
     def _setIntoCache(self,vol):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return None
+            return vol
         
         session = self.DbSession()
         volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
        
         
         if volCache:
-            volCache.update(vol)
+            volCache.copyObj(vol)
             session.flush()
         else:
-            session.add(vol)   
-            
+            session.add(vol)  
+            volCache = vol
+        
         session.commit()  
         session.close()
-        return 
+        return volCache
     
     def _delCache(self,vol):
          #STORE info into  CACHE
@@ -184,18 +187,4 @@ class VolService (object):
     #MERGE ?  
     
       
-    def _updateCache(self,vol):
-        if not self._CFG.DB_CACHE:
-            return None
-        
-        session = self.DbSession()
-        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
-       
-        
-        if volCache:
-            vol.id = volCache.id
-            vol.cdate = volCache.cdate
-            session.flush()
-            
-        session.commit()  
-        session.close()
+    

@@ -15,6 +15,7 @@ def setupOptions():
     define("DB_PORT", default="", help="", type=int)
     define("DB_USER", default="", help="")
     define("DB_PASSWD" , default="", help="")
+    define("DB_FLSUH", default=100, help="Max Number of elements in Buffer ")
 
 def createDbEngine(conf):
     """
