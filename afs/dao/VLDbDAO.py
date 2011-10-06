@@ -10,12 +10,14 @@ class VLDbDAO() :
     def __init__(self) :
         return
     
-    def getFsServerList(self,cellname):
+    def getFsServList(self,cellname, token, noresolve=False):
         """
         get Information about a single Server
         """
-        
-        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
+        if noresolve:
+            CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname, "-noresolve" ]
+        else:
+            CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
             raise VLDbError("Error", outerr)

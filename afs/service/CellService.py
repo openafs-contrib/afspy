@@ -16,12 +16,11 @@ class CellService(object):
     The cellname is set in the methods so that we 
     can use this for more than one cell.
     """
-    
-    def __init__(self,token,conf=None):
-        self._TOKEN  = token
+    def __init__(self,conf=None):
+        
         self._vlDAO  = VLDbDAO()
         self._volDAO = VolumeDAO()
-        
+               
         # LOAD Configuration from file if exist
         # FIXME Move in decorator
         if conf:
@@ -34,6 +33,8 @@ class CellService(object):
             import sqlalchemy.orm
             from sqlalchemy import func, or_
             self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
+
+    
     
     ###############################################
     # Server Section
@@ -41,18 +42,21 @@ class CellService(object):
     """
     Retrieve Server List
     """
-    def getFsList(self,  **kwargs):
-        cellname = self._TOKEN._CELL_NAME
-        
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
+    def getFsList(self):
 
-        list = self._vlDAO.getFsServerList(cellname );
+        nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token);
+        ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True );
+        
+        nameDict = {}
+        for el in nameList:
+            nameDict[el['uuid']] = el['serv']
         
         fsList = []
-        for el in list:
+        for el in ipList:
             serv = Server()
             serv.setByDict(el)
+            serv.servername = nameDict[el['uuid']]
+            serv.fileserver = 1
             fsList.append(serv)
             # Cache Stuff
             self._setServIntoCache(serv)
@@ -61,14 +65,10 @@ class CellService(object):
     """
     Retrieve Server List
     """
-    def getPartList(self, serv,  **kwargs):
-        cellname = self._TOKEN._CELL_NAME
-        
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
+    def getPartList(self, serv,):
 
         # FIXME look up server ip use only ip 
-        list =self._volDAO.getPartList(serv, cellname )
+        list =self._volDAO.getPartList(serv, self._CFG.CELL_NAME, self._CFG.Token )
       
         partList = []
         for el in list:
@@ -110,11 +110,13 @@ class CellService(object):
         
         if partCache:
             partCache.update(part)
-            session.flush()
+           
         else:
             session.add(part)   
-            
+        
+        session.flush() 
         session.commit()  
+       
         session.close()
        
         
@@ -139,15 +141,16 @@ class CellService(object):
         
         session = self.DbSession()
         servCache = session.query(Server).filter(Server.serv == serv.serv).first()
-       
+        session.flush()
         
         if servCache:
             servCache.update(serv)
-            session.flush()
         else:
             session.add(serv)   
-            
+        
+        session.flush()    
         session.commit()  
+       
         session.close()
 
     

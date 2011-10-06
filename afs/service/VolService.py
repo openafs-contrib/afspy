@@ -41,7 +41,7 @@ class VolService (object):
     """
     def getVolGroup(self, id ):
     
-        list = self._volDAO.getVolGroup(id, self._CFG.cellname, self._CFG.token);
+        list = self._volDAO.getVolGroup(id,  self._CFG.CELL_NAME, self._CFG.Token);
       
         return list 
        
@@ -50,7 +50,7 @@ class VolService (object):
     """
     def getVolume(self, name, serv, part):
 
-        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.AFSCell, self._CFG.Token)
+        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         
         vol = Volume()
         vol.setByDict(vdict)
@@ -100,7 +100,7 @@ class VolService (object):
             raise VolError('Error, no db Cache defined ',None)
        
         part = afsutil.canonicalizePartition(part)
-        list = self._volDAO.getVolList( serv, part,  self._CFG.cellname, self._CFG.token)
+        list = self._volDAO.getVolList( serv, part, self._CFG.CELL_NAME, self._CFG.Token)
         #Convert into dictionary
         idVolDict = {}
         cUpdate = len(list)

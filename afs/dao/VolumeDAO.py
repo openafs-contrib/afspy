@@ -330,7 +330,7 @@ class VolumeDAO(object) :
               
         return volList
         
-    def getIdVolList(self, part, server, cell):
+    def getIdVolList(self, part, server, cell, token):
             """
             return  Volumes in partitions
             """
@@ -355,7 +355,7 @@ class VolumeDAO(object) :
 
         
         
-    def getPartList(self,  serv, cellname) :
+    def getPartList(self,  serv, cellname, token) :
             """
             return dict of  Partitions
             """

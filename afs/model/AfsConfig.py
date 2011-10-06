@@ -11,6 +11,7 @@ def setupOptions():
     """
     define("conf", default="",help="path to configuration file")
     define("DB_CACHE",  default="False", help="Flag")
+    define("CELL_NAME", default="beolink.org", help="Default Cell")
     afs.orm.DbMapper.setupOptions() 
     return
 
@@ -35,6 +36,8 @@ def setupDefaultConfig():
 
         # Overwrite from commandline
         afs.util.options.parse_command_line()
+        
+        afs.defaultConfig.CELL_NAME = options.CELL_NAME
         
         # setup DB_CACHE if required
         try: 
