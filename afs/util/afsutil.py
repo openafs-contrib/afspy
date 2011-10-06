@@ -13,22 +13,22 @@ def humanReadableSize(Size) :
     return "%3.2f %s" % (float(Size) / (1024**s),SizeUnit[s])  
 
 def canonicalizePartition(part) :
-   if type(part) == types.StringType :
+    if type(part) == types.StringType :
        if part.isdigit() :
            part=int(part)
-   if type(part) == types.IntType : 
+    if type(part) == types.IntType : 
        firstLetter=part/26
        secondLetter=part%26
        partition=""
        if firstLetter != 0 :
            partition += chr(ord("a")+firstLetter) 
        partition += chr(ord("a")+secondLetter) 
-   else :
+    else :
        MObj=PartRX.match(part)
        if not MObj :
-           assert("Cannot canonicalize \"%s\"" % part)
+           raise "Cannot canonicalize \"%s\"" 
        partition=MObj.groups()[0] 
-   return partition
+    return partition
  
  
 def canonicalizeVolume(volname):
