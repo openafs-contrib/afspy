@@ -4,7 +4,6 @@ import afs.util.options
 from afs.util.options import define, options
 import afs.orm.DbMapper    
 import afs
-from afs.model.BaseModel import BaseModel
 
 def setupOptions():
     """
@@ -59,7 +58,7 @@ def setupDefaultConfig():
         return
 
 
-class AfsConfig(BaseModel):
+class AfsConfig(object):
     """
     Representation of config.
     For a secondary configuration object, do
@@ -85,5 +84,16 @@ class AfsConfig(BaseModel):
             sys.exit()
         except:
             return
-    
-    
+
+    def getDict(self):
+        """
+        Get a dictionary representation of the configuration
+        """
+        res = {}
+        for attr, value in self.__dict__.iteritems():
+             if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType:
+                res[attr] = value
+             elif isinstance(attr, datetime.datetime):
+                res[attr] = value.isoformat('-')
+             
+        return res
