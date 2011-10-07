@@ -73,9 +73,8 @@ class AfsConfig(object):
         if useDefaults :
             self.CRED_TYPE="ShellToken"
             self.DB_CACHE=False
-            self.AFSCell=""
+            self.CELL_NAME="beolink.org"
             self.DB_FLUSH=100
-            self.AFSID=-1
             self.Token=None
         return
     
