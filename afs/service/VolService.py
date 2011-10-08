@@ -5,6 +5,8 @@ from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
+import afs.util.options 
+import logging    
 
 class VolService (object):
     """
@@ -15,8 +17,6 @@ class VolService (object):
     
     def __init__(self,conf=None):
         
-        self._volDAO = VolumeDAO()
-               
         # LOAD Configuration from file if exist
         # FIXME Move in decorator
         if conf:
@@ -24,12 +24,19 @@ class VolService (object):
         else:
             self._CFG = afs.defaultConfig
         
+        # LOG INIT
+        self.Logger=logging.getLogger("afs").getChild("VolService")
+        self.Logger.debug("initializing object with conf=%s" % conf)
+       
+        # DAO INIT 
+        self._volDAO = VolumeDAO()
+        
         # DB INIT 
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm
             from sqlalchemy import func, or_
             self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
-
+        
     ###############################################
     # Volume Section
     ###############################################    
@@ -53,7 +60,6 @@ class VolService (object):
         vol = Volume()
         vol.setByDict(vdict)
         self._setIntoCache(vol)
-       
         return  vol
     
     """
@@ -161,7 +167,6 @@ class VolService (object):
         
         session = self.DbSession()
         volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
-       
         
         if volCache:
             volCache.copyObj(vol)

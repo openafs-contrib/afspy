@@ -317,6 +317,8 @@ def enable_pretty_logging():
             maxBytes=options.log_file_max_size,
             backupCount=options.log_file_num_backups)
         channel.setFormatter(_LogFormatter(color=False))
+        filt=_LogFilter(options.log_filter_modules,options.log_filter_msgs)
+        channel.addFilter(filt)
         root_logger.addHandler(channel)
 
     if (options.log_to_stderr or
@@ -332,6 +334,8 @@ def enable_pretty_logging():
                 pass
         channel = logging.StreamHandler()
         channel.setFormatter(_LogFormatter(color=color))
+        filt=_LogFilter(options.log_filter_modules,options.log_filter_msgs)
+        channel.addFilter(filt)
         root_logger.addHandler(channel)
 
 
@@ -372,6 +376,35 @@ class _LogFormatter(logging.Formatter):
         return formatted.replace("\n", "\n    ")
 
 
+class _LogFilter(logging.Filter) :
+
+    def __init__(self,module_list="",search_list="") :
+	self.module_list=module_list.split(",")
+        self.search_list=search_list.split(",")
+        return
+
+    def filter(self,record) :
+	is_right_module=False
+        has_right_msg=False
+        if len(self.module_list) == 0 :
+	    is_right_module = True
+        else :
+            if record.module in self.module_list :
+                is_right_module = True
+        if len(self.search_list) == 0 :
+            has_right_msg=True
+        else :
+            for m in self.search_list :
+                if m in record.getMessage() :
+                    has_right_msg=True
+                    break
+
+        if is_right_module and has_right_msg :
+            return True
+        else :
+            return False
+   
+
 options = _Options.instance()
 
 
@@ -394,3 +427,5 @@ define("log_file_max_size", type=int, default=100 * 1000 * 1000,
        help="max size of log files before rollover")
 define("log_file_num_backups", type=int, default=10,
        help="number of log files to keep")
+define("log_filter_modules", type=str, default="",  help="filter log on module-name, CSV-List")
+define("log_filter_msgs", type=str, default="",  help="filter log on messages, CSV-List")
