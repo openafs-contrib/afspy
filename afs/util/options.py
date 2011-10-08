@@ -379,8 +379,14 @@ class _LogFormatter(logging.Formatter):
 class _LogFilter(logging.Filter) :
 
     def __init__(self,module_list="",search_list="") :
-	self.module_list=module_list.split(",")
-        self.search_list=search_list.split(",")
+        if len(module_list.strip()) != 0 :
+	    self.module_list=module_list.split(",")
+        else :
+	    self.module_list=[]
+        if len(search_list.strip()) != 0 :
+            self.search_list=search_list.split(",")
+        else :
+	    self.search_list=[]
         return
 
     def filter(self,record) :
