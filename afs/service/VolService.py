@@ -5,7 +5,6 @@ from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
-from sqlalchemy import func, or_
 
 class VolService (object):
     """
@@ -157,6 +156,8 @@ class VolService (object):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
             return vol
+        else :
+            from sqlalchemy import func, or_
         
         session = self.DbSession()
         volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
@@ -166,8 +167,8 @@ class VolService (object):
             volCache.copyObj(vol)
             session.flush()
         else:
-            session.add(vol)  
-            volCache = vol
+            volCache=session.merge(vol)  
+            session.flush()
         
         session.commit()  
         session.close()
