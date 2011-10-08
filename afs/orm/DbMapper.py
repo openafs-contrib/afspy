@@ -1,4 +1,4 @@
-import sys
+import sys,logging
 import afs.util.options
 from afs.util.options import define, options
    
@@ -7,7 +7,7 @@ def setupOptions():
     """
     Only to be called from AfsConfig
     """
-    define("DB_DEBUG", default="False", help="print DB debug messages")
+    define("DB_LogLevel", default="WARN", help="Set Loglevel of DB-Logging")
     define("DB_SID" , default="db/afspy", help="Database name or for sqlite path to DB file")
     define("DB_TYPE" , default="sqlite", help="Type of DB. [mysql|sqlite]")
     # mysql options
@@ -15,7 +15,7 @@ def setupOptions():
     define("DB_PORT", default="", help="Database port", type=int)
     define("DB_USER", default="", help="Database user")
     define("DB_PASSWD" , default="", help="Database password")
-    define("DB_FLUSH", default=100, help="Max Number of elements in Buffer ")
+    define("DB_FLUSH", default=100, help="Max Number of elements in Buffer")
 
 def createDbEngine(conf):
     """
@@ -25,6 +25,8 @@ def createDbEngine(conf):
     used AfsConfig object
     """
     from sqlalchemy     import create_engine
+    logging.getLogger("sqlalchemy").setLevel(getattr(logging, conf.DB_LogLevel.upper()))
+
     # Option definition
     ###########################################
     driver = ""
@@ -34,10 +36,11 @@ def createDbEngine(conf):
     engine = 0
     if conf.DB_TYPE == "mysql":
         driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (conf.DB_USER,  conf.DB_PASSWD,conf.DB_HOST, conf.DB_PORT, conf.DB_SID)
-        engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=debug)         
+        engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
     elif options.DB_TYPE == "sqlite":    
         driver = 'sqlite:///'+options.DB_SID
-        engine = create_engine(driver, echo=conf.DB_DEBUG)
+        engine = create_engine(driver, echo=False)
+    
     return engine
 
 def setupDbMappers(conf):

@@ -47,8 +47,8 @@ def setupDefaultConfig():
             afs.defaultConfig.DB_CACHE = False
             
         if afs.defaultConfig.DB_CACHE :
+            afs.defaultConfig.DB_LogLevel=options.DB_LogLevel
             afs.defaultConfig.DB_TYPE=options.DB_TYPE
-            afs.defaultConfig.DB_DEBUG=eval(options.DB_DEBUG)
             afs.defaultConfig.DB_SID=options.DB_SID
             afs.defaultConfig.DB_HOST=options.DB_HOST
             afs.defaultConfig.DB_PORT=options.DB_PORT
