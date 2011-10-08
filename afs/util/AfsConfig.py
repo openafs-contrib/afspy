@@ -10,7 +10,7 @@ def setupOptions():
     setup all available options
     """
     define("conf", default="",help="path to configuration file")
-    define("DB_CACHE",  default="False", help="Flag")
+    define("DB_CACHE",  default="False", help="use DB cache")
     define("CELL_NAME", default="beolink.org", help="Default Cell")
 
     afs.orm.DbMapper.setupOptions() 

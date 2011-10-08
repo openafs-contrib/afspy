@@ -7,14 +7,14 @@ def setupOptions():
     """
     Only to be called from AfsConfig
     """
-    define("DB_DEBUG", default="False", help="")
-    define("DB_SID" , default="db/afspy", help="")
-    define("DB_TYPE" , default="sqlite", help="")
+    define("DB_DEBUG", default="False", help="print DB debug messages")
+    define("DB_SID" , default="db/afspy", help="Database name or for sqlite path to DB file")
+    define("DB_TYPE" , default="sqlite", help="Type of DB. [mysql|sqlite]")
     # mysql options
-    define("DB_HOST", default="", help="")
-    define("DB_PORT", default="", help="", type=int)
-    define("DB_USER", default="", help="")
-    define("DB_PASSWD" , default="", help="")
+    define("DB_HOST", default="", help="Database host")
+    define("DB_PORT", default="", help="Database port", type=int)
+    define("DB_USER", default="", help="Database user")
+    define("DB_PASSWD" , default="", help="Database password")
     define("DB_FLUSH", default=100, help="Max Number of elements in Buffer ")
 
 def createDbEngine(conf):
