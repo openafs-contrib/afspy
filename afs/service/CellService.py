@@ -17,17 +17,21 @@ class CellService(object):
     can use this for more than one cell.
     """
     def __init__(self,conf=None):
-        
-        self._vlDAO  = VLDbDAO()
-        self._volDAO = VolumeDAO()
-               
-        # LOAD Configuration from file if exist
-        # FIXME Move in decorator
+
+        # CONF INIT 
         if conf:
             self._CFG = conf
         else:
             self._CFG = afs.defaultConfig
+
+        # LOG INIT
+        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
         
+        # DAO INIT
+        self._vlDAO  = VLDbDAO()
+        self._volDAO = VolumeDAO()
+               
         # DB INIT    
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm

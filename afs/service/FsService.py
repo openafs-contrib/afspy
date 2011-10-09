@@ -12,15 +12,19 @@ class FsService (object):
     
     def __init__(self,conf=None):
 
-        self._srvDAO = FileSystemDAO()
-        self._procDAO = ProcessDAO()
-        
-        # LOAD Configuration from file if exist
-        # FIXME Move in decorator
+        # CONF INIT 
         if conf:
             self._CFG = conf
         else:
-            self._CFG = defaultConfig
+            self._CFG = afs.defaultConfig
+        
+        # LOG INIT
+        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
+
+        # DAO INIT
+        self._srvDAO = FileSystemDAO()
+        self._procDAO = ProcessDAO()
         
         # DB INIT    
         if self._CFG.DB_CACHE:

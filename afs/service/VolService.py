@@ -17,16 +17,15 @@ class VolService (object):
     
     def __init__(self,conf=None):
         
-        # LOAD Configuration from file if exist
-        # FIXME Move in decorator
+        # CONF INIT
         if conf:
             self._CFG = conf
         else:
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild("VolService")
-        self.Logger.debug("initializing object with conf=%s" % conf)
+        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
        
         # DAO INIT 
         self._volDAO = VolumeDAO()
