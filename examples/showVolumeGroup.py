@@ -14,7 +14,7 @@ VolName="root.cell"
 VolG=volMng.getVolGroup(VolName)
 print VolG
 
-for v in VolG["RO"] :
+for v in VolG.RO :
     vol=volMng.getVolume(v["id"],v["serv"],v["part"])
     print vol
 
