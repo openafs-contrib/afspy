@@ -1,31 +1,34 @@
 import afs.util.options
 
 from afs.dao.VolumeDAO import VolumeDAO
-from afs.util.AfsConfig import AfsConfig
 from afs.model.Volume import Volume
+from afs.model.VolumeGroup import VolumeGroup
+from afs.service.BaseService import BaseService
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
 import afs.util.options 
 import logging    
 
-class VolService (object):
+class VolService (BaseService):
     """
     Provides Service about a Volume management.
     The cellname is set in the methods so that we 
     can use this for more than one cell.
     """
     
-    def __init__(self,conf=None):
-        
-        # CONF INIT
+    def __init__(self, conf=None):
+        BaseService.__init__(self)
+            
+        # LOAD Configuration from file if exist
+        # FIXME Move in decorator
         if conf:
             self._CFG = conf
         else:
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
+        self.Logger=logging.getLogger("afs").getChild("VolService")
+        self.Logger.debug("initializing object with conf=%s" % conf)
        
         # DAO INIT 
         self._volDAO = VolumeDAO()
@@ -45,9 +48,20 @@ class VolService (object):
     """
     def getVolGroup(self, id ):
     
-        list = self._volDAO.getVolGroup(id,  self._CFG.CELL_NAME, self._CFG.Token);
+        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token);
+        volGroup = None
+        if len(list) > 0:
+            volGroup =  VolumeGroup()
+            for el in list:
+                volGroup.name = el['volname']
+                if el['type'] == 'RW':
+                    volGroup.RW.append(el)
+                elif el['type'] == 'RO':
+                     volGroup.RO.append(el)
+                else :
+                     volGroup.BK.append(el)
       
-        return list 
+        return volGroup
        
     """
     Retrieve Volume Information by Name or ID
@@ -55,10 +69,12 @@ class VolService (object):
     def getVolume(self, name, serv, part):
 
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
-        
-        vol = Volume()
-        vol.setByDict(vdict)
-        self._setIntoCache(vol)
+        vol = None
+        if vdict:
+            vol = Volume()
+            vol.setByDict(vdict)
+            vol = self._setIntoCache(vol)
+
         return  vol
     
     """
@@ -79,7 +95,6 @@ class VolService (object):
          session = self.DbSession()
          queryc = query.getQueryCount()
          count  = eval(queryc)
-         
          session.close()
          
          return count
@@ -95,6 +110,12 @@ class VolService (object):
          session.close()
          
          return res
+     
+    def execQuery(self):
+        pass
+    
+    def execOrmQuery(self):
+        pass
  
     def refreshCache(self, serv, part):
         if not self._CFG.DB_CACHE:
@@ -110,7 +131,7 @@ class VolService (object):
             
         session = self.DbSession()
         
-        res  = session.query(Volume).filter(or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
+        res  = session.query(Volume).filter(self.or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
         
         flush = 0
         for vol in res:
@@ -159,13 +180,12 @@ class VolService (object):
         
     def _setIntoCache(self,vol):
          #STORE info into  CACHE
+       
         if not self._CFG.DB_CACHE:
             return vol
-        else :
-            from sqlalchemy import func, or_
         
         session = self.DbSession()
-        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
+        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(self.or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
         
         if volCache:
             volCache.copyObj(vol)

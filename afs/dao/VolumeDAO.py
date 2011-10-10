@@ -91,7 +91,8 @@ class VolumeDAO(object) :
         if rc:
              raise VolError("Error", outerr)
     
-    def getVolGroup(self, vid, cellname, token) :
+    
+    def getVolGroupList(self, vid, cellname, token) :
         """
         update entry via vos examine from vol-server. 
         """
@@ -102,10 +103,10 @@ class VolumeDAO(object) :
         if rc :
             raise VolError("Error", outerr)
         
-        volGroup = {}
+
         line_no = 0
         line = output[line_no]
-        
+        volGroup = []
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
             return volGroup
@@ -115,44 +116,44 @@ class VolumeDAO(object) :
         
         roID = 0
         rwID = 0
+        bkId = 0
         numSite = 0
         numServer = 0
-        for line in output:
-            splits = line.split()
+        
+        #FIXME Escape line when you find 
+        for i in range(0, len(output)):
+            splits = output[i].split()
             #search server list section
-            if splits[0] == "RWrite:":
-                rwID = splits[1]
-                roID = splits[3]
-                if len(splits) > 4 :
-                   bkID= splits[5] 
+            if splits[0] == "name":
+                volname = splits[1]
+                i += 26
             
-            if splits[0] == "number":  
-                numSite =  splits[4] 
-            #FIXME check BK !!!   
-            # 1 = server, 3 = partitions, 4 type
-            if splits[0] == "server":
-                numServer = numServer +1
-                type = splits[4]
+            elif splits[0] == "RWrite:":
+                # id Volume by type
+                vid = {}
+                vid['RW'] = splits[1]
+                vid['RO'] = splits[3]
+                if len(splits) > 4 :
+                  vid['RO'] = splits[5] 
+                  
+                # Number of Sites
+                i += 1
+                splits = output[i].split() 
+                numSite =  int(splits[4]) 
                 
-                if not volGroup.get(type,None):
-                    volGroup[type] = []
-               
-                if type =="RW":                 
-                    volGroup["RW"].append({"id":rwID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
-                elif type =="RO":
-                    volGroup["RO"].append({"id":roID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
-                else:
-                    volGroup["BK"].append({"id":bkID,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
-                    
-                if numSite == numServer:
-                    break
+                for n in range(1, numSite):
+                    splits = output[i+n].split()
+                    type = splits[4]
+                    volGroup.append({"id":vid[type], 'volname': volname, "type":type,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
+          
+                break
         
         return volGroup
        
 
     def getVolume(self, vid, serv, part, cellname, token) :
         """
-        update entry via vos examine from vol-server. 
+        Volume entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
         part = afsutil.canonicalizePartition(part)
@@ -163,7 +164,7 @@ class VolumeDAO(object) :
         
         line_no = 0
         line = output[line_no]
-        vol = {}
+        vol = None
        
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
@@ -171,7 +172,7 @@ class VolumeDAO(object) :
        
         # first line gives Name, ID, Type, Used and Status 
         find = False    
-
+        vol  = {}
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -245,11 +246,61 @@ class VolumeDAO(object) :
                     break
                 else:
                     i = i+25
+        
+        if not find :
+            vol = None
+                    
         return vol
+    
+    
+    def getVolStat(self, vid, serv, part, cellname, token):
+        """
+        Volume stats via vos examine extended from vol-server. 
+        If Name is given, it takes precedence over ID
+        """
+        """
+        CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-extended","-cell", "%s" % cellname]
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if rc :
+            raise VolError("Error", outerr)
+        
+        line_no = 0
+        line = output[line_no]
+        vol = None
+       
+        if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
+            or re.search("does not exist in VLDB",line) :
+            return vol
+       
+        # first line gives Name, ID, Type, Used and Status 
+        find = False    
+
+        for i in range(0, len(output)):
+            splits = output[i].split()
+            #Beginnig block
+            if splits[0] == "name":
+                line1 = output[i].split()
+                line2 = output[i+1].split()
+                line3 = output[i+2].split()
+                line4 = output[i+3].split()
+                if ((line1[1] == str(vid) or\
+                     line2[1] == str(vid) ) and \
+                     (line3[1] == serv or\
+                      line3[2] == serv) and\
+                      (afsutil.canonicalizePartition(line4[1]) == part)):
+
+                    find = True
+                    splits = output[i].split()
+                    vol['name']     = splits[1]
+                    splits = output[i+1].split()
+                    vol['vid']      = int(splits[1])
+                    splits = output[i+2].split()
+                    vol['serv']     = splits[1]
+        """
     
     def getVolList(self, serv, part,  cellname, token) :
         """
-        update entry via vos listvol from vol-server. 
+        List Volume entry via vos listvol from vol-server. 
         return list of dictionaries
         """
         part = afsutil.canonicalizePartition(part)
@@ -339,7 +390,7 @@ class VolumeDAO(object) :
             rc,output,outerr=afs.dao.bin.execute(CmdList)
             if rc :
                  raise VolError("Error", outerr)
-            volIds = {}
+            volIds = []
             
             for line in output :
                 m=RX.match(line)
@@ -375,4 +426,5 @@ class VolumeDAO(object) :
                     perc = (used/long(size))*100
                 perc= 0
                 partitions.append({"serv":serv, "part":afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
+            
             return partitions
