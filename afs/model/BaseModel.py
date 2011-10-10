@@ -1,4 +1,4 @@
-
+import datetime
 from types import *
 
 class BaseModel(object):
@@ -33,6 +33,18 @@ class BaseModel(object):
     #            if attr != "id":
     #                setattr(self,attr,value)
     
+    def getJson(self):
+        """
+        Get a dictionary representation of the model object
+        """
+        res = {}
+        for attr, value in self.__dict__.iteritems():
+             if isinstance(value, datetime.datetime):
+                res[attr] = value.isoformat('-')
+             elif isinstance(value, str) or isinstance(value, long) or isinstance(value,unicode) or isinstance(value, int):
+                  res[attr] = value
+             
+        return res
     
     def getDict(self):
         """
@@ -40,10 +52,8 @@ class BaseModel(object):
         """
         res = {}
         for attr, value in self.__dict__.iteritems():
-             if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType:
-                res[attr] = value
-             elif isinstance(attr, datetime.datetime):
-                res[attr] = value.isoformat('-')
+            if isinstance(value, str) or isinstance(value, long) or isinstance(value,unicode) or isinstance(value, int) or isinstance(value, datetime.datetime):
+                  res[attr] = value
              
         return res
         

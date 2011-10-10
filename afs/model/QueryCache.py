@@ -14,40 +14,45 @@ class QueryCache(object):
         self.limit  = limit
         self.offset = offset
         self.sort   = sort
-        self.dir    = None
+        if dir:
+            self.dir    =  dir.lower()
         self.filter = filter
        
         
         
     def getQuery(self):
         
-        query = "query(%s)" % self._tbl
+        query = "session.query(%s)" % self._tbl
         
         # Filter Section
-        query += self.createFilter()
+        query += self._createFilter()
         
         # Sort Section
-        if len(sort) > 0:
+        if len(self.sort) > 0:
             if dir:
-                query += ".order_by(%s("
+                query += ".order_by(%s(" % self.dir
             else:
                 query += "order_by("
-        #FIXME CHECK sqlAlchemy syntax for order !!!!!
-            for el in sort:
-                query += "%s.%s" % (self._tbl, sort)  
-            
-            query += ")"
         
-        if offset:  
-            query += ".offset(%s).limit(%s)" % ( offset, limit) 
+            #FIXME CHECK sqlAlchemy syntax for order !!!!!
+            for el in sel.sort:
+                query += "%s.%s" % (self._tbl, el)  
+            
+            if dir:
+                query += ")"
+            else:
+                query += "))"
+        
+        if self.offset:  
+            query += ".offset(%s).limit(%s)" % ( self.offset, self.limit) 
             
         return query
     
     def getQueryCount(self):
-        query = "query(%s)" % self._tbl
+        query = "session.query(%s)" % self._tbl
         
-         # Filter Section
-        query += self.createFilter() + ".count()"
+        # Filter Section
+        query += self._createFilter() + ".count()"
         
         return query
     

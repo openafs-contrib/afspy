@@ -5,9 +5,10 @@ from afs.model.BaseModel import BaseModel
 
 class VolumeGroup(BaseModel) :
     
-    _RO = []
-    _RW = []
-    _BK = []
+    RO = []
+    RW = []
+    BK = []
+    name = ""
     
     def __init__(self):
         pass
