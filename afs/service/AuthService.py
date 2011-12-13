@@ -1,3 +1,4 @@
+import logging
 import afs.model.Token
 from afs.dao import PAGDAO
 
@@ -23,8 +24,8 @@ class TokenService():
         # DAO INIT
         self._pagDAO=PAGDAO.PAGDAO()
 
-    def get_artificial_Token(self,AFSID,AFSCell):
-        token = afs.model.Token.Token(AFSID, AFSCell)
+    def get_artificial_Token(self,AFSID,CELL_NAME):
+        token = afs.model.Token.Token(AFSID, CELL_NAME)
         return token
     
     def getToken(self):
@@ -34,7 +35,7 @@ class TokenService():
         ShellToken : from token available in this PAG
         """
         if self._CFG.CRED_TYPE == "ShellToken" :
-            AFSID, Cellname = self._pagDAO.getTokeninPAG(cellname=self._CFG.AFSCell)
+            AFSID, Cellname = self._pagDAO.getTokeninPAG(cellname=self._CFG.CELL_NAME)
             Cellname=Cellname.lower()
             token=afs.model.Token.Token(AFSID, Cellname)
         return token
