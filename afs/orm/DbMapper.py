@@ -210,6 +210,7 @@ def setupDbMappers(conf):
           Column('id'           , Integer, primary_key=True),
           Column('mincopy'      , Integer),
           Column('owner'        , String(255)),
+          Column('project'      , String(255)),
           Column('edate'        , Integer),
           Column('category'     , String(2)),
           Column('cdate'        , DateTime),
@@ -220,6 +221,28 @@ def setupDbMappers(conf):
     from afs.model.VolumeExtra import VolumeExtra
     mapper(VolumeExtra,tbl_volume_extra) 
    
+    #  Project Table
+    ##################################################
+    tbl_project =  Table('tbl_project',metadata,
+          Column('id'           , Integer, primary_key=True),
+          Column('name'        , String(255)),
+          Column('contact'        , String(255)),
+          Column('owner_id'        , Integer),
+          Column('rw_location_id_csv',  String(255)), 
+          Column('ro_location_id_csv',  String(255)), 
+          Column('rw_serv_id_csv',  String(255)), 
+          Column('ro_serv_id_csv',  String(255)), 
+          Column('volnameRegEx_csv',  Text),
+          Column('additionalVolnames_csv',  Text), 
+          Column('excludedVolnames_csv',  Text), 
+          Column('minSize_kB'         , Integer ), 
+          Column('maxSize_kB'         , Integer ), 
+          Column('minnum_ro'      , Integer),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          Column('sync'         , Integer )
+          )
+
     try  :
         metadata.create_all(conf.DB_ENGINE) 
     except :
