@@ -9,6 +9,10 @@ FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
 TOKENBIN="/usr/bin/tokens"
+AKLOGBIN="/usr/bin/aklog"
+KINITBIN="/usr/bin/kinit"
+KLISTBIN="/usr/bin/klist"
+KDESTROYBIN="/usr/lib/mit/bin/kdestroy"
 
 def execute(CmdList) :
     pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
