@@ -1,42 +1,67 @@
-import string,re,sys,time
+import string,re,sys,time, tempfile, os
 import afs.dao.bin
+from afs.exceptions.krb5Error import krb5Error
 
-class KrbD5AO() :
+class krb5DAO(object) :
     
     """
     low-level Kerberos stuff 
     """
     
     def __init__(self):
-        return
+        pass
+        
+    def getKRB5CCNAME(self):
+        handle, KRB5CCNAME=tempfile.mkstemp()
+        os.close(handle)
+        return KRB5CCNAME
 
-    def listTicket(self, KRB5CCNAME=""):
+    def listTicket(self, KRB5CCNAME):
         CmdList=[afs.dao.bin.KLISTBIN ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=afs.dao.bin.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
         if rc :
             raise KrbError
         return KRB5CCNAME
 
-    def getTicketbyPasswd(self,principal,realm) :
+    def destroyTicket(self, KRB5CCNAME):
+        CmdList=[afs.dao.bin.KDESTROYBIN, "-c","%s" % KRB5CCNAME ]
+        rc,output,outerr=afs.dao.bin.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
+        if rc :
+            raise KrbError
+        return
+
+    def getTicketbyPassword(self,password, principal="",realm="", KRB5CCNAME="") :
         """
         Obtain Krb5Ticket by prompting for password.
         """ 
         # need to create save tmp-filename to store ticket
-        CmdList=[afs.dao.bin.KINITBIN,"-c" , "%s" % KRB55CCNAME, "%s@%s" % (principal,realm) ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if KRB5CCNAME == "" :
+            KRB5CCNAME=self.getKRB5CCNAME()
+        CmdList=[afs.dao.bin.KINITBIN,"-c" , "%s" % KRB5CCNAME]
+        if principal != "" :
+            if realm != "" :
+                CmdList += ["%s@%s" % (principal,realm)]
+            else :
+                CmdList += ["%s" % principal]
+        rc,output,outerr=afs.dao.bin.execute(CmdList, Input=password)
         if rc :
             raise KrbError
         return KRB5CCNAME
 
     
-    def getTicketbyKeytab(self,principal,realm,keytab) :
+    def getTicketbyKeytab(self,keytab, principal="",realm="", KRB5CCNAME="") :
         """
         Obtain Krb5Ticket by using a given keytab
         """ 
-        CmdList=[afs.dao.bin.KINITBIN,"-k","-t","%s" % keytab, "%s@%s" % (principal,realm) ]
+        if KRB5CCNAME == "" :
+            KRB5CCNAME=self.getKRB5CCNAME()
+        CmdList=[afs.dao.bin.KINITBIN,"-c" , "%s" % KRB5CCNAME,"-k","-t","%s" % keytab ]
+        if principal != "" :
+            if realm != "" :
+                CmdList += ["%s@%s" % (principal,realm)]
+            else :
+                CmdList += ["%s" % principal]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
             raise KrbError
         return KRB5CCNAME
-
-    
