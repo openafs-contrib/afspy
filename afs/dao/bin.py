@@ -14,9 +14,14 @@ KINITBIN="/usr/bin/kinit"
 KLISTBIN="/usr/bin/klist"
 KDESTROYBIN="/usr/lib/mit/bin/kdestroy"
 
-def execute(CmdList) :
-    pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    _output,_outerr=pipo.communicate()
+def execute(CmdList, Input="", env={}) :
+    if Input == "" :
+        pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+        _output,_outerr=pipo.communicate()
+    else :
+        pipo=subprocess.Popen(CmdList,stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+        _output,_outerr=pipo.communicate(Input)
+        
     if pipo.returncode != 0 :
         sys.stderr.write("cmd: \"%s\" failed with %d\n" % (string.join(CmdList),pipo.returncode))
         sys.stderr.write("STDERR: %s\n" % _outerr)
@@ -37,7 +42,6 @@ def execute(CmdList) :
         outerr.append(line)
    
     return pipo.returncode,output,outerr
-
 
 def safeStrip(Thing) :
     if type(Thing) == types.StringType :
