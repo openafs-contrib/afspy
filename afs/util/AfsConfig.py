@@ -88,8 +88,7 @@ class AfsConfig(object):
         except afs.util.options.Error :
             print "Error: " , sys.exc_info()[1]
             sys.exit()
-        except:
-            return
+        return
 
     #FIXME put in the utils used in two places
     def getDict(self):
