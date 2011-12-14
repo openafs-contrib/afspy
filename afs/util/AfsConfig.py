@@ -75,7 +75,7 @@ class AfsConfig(object):
     def __init__(self,useDefaults=True):
         # define defaults here
         if useDefaults :
-            self.CRED_TYPE="ShellToken"
+            self.CRED_TYPE="TokenFromPAG"
             self.DB_CACHE=False
             self.CELL_NAME="beolink.org"
             self.DB_FLUSH=100
