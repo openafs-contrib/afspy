@@ -1,5 +1,5 @@
 import afs.util.options
-
+import logging
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
 from afs.util.AfsConfig import AfsConfig
