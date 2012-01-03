@@ -1,6 +1,7 @@
-import re,string,os,sys
+import re,string,os,sys, datetime
 import afs.dao.bin
 from afs.util import afsutil
+from afs.exceptions.VolError import VolError
 
 class FileServerDAO() :
     """
@@ -27,7 +28,7 @@ class FileServerDAO() :
        
         # first line gives Name, ID, Type, Used and Status 
         volList = [] 
-        
+        date=datetime.date(1970, 1, 1)
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -60,13 +61,13 @@ class FileServerDAO() :
                     splits = output[i+12].split()
                     vol['type']          = splits[1]
                     splits = output[i+13].split()
-                    vol['creationDate']  =  datetime.fromtimestamp(float(splits[1]))
+                    vol['creationDate']  =  date.fromtimestamp(float(splits[1]))
                     splits = output[i+14].split()
-                    vol['updateDate']    = datetime.fromtimestamp(float(splits[1]))
+                    vol['updateDate']    = date.fromtimestamp(float(splits[1]))
                     splits = output[i+15].split()
-                    vol['backupDate']     = datetime.fromtimestamp(float(splits[1]))
+                    vol['backupDate']     = date.fromtimestamp(float(splits[1]))
                     splits = output[i+16].split()
-                    vol['copyDate']      = datetime.fromtimestamp(float(splits[1]))
+                    vol['copyDate']      = date.fromtimestamp(float(splits[1]))
                     splits = output[i+17].split()
                     vol['flags']         = splits[1]
                     splits = output[i+18].split()
@@ -90,7 +91,7 @@ class FileServerDAO() :
               
         return volList
         
-    def getIdVolList(self, part, server, cell, token):
+    def getIdVolList(self, server, part, cell, token):
             """
             return  Volumes in partition
             """
@@ -103,13 +104,12 @@ class FileServerDAO() :
                  raise VolError("Error", outerr)
             volIds = []
             
-            for line in output :
+            for line in output [1:]:
                 m=RX.match(line)
                 if not m :
-                    raise VolError("Error parsing output" , line)
+                    raise VolError("Error parsing output :%s " % line)
                 if m :
-                   vid = m.groups()
-                   volIds.append(vid) 
+                   volIds.append(m.groups()[0]) 
                 
             return volIds
 
