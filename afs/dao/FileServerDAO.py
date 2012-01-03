@@ -1,6 +1,7 @@
-import re,string,os,sys
+import re,string,os,sys, datetime
 import afs.dao.bin
 from afs.util import afsutil
+from afs.exceptions.VolError import VolError
 
 class FileServerDAO() :
     """
@@ -27,7 +28,7 @@ class FileServerDAO() :
        
         # first line gives Name, ID, Type, Used and Status 
         volList = [] 
-        
+        dateT=datetime.datetime(1970, 1, 1)
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -60,37 +61,39 @@ class FileServerDAO() :
                     splits = output[i+12].split()
                     vol['type']          = splits[1]
                     splits = output[i+13].split()
-                    vol['creationDate']  =  datetime.fromtimestamp(float(splits[1]))
+                    vol['creationDate']  =  dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+14].split()
-                    vol['updateDate']    = datetime.fromtimestamp(float(splits[1]))
+                    vol['accessDate']    = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+15].split()
-                    vol['backupDate']     = datetime.fromtimestamp(float(splits[1]))
+                    vol['updateDate']    = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+16].split()
-                    vol['copyDate']      = datetime.fromtimestamp(float(splits[1]))
+                    vol['backupDate']     = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+17].split()
-                    vol['flags']         = splits[1]
+                    vol['copyDate']      = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+18].split()
-                    vol['diskused']      = int(splits[1])
+                    vol['flags']         = splits[1]
                     splits = output[i+19].split()
-                    vol['maxquota']      = int(splits[1])
+                    vol['diskused']      = int(splits[1])
                     splits = output[i+20].split()
-                    vol['minquota']      = int(splits[1])
+                    vol['maxquota']      = int(splits[1])
                     splits = output[i+21].split()
-                    vol['filecount']     = int(splits[1])
+                    vol['minquota']      = int(splits[1])
                     splits = output[i+22].split()
-                    vol['dayUse']        = int(splits[1])
+                    vol['filecount']     = int(splits[1])
                     splits = output[i+23].split()
-                    vol['weekUse']       = int(splits[1])
+                    vol['dayUse']        = int(splits[1])
                     splits = output[i+24].split()
-                    vol['spare2']        = splits[1]
+                    vol['weekUse']       = int(splits[1])
                     splits = output[i+25].split()
+                    vol['spare2']        = splits[1]
+                    splits = output[i+26].split()
                     vol['spare3']        = splits[1]
                     volList.append(vol)
                     i = i+26
               
         return volList
         
-    def getIdVolList(self, part, server, cell, token):
+    def getIdVolList(self, server, part, cell, token):
             """
             return  Volumes in partition
             """
@@ -103,13 +106,12 @@ class FileServerDAO() :
                  raise VolError("Error", outerr)
             volIds = []
             
-            for line in output :
+            for line in output [1:]:
                 m=RX.match(line)
                 if not m :
-                    raise VolError("Error parsing output" , line)
+                    raise VolError("Error parsing output :%s " % line)
                 if m :
-                   vid = m.groups()
-                   volIds.append(vid) 
+                   volIds.append(m.groups()[0]) 
                 
             return volIds
 
