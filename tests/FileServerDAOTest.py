@@ -33,7 +33,9 @@ class TestFileServerDAOMethods(unittest.TestCase):
     
     def test_getVolList(self) :
         VolList=self.DAO.getVolList(self.FS,self.Part,self.Cell,None)
-        sys.stderr.write("\nVolList=%s" % VolList)
+        for v in VolList :
+            if v["vid"] == 1108623471 :
+                sys.stderr.write("\nV=%s" % v)
         return
         
     def test_getIdVolList(self) :

@@ -28,7 +28,7 @@ class FileServerDAO() :
        
         # first line gives Name, ID, Type, Used and Status 
         volList = [] 
-        date=datetime.date(1970, 1, 1)
+        dateT=datetime.datetime(1970, 1, 1)
         for i in range(0, len(output)):
             splits = output[i].split()
             #Beginnig block
@@ -61,30 +61,32 @@ class FileServerDAO() :
                     splits = output[i+12].split()
                     vol['type']          = splits[1]
                     splits = output[i+13].split()
-                    vol['creationDate']  =  date.fromtimestamp(float(splits[1]))
+                    vol['creationDate']  =  dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+14].split()
-                    vol['updateDate']    = date.fromtimestamp(float(splits[1]))
+                    vol['accessDate']    = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+15].split()
-                    vol['backupDate']     = date.fromtimestamp(float(splits[1]))
+                    vol['updateDate']    = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+16].split()
-                    vol['copyDate']      = date.fromtimestamp(float(splits[1]))
+                    vol['backupDate']     = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+17].split()
-                    vol['flags']         = splits[1]
+                    vol['copyDate']      = dateT.fromtimestamp(float(splits[1]))
                     splits = output[i+18].split()
-                    vol['diskused']      = int(splits[1])
+                    vol['flags']         = splits[1]
                     splits = output[i+19].split()
-                    vol['maxquota']      = int(splits[1])
+                    vol['diskused']      = int(splits[1])
                     splits = output[i+20].split()
-                    vol['minquota']      = int(splits[1])
+                    vol['maxquota']      = int(splits[1])
                     splits = output[i+21].split()
-                    vol['filecount']     = int(splits[1])
+                    vol['minquota']      = int(splits[1])
                     splits = output[i+22].split()
-                    vol['dayUse']        = int(splits[1])
+                    vol['filecount']     = int(splits[1])
                     splits = output[i+23].split()
-                    vol['weekUse']       = int(splits[1])
+                    vol['dayUse']        = int(splits[1])
                     splits = output[i+24].split()
-                    vol['spare2']        = splits[1]
+                    vol['weekUse']       = int(splits[1])
                     splits = output[i+25].split()
+                    vol['spare2']        = splits[1]
+                    splits = output[i+26].split()
                     vol['spare3']        = splits[1]
                     volList.append(vol)
                     i = i+26
