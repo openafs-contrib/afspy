@@ -8,13 +8,14 @@ from afs.exceptions.VolError import VolError
 from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil
-
+import afs
 
 class CellService(object):
     """
     Provides Service about a Cell global information.
-    The cellname is set in the methods so that we 
-    can use this for more than one cell.
+    The cellname is set in the configuration passed to constructor.
+    Thus one instance works only for cell, or you
+    need to change self._CFG
     """
     def __init__(self,conf=None):
 
@@ -48,8 +49,8 @@ class CellService(object):
     """
     def getFsList(self):
 
-        nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token);
-        ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True );
+        nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token)
+        ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True )
         
         nameDict = {}
         for el in nameList:
@@ -71,9 +72,9 @@ class CellService(object):
         return  fsList
           
     """
-    Retrieve Server List
+    Retrieve Partition List
     """
-    def getPartList(self, serv,):
+    def getPartList(self, serv):
 
         # FIXME look up server ip use only ip 
         list =self._volDAO.getPartList(serv, self._CFG.CELL_NAME, self._CFG.Token )
