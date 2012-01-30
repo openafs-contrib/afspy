@@ -125,7 +125,7 @@ class FileServerDAO() :
             if rc :
                  raise VolError("Error", outerr)
             
-            partitions= []
+            partitions= {}
             for line in output :
                 m=RX.match(line)
                 if not m :
@@ -136,6 +136,8 @@ class FileServerDAO() :
                 if size != 0:
                     perc = (used/long(size))*100
                 perc= 0
-                partitions.append({"serv":serv, "part":afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
+                if partitions.has_key(part) :
+                        raise VolError("duplicate Partition %s on serv %s" % (part, serv))
+                partitions[afsutil.canonicalizePartition(part)]={"size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc}
             
             return partitions

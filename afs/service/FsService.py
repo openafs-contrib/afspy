@@ -1,8 +1,9 @@
-import logging
+import logging, socket
 
 from afs.dao.FileServerDAO import FileServerDAO
 from afs.dao.ProcessDAO import ProcessDAO
 from afs.exceptions.FSError import  FSError
+from afs.model.Server import Server
 import afs
 
 class FsService (object):
@@ -85,9 +86,11 @@ class FsService (object):
         """
         Retrieve Server 
         """
-            
-        server = self._svrDAO.getServer(self,servername,self._CFG.CELL_NAME)
-        parts = self._svrDAO.getPartList(server.name,self._CFG.CELL_NAME)
-        server.parts = parts
-
-        return server
+        FileServer =Server()
+        # get DNS-info about server
+        DNSInfo=socket.gethostbyname_ex(servername)
+        FileServer.servernames=[DNSInfo[0]]+DNSInfo[1]
+        FileServer.ipaddrs=DNSInfo[2]
+        parts = self._svrDAO.getPartList(FileServer.Servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
+        FileServer.parts = parts
+        return FileServer
