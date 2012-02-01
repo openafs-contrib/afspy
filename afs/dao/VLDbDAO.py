@@ -29,7 +29,7 @@ class VLDbDAO() :
                 splits = output[i].split()
                 server['uuid'] = splits[1]
                 i = i +1
-                server['serv'] = output[i]                            
+                server['name_or_ip'] = output[i]                            
                 servers.append(server)
         return servers
         

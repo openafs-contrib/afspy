@@ -15,11 +15,10 @@ class Server(BaseModel):
         initialize an empty object
         """
         self.id = None
-        self.serv = ""
         self.uuid = ""
         self.servernames = []
         self.ipaddrs = []
-        self.filserver = 0
+        self.fileserver = 0
         self.parts={}
         self.dbserver  = 0
         self.confserver = 0
@@ -28,11 +27,11 @@ class Server(BaseModel):
         self.category = ''
         self.status   = ''
         self.id_location = 0
-        self.description =''
+        self.description = ''
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
 
 
     def __repr__(self):
-        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s')>" %   (self.id, self.serv, self.uuid, self.servername, self.fileserver, self.parts, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     
+        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s')>" %   (self.id,  self.uuid, self.servername, self.fileserver, self.parts, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     

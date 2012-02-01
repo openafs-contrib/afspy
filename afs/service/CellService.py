@@ -1,5 +1,5 @@
 import afs.util.options
-import logging
+import logging, socket
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
 from afs.util.AfsConfig import AfsConfig
@@ -44,28 +44,32 @@ class CellService(object):
     ###############################################
     # Server Section
     ###############################################    
-    """
-    Retrieve Server List
-    """
+   
     def getFsList(self):
-
+        """
+        Retrieve light-weight Server List
+        """
         nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token)
         ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True )
         
+        # create a dict of uuid -> dns_name mapping
         nameDict = {}
         for el in nameList:
-            nameDict[el['uuid']] = el['serv']
+            DNSInfo=socket.gethostbyname_ex(el['name_or_ip'])
+            nameDict[el['uuid']] = [DNSInfo[0]]+DNSInfo[1]
         
         fsList = []
         for el in ipList:
+            print el
             el['servername'] = nameDict[el['uuid']]
             el['fileserver'] = 1
+            # rename attr name_or_ip to proper
+            el['ipaddrs'] = [el.pop('name_or_ip'), ]
             serv = Server()
             serv.setByDict(el) 
             # Cache Stuffz
             serv = self._setServIntoCache(serv)
             fsList.append(serv)
-            
         return  fsList
           
     """
@@ -145,7 +149,7 @@ class CellService(object):
             return serv
         
         session = self.DbSession()
-        servCache = session.query(Server).filter(Server.serv == serv.serv).first()
+        servCache = session.query(Server).filter(Server.uuid== serv.uuid).first()
         session.flush()
         
         if servCache:
