@@ -21,6 +21,7 @@ class Server(BaseModel):
         self.fileserver = 0
         self.parts={}
         self.dbserver  = 0
+        self.clonedbserver = 0
         self.confserver = 0
         self.distserver = 0
         self.version = ""
@@ -34,4 +35,4 @@ class Server(BaseModel):
 
 
     def __repr__(self):
-        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s')>" %   (self.id,  self.uuid, self.servername, self.fileserver, self.parts, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     
+        return "<Server('%s',%s', '%s', '%s','%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s')>" %   (self.id,  self.uuid, self.servernames, self.ipaddrs, self.fileserver, self.parts, self.dbserver, self.clonedbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     
