@@ -27,7 +27,7 @@ class VolService (BaseService):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild("VolService")
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing object with conf=%s" % conf)
        
         # DAO INIT 

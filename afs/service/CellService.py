@@ -26,7 +26,7 @@ class CellService(object):
             self._CFG = afs.defaultConfig
 
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
         
         # DAO INIT
@@ -62,9 +62,6 @@ class CellService(object):
             el['fileserver'] = 1
             serv = Server()
             serv.setByDict(el) 
-            print "Before _______________________________"
-            print serv
-            
             # Cache Stuffz
             serv = self._setServIntoCache(serv)
             fsList.append(serv)

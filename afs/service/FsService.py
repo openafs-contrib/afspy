@@ -22,7 +22,7 @@ class FsService (object):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
 
         # DAO INIT
