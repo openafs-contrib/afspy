@@ -60,7 +60,6 @@ class CellService(object):
         
         fsList = []
         for el in ipList:
-            print el
             el['servername'] = nameDict[el['uuid']]
             el['fileserver'] = 1
             # rename attr name_or_ip to proper
