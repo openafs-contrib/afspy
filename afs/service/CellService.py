@@ -2,6 +2,7 @@ import afs.util.options
 import logging, socket
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
+from afs.dao.ProcessDAO import ProcessDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.VLDbError import VLDbError
 from afs.exceptions.VolError import VolError
@@ -32,6 +33,7 @@ class CellService(object):
         # DAO INIT
         self._vlDAO  = VLDbDAO()
         self._volDAO = VolumeDAO()
+        self._bosDAO = ProcessDAO()
                
         # DB INIT    
         if self._CFG.DB_CACHE :
@@ -60,7 +62,7 @@ class CellService(object):
         
         fsList = []
         for el in ipList:
-            el['servername'] = nameDict[el['uuid']]
+            el['servernames'] = nameDict[el['uuid']]
             el['fileserver'] = 1
             # rename attr name_or_ip to proper
             el['ipaddrs'] = [el.pop('name_or_ip'), ]
@@ -71,11 +73,11 @@ class CellService(object):
             fsList.append(serv)
         return  fsList
           
-    """
-    Retrieve Partition List
-    """
+    
     def getPartList(self, serv):
-
+        """
+        Retrieve Partition List
+        """
         # FIXME look up server ip use only ip 
         list =self._volDAO.getPartList(serv, self._CFG.CELL_NAME, self._CFG.Token )
       
@@ -87,7 +89,23 @@ class CellService(object):
             part = self._setPartIntoCache(part)
             partList.append(part)
         return partList
-    
+        
+    def getDBList(self, serv):
+        """
+        return a light-weight DB-Server list
+        """
+        dbList = []
+        for na in self._bosDAO.getDBServList(serv, self._CFG.CELL_NAME) :
+            d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
+            DNSInfo= socket.gethostbyname_ex(na['hostname'])
+            d['ipaddrs'] =DNSInfo[2] 
+            d['servernames'] = [DNSInfo[0]]+DNSInfo[1]
+            serv = Server()
+            serv.setByDict(d) 
+            # Cache Stuffz
+            serv = self._setServIntoCache(serv)
+            dbList.append(serv)
+        return dbList
     
     
     ################################################
