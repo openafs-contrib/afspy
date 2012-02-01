@@ -12,7 +12,7 @@ class VLDbDAO() :
     
     def getFsServList(self,cellname, token, noresolve=False):
         """
-        get Information about a single Server
+        get list of all fileservers registered in the VLDB
         """
         if noresolve:
             CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname, "-noresolve" ]
