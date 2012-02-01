@@ -3,6 +3,7 @@ import logging, socket
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
 from afs.dao.ProcessDAO import ProcessDAO
+from afs.dao.FileServerDAO import FileServerDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.VLDbError import VLDbError
 from afs.exceptions.VolError import VolError
@@ -34,7 +35,7 @@ class CellService(object):
         self._vlDAO  = VLDbDAO()
         self._volDAO = VolumeDAO()
         self._bosDAO = ProcessDAO()
-               
+        self._fsDAO = FileServerDAO()
         # DB INIT    
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm
@@ -47,7 +48,7 @@ class CellService(object):
     # Server Section
     ###############################################    
    
-    def getFsList(self):
+    def getFsList(self, includeParts=False):
         """
         Retrieve light-weight Server List
         """
@@ -64,31 +65,26 @@ class CellService(object):
         for el in ipList:
             el['servernames'] = nameDict[el['uuid']]
             el['fileserver'] = 1
+            self.Logger.debug("querying %s" % (el['servernames'] [0]))
             # rename attr name_or_ip to proper
             el['ipaddrs'] = [el.pop('name_or_ip'), ]
             serv = Server()
             serv.setByDict(el) 
             # Cache Stuffz
             serv = self._setServIntoCache(serv)
+            if includeParts :
+                list =self._fsDAO.getPartList(el['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
+                partList = []
+                for elel in list:
+                    part = Partition()
+                    part.setByDict(elel)
+                    # Cache Stuff
+                    part = self._setPartIntoCache(part)
+                    partList.append(part)
+                serv.parts=partList
             fsList.append(serv)
         return  fsList
-          
-    
-    def getPartList(self, serv):
-        """
-        Retrieve Partition List
-        """
-        srvip=socket.gethostbyname(serv)
-        list =self._volDAO.getPartList(srvip, self._CFG.CELL_NAME, self._CFG.Token)
-        partList = []
-        for el in list:
-            part = Partition()
-            part.setByDict(el)
-            # Cache Stuff
-            part = self._setPartIntoCache(part)
-            partList.append(part)
-        return partList
-        
+
     def getDBList(self, serv):
         """
         return a light-weight DB-Server list
