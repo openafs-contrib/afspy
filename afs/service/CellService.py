@@ -78,9 +78,8 @@ class CellService(object):
         """
         Retrieve Partition List
         """
-        # FIXME look up server ip use only ip 
-        list =self._volDAO.getPartList(serv, self._CFG.CELL_NAME, self._CFG.Token )
-      
+        srvip=socket.gethostbyname(serv)
+        list =self._volDAO.getPartList(srvip, self._CFG.CELL_NAME, self._CFG.Token)
         partList = []
         for el in list:
             part = Partition()
@@ -134,7 +133,6 @@ class CellService(object):
         session = self.DbSession()
         partCache = session.query(Partition).filter(Partition.part == part.part).filter(Partition.serv == part.serv).first()
        
-        
         if partCache:
             partCache.copyObj(part)         
         else:
