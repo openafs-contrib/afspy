@@ -134,15 +134,15 @@ class VolumeDAO(object) :
                 vid['RW'] = splits[1]
                 vid['RO'] = splits[3]
                 if len(splits) > 4 :
-                  vid['RO'] = splits[5] 
+                  vid['BK'] = splits[5] 
                   
                 # Number of Sites
                 i += 1
                 splits = output[i].split() 
                 numSite =  int(splits[4]) 
                 
-                for n in range(1, numSite):
-                    splits = output[i+n].split()
+                for n in range(0, numSite):
+                    splits = output[i+1+n].split()
                     type = splits[4]
                     volGroup.append({"id":vid[type], 'volname': volname, "type":type,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
           
