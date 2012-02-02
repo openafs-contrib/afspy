@@ -38,6 +38,7 @@ class ProcessDAO() :
     """
     generalRestartRegEX=re.compile("Server (\S+) restarts (?:at)?(.*)")
     binaryRestartRegEX=re.compile("Server (\S+) restarts for new binaries (?:at)?(.*)")
+    DBServerRegEx=re.compile("Host (\d+) is (\S+)")
 
     def __init__(self) :
         return
@@ -106,3 +107,25 @@ class ProcessDAO() :
     def status(self, process, servername, cellname, **kwargs):
         pass
 
+    def getDBServList(self,servername, cellname ):
+        """
+        get list of all database-servers known to a given AFS-server
+        """
+        CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if rc :
+            return rc,output,outerr
+        DBServers=[]
+        for line in output :
+            mObj=self.DBServerRegEx.match(line)
+            if mObj :
+                server = {}
+                host=mObj.groups()[1].strip()
+                if host[0] == "[" and host[len(host)-1] == "]" :
+                    server['hostname']=host[1:-1]
+                    server['isClone'] = 1
+                else :
+                    server['hostname']=host
+                    server['isClone'] = 0
+                DBServers.append(server)
+        return DBServers

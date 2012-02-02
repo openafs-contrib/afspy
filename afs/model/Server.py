@@ -14,23 +14,40 @@ class Server(BaseModel):
         """
         initialize an empty object
         """
+        ## for db index
         self.id = None
-        self.serv = ""
+        ## AFS Server UUID
         self.uuid = ""
-        self.servername = ""
-        self.filserver = 0
+        ## list of DNS-hostnames
+        self.servernames = []
+        ## list of ipaddrs
+        self.ipaddrs = []
+        ## flag if this server is a fileserver
+        self.fileserver = 0
+        self.parts={}
+        ## flag if this server is a databaseserver
         self.dbserver  = 0
+        ## flag if this server is a databaseserver-Cloneonly
+        self.clonedbserver = 0
+        ## flag if this ??
         self.confserver = 0
+        ## flag if this ??
         self.distserver = 0
+        ## rxdebug version string
         self.version = ""
+        ## ??
         self.category = ''
+        ## ??
         self.status   = ''
+        ## Id for table location where this server is placed physically
         self.id_location = 0
-        self.description =''
+        ## custom description about HW etc.
+        self.description = ''
+        ## Date of object creation
         self.cdate   = datetime.now()
+        ## Date of last object update
         self.udate   = datetime.now()
+        ## flag if this object is synced with reality.
         self.sync    = 0
-
-
-    def __repr__(self):
-        return "<Server('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s')>" %   (self.id, self.serv, self.uuid, self.servername, self.fileserver, self.dbserver, self.confserver, self.distserver, self.version, self.category, self.status, self.id_location, self.description, self.cdate, self.udate, self.sync)     
+        ## flag if this object is not fully filled yet
+        self.isComplete = False

@@ -124,7 +124,6 @@ class FileServerDAO() :
             rc,output,outerr=afs.dao.bin.execute(CmdList)
             if rc :
                  raise VolError("Error", outerr)
-            
             partitions= []
             for line in output :
                 m=RX.match(line)
@@ -136,6 +135,6 @@ class FileServerDAO() :
                 if size != 0:
                     perc = (used/long(size))*100
                 perc= 0
-                partitions.append({"serv":serv, "part":afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
+                partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
             
             return partitions

@@ -7,6 +7,17 @@ useRXOSD=True
 SizeUnit=['kB','MB','GB','TB','PB']
 PartRX=re.compile("/?(?:vicep)?([a-z][a-z]?)")
 
+
+class utilError(Exception):
+    def __init__(self, message, Errors=[]):
+        Exception.__init__(self, message)
+        # Now for your custom code...
+        self.Errors = Errors
+  
+    def __str__(self):
+      #FIXME parse build a complete message with stack
+      return repr(self.message)
+
 def humanReadableSize(Size) :
     for s in range(len(SizeUnit)) :
         if float(Size) / (1024**(s+1)) < 1 : break
@@ -26,7 +37,7 @@ def canonicalizePartition(part) :
     else :
        MObj=PartRX.match(part)
        if not MObj :
-           raise "Cannot canonicalize \"%s\"" 
+           raise utilError("Cannot canonicalize \"%s\"" % part)
        partition=MObj.groups()[0] 
     return partition
  

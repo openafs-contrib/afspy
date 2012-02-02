@@ -1,20 +1,23 @@
 import afs.util.options
-import logging
+import logging, socket
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
+from afs.dao.ProcessDAO import ProcessDAO
+from afs.dao.FileServerDAO import FileServerDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.VLDbError import VLDbError
 from afs.exceptions.VolError import VolError
 from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil
-
+import afs
 
 class CellService(object):
     """
     Provides Service about a Cell global information.
-    The cellname is set in the methods so that we 
-    can use this for more than one cell.
+    The cellname is set in the configuration passed to constructor.
+    Thus one instance works only for cell, or you
+    need to change self._CFG
     """
     def __init__(self,conf=None):
 
@@ -25,13 +28,14 @@ class CellService(object):
             self._CFG = afs.defaultConfig
 
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
         
         # DAO INIT
         self._vlDAO  = VLDbDAO()
         self._volDAO = VolumeDAO()
-               
+        self._bosDAO = ProcessDAO()
+        self._fsDAO = FileServerDAO()
         # DB INIT    
         if self._CFG.DB_CACHE :
             import sqlalchemy.orm
@@ -43,50 +47,60 @@ class CellService(object):
     ###############################################
     # Server Section
     ###############################################    
-    """
-    Retrieve Server List
-    """
-    def getFsList(self):
-
-        nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token);
-        ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True );
+   
+    def getFsList(self, includeParts=False):
+        """
+        Retrieve light-weight Server List
+        """
+        nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token)
+        ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True )
         
+        # create a dict of uuid -> dns_name mapping
         nameDict = {}
         for el in nameList:
-            nameDict[el['uuid']] = el['serv']
+            DNSInfo=socket.gethostbyname_ex(el['name_or_ip'])
+            nameDict[el['uuid']] = [DNSInfo[0]]+DNSInfo[1]
         
         fsList = []
         for el in ipList:
-            el['servername'] = nameDict[el['uuid']]
+            el['servernames'] = nameDict[el['uuid']]
             el['fileserver'] = 1
+            self.Logger.debug("querying %s" % (el['servernames'] [0]))
+            # rename attr name_or_ip to proper
+            el['ipaddrs'] = [el.pop('name_or_ip'), ]
             serv = Server()
             serv.setByDict(el) 
-            print "Before _______________________________"
-            print serv
-            
             # Cache Stuffz
             serv = self._setServIntoCache(serv)
+            if includeParts :
+                list =self._fsDAO.getPartList(el['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
+                partList = []
+                for elel in list:
+                    part = Partition()
+                    part.setByDict(elel)
+                    # Cache Stuff
+                    part = self._setPartIntoCache(part)
+                    partList.append(part)
+                serv.parts=partList
             fsList.append(serv)
-            
         return  fsList
-          
-    """
-    Retrieve Server List
-    """
-    def getPartList(self, serv,):
 
-        # FIXME look up server ip use only ip 
-        list =self._volDAO.getPartList(serv, self._CFG.CELL_NAME, self._CFG.Token )
-      
-        partList = []
-        for el in list:
-            part = Partition()
-            part.setByDict(el)
-            # Cache Stuff
-            part = self._setPartIntoCache(part)
-            partList.append(part)
-        return partList
-    
+    def getDBList(self, serv):
+        """
+        return a light-weight DB-Server list
+        """
+        dbList = []
+        for na in self._bosDAO.getDBServList(serv, self._CFG.CELL_NAME) :
+            d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
+            DNSInfo= socket.gethostbyname_ex(na['hostname'])
+            d['ipaddrs'] =DNSInfo[2] 
+            d['servernames'] = [DNSInfo[0]]+DNSInfo[1]
+            serv = Server()
+            serv.setByDict(d) 
+            # Cache Stuffz
+            serv = self._setServIntoCache(serv)
+            dbList.append(serv)
+        return dbList
     
     
     ################################################
@@ -115,7 +129,6 @@ class CellService(object):
         session = self.DbSession()
         partCache = session.query(Partition).filter(Partition.part == part.part).filter(Partition.serv == part.serv).first()
        
-        
         if partCache:
             partCache.copyObj(part)         
         else:
@@ -147,7 +160,7 @@ class CellService(object):
             return serv
         
         session = self.DbSession()
-        servCache = session.query(Server).filter(Server.serv == serv.serv).first()
+        servCache = session.query(Server).filter(Server.uuid== serv.uuid).first()
         session.flush()
         
         if servCache:

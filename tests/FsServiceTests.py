@@ -29,7 +29,7 @@ class TestFsServiceMethods(unittest.TestCase):
         self.Pass=self.TestCfg.get("general", "Pass")
         self.FsMng = FsService()
         self.FsName=self.TestCfg.get("FsService", "FS")
-        self.FsPart=self.TestCfg.get("FsService", "Part")
+        self.FsPartitions=self.TestCfg.get("FsService", "Partitions").split(",")
         if afs.defaultConfig.DB_CACHE :
             from sqlalchemy.orm import sessionmaker
             self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
@@ -46,6 +46,11 @@ class TestFsServiceMethods(unittest.TestCase):
         self.assertEqual(None,restartTime)
         restartTime = self.FsMng.setRestartTimes(self.FsName,"never","binary")
         self.assertEqual(None,restartTime)
+        return
+        
+    def test_getServerObj(self) :
+        server=self.FsMng.getFileServer(self.FsName)
+        self.assertEqual(self.FsPartitions, server.parts.keys())
         return
 
 if __name__ == '__main__' :

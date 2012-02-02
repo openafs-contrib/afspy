@@ -8,13 +8,13 @@ from afs.service.VolService import VolService
 import afs
 
 setupDefaultConfig()
-afs.defaultConfig.AFSCell="desy.de"
+afs.defaultConfig.CELL_NAME="ipp-garching.mpg.de"
 volMng = VolService()
 VolName="root.cell"
 VolG=volMng.getVolGroup(VolName)
-print VolG
+print "Volume Group: %s " %VolG
 
 for v in VolG.RO :
     vol=volMng.getVolume(v["id"],v["serv"],v["part"])
-    print vol
+    print "RO-Volume id=%s, server=%s,paritions=%s: %s " % (v["id"],v["serv"],v["part"], vol)
 

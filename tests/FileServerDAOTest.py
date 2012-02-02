@@ -46,8 +46,8 @@ class TestFileServerDAOMethods(unittest.TestCase):
     def test_getPartList(self,) :
         PartList=self.DAO.getPartList(self.FS,self.Cell,None)
         for p in PartList :
-           if not p["part"] in self.allParts :
-                self.assertEqual(p["part"],"Not in Test.cfg")
+           if not p in self.allParts :
+                self.assertEqual(p,"Not in Test.cfg")
         return
     
 if __name__ == '__main__' :

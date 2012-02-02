@@ -27,7 +27,7 @@ class VolService (BaseService):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild("VolService")
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing object with conf=%s" % conf)
        
         # DAO INIT 
@@ -42,13 +42,13 @@ class VolService (BaseService):
     ###############################################
     # Volume Section
     ###############################################    
-    #FIXME list or object ... no DICT ! 
+    
     """
     Retrieve Volume Group
     """
     def getVolGroup(self, id ):
     
-        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token);
+        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
         if len(list) > 0:
             volGroup =  VolumeGroup()
@@ -57,10 +57,9 @@ class VolService (BaseService):
                 if el['type'] == 'RW':
                     volGroup.RW.append(el)
                 elif el['type'] == 'RO':
-                     volGroup.RO.append(el)
+                    volGroup.RO.append(el)
                 else :
-                     volGroup.BK.append(el)
-      
+                    volGroup.BK.append(el)
         return volGroup
        
     """
@@ -74,7 +73,6 @@ class VolService (BaseService):
             vol = Volume()
             vol.setByDict(vdict)
             vol = self._setIntoCache(vol)
-
         return  vol
     
     """
