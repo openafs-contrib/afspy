@@ -11,9 +11,12 @@ class Partition(BaseModel):
         """
         initialize an empty object
         """
+        ## DB - ID
         self.id = None
         self.serv   = serv
+        ## canonicalized partition name e.g "ad" for "/vicepad"
         self.name   = name
+        ## device-file
         self.device = ''
         self.fstype = ''
         self.category  = ''
@@ -26,7 +29,4 @@ class Partition(BaseModel):
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
-
-
-    def __repr__(self):
-        return "<Partition('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s')>" % (self.id, self.serv, self.name, self.device, self.fstype, self.category, self.free, self.size,  self.used, self.perc, self.status, self.description, self.cdate, self.udate , self.sync )
+        self.isComplete = False
