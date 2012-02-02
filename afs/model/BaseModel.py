@@ -11,8 +11,13 @@ class BaseModel(object):
         """
         res = ""
         for attr, value in self.__dict__.iteritems():
-            if type(attr) is IntType or type(attr) is StringType or type(attr) is LongType or type(attr) is UnicodeType:
-                res += " %s=%s \n" %(attr, value)
+            if type(value) is IntType or type(value) is StringType or type(value) is LongType or type(value) is UnicodeType:
+                res += " %s=%s \n" % ( attr, value)
+            elif type(value) is ListType :
+                res += "%s= [\n" % attr
+                for i in range(len(value)) :
+                    res += "\t %s \n" %(value[i])
+                res += "]\n"
         return res
     
     

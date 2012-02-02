@@ -1,7 +1,8 @@
 import string,re,sys,time
 import afs.dao.bin
+from afs.exceptions.krb5Error import krb5Error
 
-class PAGDAO() :
+class PAGDAO(object) :
     
     """
     Access to a pag, like getting information about  tokens
@@ -39,3 +40,15 @@ class PAGDAO() :
             line_no += 1
         return "",""
     
+    def obtainTokenFromTicket(self, krb5CCName, realm="", cellname=""):
+        CmdList=[afs.dao.bin.AKLOGBIN]
+        if realm != "" and cellname == "" :
+            raise krb5Error
+        if cellname != "" :
+            CmdList += ["-c", "%s" % cellname]
+            if realm != "" :
+                CmdList += ["-k","%s" % realm]
+        rc,output,outerr=afs.dao.bin.execute(CmdList, env={"KRB5CCNAME":krb5CCName})
+        if rc :
+            raise krb5Error
+        return self.getTokeninPAG()

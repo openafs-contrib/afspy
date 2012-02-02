@@ -12,6 +12,8 @@ def setupOptions():
     define("conf", default="",help="path to configuration file")
     define("DB_CACHE",  default="False", help="use DB cache")
     define("CELL_NAME", default="beolink.org", help="Default Cell")
+    define("KRB5_PRINC",  default="BEO", help="Kerberos5 Principal to use")
+    define("KRB5_REALM",  default="BEOLINK.ORG", help="Kerberos5 REALM to use")
 
     afs.orm.DbMapper.setupOptions() 
     return
@@ -29,7 +31,7 @@ def setupDefaultConfig():
         elif options.conf :
             afs.defaultConfig.load(options.conf)
         elif os.path.exists("./afspy.cfg") :
-             afs.defaultConfig.load("./afspy.cfg")
+            afs.defaultConfig.load("./afspy.cfg")
         # load personal config $HOME/.config/afspy  
         elif HOME :
             if os.path.exists("%s/.config/afspy.cfg") :
@@ -39,6 +41,8 @@ def setupDefaultConfig():
         afs.util.options.parse_command_line()
         
         afs.defaultConfig.CELL_NAME = options.CELL_NAME
+        afs.defaultConfig.KRB5_PRINC=options.KRB5_PRINC
+        afs.defaultConfig.KRB5_REALM=options.KRB5_REALM
         
         # setup DB_CACHE if required
         try: 
@@ -71,7 +75,7 @@ class AfsConfig(object):
     def __init__(self,useDefaults=True):
         # define defaults here
         if useDefaults :
-            self.CRED_TYPE="ShellToken"
+            self.CRED_TYPE="TokenFromPAG"
             self.DB_CACHE=False
             self.CELL_NAME="beolink.org"
             self.DB_FLUSH=100
@@ -84,8 +88,7 @@ class AfsConfig(object):
         except afs.util.options.Error :
             print "Error: " , sys.exc_info()[1]
             sys.exit()
-        except:
-            return
+        return
 
     #FIXME put in the utils used in two places
     def getDict(self):

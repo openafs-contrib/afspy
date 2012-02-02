@@ -3,6 +3,34 @@ import afs.dao.bin
 
 from afs.util import afsutil
 
+def restartT2Minutes(Time):
+    """
+    converts a restart time from the human readable output to
+    minutes after midnight.
+    -1 means never
+    """
+    if Time == "never" : return -1
+    Minutes=0
+    tokens=Time.split()
+    if tokens[1] == "pm" :
+       Minutes = 12*60
+    hours, min=tokens[0].split(":")
+    Minutes += int(hours)*60 + min
+    return Minutes
+
+def Minutes2restartT(Minutes) :
+    """
+    converts an int meaning Minutes after midnight into a 
+    restartTime string  understood by the bos command
+    """
+    if Minutes == -1 :
+        return "never"
+    Pod="am"
+    if Minutes > 12*60 :
+        Pod="pm"
+        Minutes -= 12*60
+    Time = "%d:%02d %s" % (Minutes/60, Minutes%60,Pod)
+    return Time
 
 class ProcessDAO() :
     """
@@ -10,32 +38,32 @@ class ProcessDAO() :
     """
     generalRestartRegEX=re.compile("Server (\S+) restarts (?:at)?(.*)")
     binaryRestartRegEX=re.compile("Server (\S+) restarts for new binaries (?:at)?(.*)")
+    DBServerRegEx=re.compile("Host (\d+) is (\S+)")
 
     def __init__(self) :
         return
     
-    def getRestartTimes(self, servername, cellname):
+    def getRestartTimes(self, servername, cellname, token):
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
             return rc,output,outerr
         if len(output) != 2 :
             return 1, output, outerr
-        generalRestart=generalRestartRegEX.match(output[0]).groups()[1]
-        binaryRestart=binaryRestartRegEX.match(output[1]).groups()[1]
-        return generalRestart, binaryRestart
+        generalRestart=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
+        binaryRestart=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
+        return 0, generalRestart, binaryRestart
 
-    def setRestart(self, time, restarttype, servername, cellname):
+    def setRestartTimes(self, servername, time, restarttype, cellname, token):
         if restarttype == "general" :
             option = "-general"
         elif restarttype == "binary" :
             option = "-newbinary"
         else :
-             return False
+             return 1, "invalid restarttype=%s" % restarttype
         CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
-        if rc :
-            raise Error
+        return rc, output, outerr
 
     def addUser(self, user, servername, cellname):
         pass
@@ -79,3 +107,25 @@ class ProcessDAO() :
     def status(self, process, servername, cellname, **kwargs):
         pass
 
+    def getDBServList(self,servername, cellname ):
+        """
+        get list of all database-servers known to a given AFS-server
+        """
+        CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if rc :
+            return rc,output,outerr
+        DBServers=[]
+        for line in output :
+            mObj=self.DBServerRegEx.match(line)
+            if mObj :
+                server = {}
+                host=mObj.groups()[1].strip()
+                if host[0] == "[" and host[len(host)-1] == "]" :
+                    server['hostname']=host[1:-1]
+                    server['isClone'] = 1
+                else :
+                    server['hostname']=host
+                    server['isClone'] = 0
+                DBServers.append(server)
+        return DBServers

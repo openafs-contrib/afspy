@@ -12,7 +12,7 @@ class VLDbDAO() :
     
     def getFsServList(self,cellname, token, noresolve=False):
         """
-        get Information about a single Server
+        get list of all fileservers registered in the VLDB
         """
         if noresolve:
             CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname, "-noresolve" ]
@@ -29,7 +29,7 @@ class VLDbDAO() :
                 splits = output[i].split()
                 server['uuid'] = splits[1]
                 i = i +1
-                server['serv'] = output[i]                            
+                server['name_or_ip'] = output[i]                            
                 servers.append(server)
         return servers
         

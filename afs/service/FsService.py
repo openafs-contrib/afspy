@@ -1,11 +1,14 @@
-from afs.dao.FileSystemDAO import FileSystemDAO
-from afs.dao.ProcessDAO import ProcessDAO
+import logging, socket
 
+from afs.dao.FileServerDAO import FileServerDAO
+from afs.dao.ProcessDAO import ProcessDAO
+from afs.exceptions.FSError import  FSError
+from afs.model.Server import Server
+import afs
 
 class FsService (object):
     """
     Provides Service about a FileServer
-    ...
     """
     
     _CFG    = None
@@ -19,11 +22,11 @@ class FsService (object):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs").getChild(self.__class__.__name__)
+        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
 
         # DAO INIT
-        self._srvDAO = FileSystemDAO()
+        self._svrDAO = FileServerDAO()
         self._procDAO = ProcessDAO()
         
         # DB INIT    
@@ -39,13 +42,21 @@ class FsService (object):
             """
             Ask Bosserver about the restart times of the fileserver
             """
-            cellname = self._TOKEN._CELL_NAME
-            if kwargs.get("cellname"):
-                cellname = kwargs.get("cellname")
-            self._procDAO.getRestartTimes()
-            return
+            rc, general, binary=self._procDAO.getRestartTimes(name, self._CFG.CELL_NAME, self._CFG.Token)
+            if not rc :
+                return general, binary
             
-    
+    def setRestartTimes(self,name,time, restarttype,  **kwargs):
+            """
+            Ask Bosserver about the restart times of the fileserver
+            """
+            rc, output, outerr=self._procDAO.setRestartTimes(name,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
+            if not rc :
+                return time
+            else :
+                return None
+                
+                
     ###############################################
     # Volume Section
     ###############################################    
@@ -55,17 +66,14 @@ class FsService (object):
         """
         Retrieve Volume ID List
         """
-        cellname = self._TOKEN._CELL_NAME
         vols = []
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
             
         if partname:    
-            vols = self._svrDAO.getVolIdList(partname, servername,cellname)
+            vols = self._svrDAO.getVolIdList(partname, servername,self._CFG.CELL_NAME)
         else:
-            parts = self._svrDAO.getPartList(servername,cellname)
+            parts = self._svrDAO.getPartList(servername,self._CFG.CELL_NAME)
             for part in parts:
-                vols.extend(self._svrDAO.getVolIdList(part.name, servername,cellname))
+                vols.extend(self._svrDAO.getVolIdList(part.name, servername,self._CFG.CELL_NAME))
     
         return vols
     
@@ -78,13 +86,11 @@ class FsService (object):
         """
         Retrieve Server 
         """
-        cellname = self._TOKEN._CELL_NAME
-     
-        if kwargs.get("cellname"):
-            cellname = kwargs.get("cellname")
-            
-        server = self._svrDAO.getServer(self,servername,cellname)
-        parts = self._svrDAO.getPartList(server.name,cellname)
-        server.parts = parts
-
-        return server
+        FileServer =Server()
+        # get DNS-info about server
+        DNSInfo=socket.gethostbyname_ex(servername)
+        FileServer.servernames=[DNSInfo[0]]+DNSInfo[1]
+        FileServer.ipaddrs=DNSInfo[2]
+        parts = self._svrDAO.getPartList(FileServer.Servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
+        FileServer.parts = parts
+        return FileServer

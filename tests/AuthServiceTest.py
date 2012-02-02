@@ -28,7 +28,8 @@ class TestAuthServiceMethods(unittest.TestCase):
         self.Pass=self.TestCfg.get("general", "Pass")
         return
     
-    def test_getTokenFromShell(self) :
+    def test_getTokenFromPAG(self) :
+        afs.defaultConfig.CRED_TYPE="pag"
         token=self.AuthService.getToken()
         self.assertEqual(self.Cell, token._CELL_NAME)
         return
@@ -38,7 +39,18 @@ class TestAuthServiceMethods(unittest.TestCase):
         self.assertEqual("openafs.org",token._CELL_NAME)
         self.assertEqual(123,token._AFS_ID)
         return
+        
+    def test_getTokenFromPassword(self):
+        afs.defaultConfig.CRED_TYPE="krb5_password"
+        token=self.AuthService.getToken()
+        self.assertEqual(self.Cell, token._CELL_NAME)
+        return
     
+    def test_getTokenFromKeytab(self):
+        afs.defaultConfig.CRED_TYPE="krb5_keytab:/home/hanke/private/keytab"
+        token=self.AuthService.getToken()
+        self.assertEqual(self.Cell, token._CELL_NAME)
+        return
     
 if __name__ == '__main__' :
     define("setup", default="./Test.cfg", help="path to Testconfig")

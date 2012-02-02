@@ -9,14 +9,36 @@ FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
 TOKENBIN="/usr/bin/tokens"
+AKLOGBIN="/usr/bin/aklog"
+KINITBIN="/usr/bin/kinit"
+KLISTBIN="/usr/bin/klist"
+KDESTROYBIN="/usr/lib/mit/bin/kdestroy"
 
-def execute(CmdList) :
-    pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    _output,_outerr=pipo.communicate()
+class ExecError( BaseException):
+    def __init__(self, message, stack=[]):
+        BaseException.__init__(self, message)
+        self.message   = message
+        self.stack = stack
+  
+    def __str__(self):
+      #FIXME parse build a complete message with stack
+      return repr(self.message)
+
+
+def execute(CmdList, Input="", env={}) :
+    if Input == "" :
+        pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+        _output,_outerr=pipo.communicate()
+    else :
+        pipo=subprocess.Popen(CmdList,stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+        _output,_outerr=pipo.communicate(Input)
+        
     if pipo.returncode != 0 :
-        sys.stderr.write("cmd: \"%s\" failed with %d\n" % (string.join(CmdList),pipo.returncode))
-        sys.stderr.write("STDERR: %s\n" % _outerr)
-        sys.exit(pipo.returncode)
+        if pipo.returncode == 13 : # permission denied
+            return 13, "","Permission denied"
+        if "not authorized" in _output.lower() or  "not authorized" in _outerr.lower()  :
+            return 13, "","Permission denied"
+        raise ExecError("cmd: \"%s\" failed with rc=%d and stderr=%s\n" % (string.join(CmdList),pipo.returncode, _outerr))
 
     # get rid of whitespace
     _output=map(safeStrip,_output.split("\n"))
@@ -33,7 +55,6 @@ def execute(CmdList) :
         outerr.append(line)
    
     return pipo.returncode,output,outerr
-
 
 def safeStrip(Thing) :
     if type(Thing) == types.StringType :
