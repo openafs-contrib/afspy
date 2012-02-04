@@ -77,6 +77,10 @@ class FsService (object):
     
         return vols
     
+    
+    
+    
+    
     ###############################################
     # File Server Section
     ###############################################
@@ -92,5 +96,25 @@ class FsService (object):
         FileServer.servernames=[DNSInfo[0]]+DNSInfo[1]
         FileServer.ipaddrs=DNSInfo[2]
         parts = self._svrDAO.getPartList(FileServer.Servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
+        #FIXME  Cache 
         FileServer.parts = parts
         return FileServer
+
+
+        ################################################
+        # Statistcis DB BASE
+        ################################################
+    
+        #TODO Number volumes
+        
+        #Number of partitions
+        
+        #Total Space/usage/free
+        
+        #Total Number of files
+        
+        #Access statistics
+        
+        #Volume offline
+    
+        #Volume KO

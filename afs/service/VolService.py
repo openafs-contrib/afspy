@@ -82,6 +82,10 @@ class VolService (BaseService):
         pass
  
  
+    def release(self, id):
+        #Check before the call (must be RW)
+        pass
+ 
     ################################################
     #  Cache Query 
     ################################################
