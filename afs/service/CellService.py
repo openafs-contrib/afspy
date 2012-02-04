@@ -1,5 +1,6 @@
 import afs.util.options
 import logging, socket
+
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
 from afs.dao.ProcessDAO import ProcessDAO
@@ -101,6 +102,27 @@ class CellService(object):
             serv = self._setServIntoCache(serv)
             dbList.append(serv)
         return dbList
+    
+    
+    ################################################
+    # Statistcis DB BASE
+    ################################################
+    
+    #TODO Number of usrs 
+    
+    #getTotalVolume()
+    
+    #Number of Volumes
+    
+    #Number of partitions
+    
+    #Total Space
+    
+    #Number of Servers
+    
+    #Volume offline
+    
+    #Volume KO
     
     
     ################################################

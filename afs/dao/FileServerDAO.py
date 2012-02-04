@@ -1,7 +1,7 @@
 import re,string,os,sys, datetime
 import afs.dao.bin
 from afs.util import afsutil
-from afs.exceptions.VolError import VolError
+from afs.exceptions.FServError import FServError
 
 class FileServerDAO() :
     """
@@ -20,7 +20,7 @@ class FileServerDAO() :
         
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
-            raise FSError("Error",outerror)
+            raise FServError("Error",outerror)
         
         line_no = 0
         line = output[line_no]
@@ -103,13 +103,13 @@ class FileServerDAO() :
  
             rc,output,outerr=afs.dao.bin.execute(CmdList)
             if rc :
-                 raise VolError("Error", outerr)
+                 raise FServError("Error", outerr)
             volIds = []
             
             for line in output [1:]:
                 m=RX.match(line)
                 if not m :
-                    raise VolError("Error parsing output :%s " % line)
+                    raise FServError("Error parsing output :%s " % line)
                 if m :
                    volIds.append(m.groups()[0]) 
                 
@@ -123,12 +123,12 @@ class FileServerDAO() :
             CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
             rc,output,outerr=afs.dao.bin.execute(CmdList)
             if rc :
-                 raise VolError("Error", outerr)
+                 raise FServError("Error", outerr)
             partitions= []
             for line in output :
                 m=RX.match(line)
                 if not m :
-                    raise VolError("Error parsing output" , line)
+                    raise FServError("Error parsing output" , line)
 
                 part, free, size=m.groups()
                 used = long(size)-long(free)

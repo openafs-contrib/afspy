@@ -2,6 +2,7 @@ import re,string,os,sys
 import afs.dao.bin
 
 from afs.util import afsutil
+from afs.exceptions.ProcError import ProcError
 
 def restartT2Minutes(Time):
     """
@@ -18,7 +19,7 @@ def restartT2Minutes(Time):
     Minutes += int(hours)*60 + min
     return Minutes
 
-def Minutes2restartT(Minutes) :
+def minutes2restartT(Minutes) :
     """
     converts an int meaning Minutes after midnight into a 
     restartTime string  understood by the bos command
@@ -47,12 +48,16 @@ class ProcessDAO() :
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
-            return rc,output,outerr
+            raise ProcError( outerr, output)
+        
         if len(output) != 2 :
-            return 1, output, outerr
-        generalRestart=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
-        binaryRestart=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
-        return 0, generalRestart, binaryRestart
+            raise ProcError( outerr, output)
+        
+        st = []
+        st[generalRestart]=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
+        st[binaryRestart]=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
+        
+        return st
 
     def setRestartTimes(self, servername, time, restarttype, cellname, token):
         if restarttype == "general" :
@@ -60,10 +65,12 @@ class ProcessDAO() :
         elif restarttype == "binary" :
             option = "-newbinary"
         else :
+             raise ProcError( "invalid restarttype=%s" % restarttype, '')
              return 1, "invalid restarttype=%s" % restarttype
         CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
-        return rc, output, outerr
+        
+        return 
 
     def addUser(self, user, servername, cellname):
         pass
@@ -114,7 +121,8 @@ class ProcessDAO() :
         CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
-            return rc,output,outerr
+            raise ProcError( outerr, output)
+            
         DBServers=[]
         for line in output :
             mObj=self.DBServerRegEx.match(line)
