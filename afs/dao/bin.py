@@ -5,6 +5,7 @@ import subprocess,types
 
 VOSBIN="/usr/sbin/vos"
 RXDEBUGBIN="/usr/sbin/rxdebug"
+UDEBUGBIN="/usr/bin/udebug"
 FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"
