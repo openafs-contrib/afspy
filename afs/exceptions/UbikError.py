@@ -1,4 +1,4 @@
 from afs.exceptions.AfsError import AfsError
 
-class ubikError(AfsError):
+class UbikError(AfsError):
     pass
