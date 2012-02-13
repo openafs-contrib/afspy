@@ -1,7 +1,7 @@
 import sys,logging
 import afs.util.options
 from afs.util.options import define, options
-   
+import afs.exceptions.ORMError as  ORMError
 
 def setupOptions():
     """
@@ -25,7 +25,8 @@ def createDbEngine(conf):
     used AfsConfig object
     """
     from sqlalchemy     import create_engine
-    logging.getLogger("sqlalchemy").setLevel(getattr(logging, conf.DB_LogLevel.upper()))
+    logger=logging.getLogger("sqlalchemy")
+    logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
 
     # Option definition
     ###########################################
@@ -36,17 +37,28 @@ def createDbEngine(conf):
     engine = 0
     if conf.DB_TYPE == "mysql":
         driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (conf.DB_USER,  conf.DB_PASSWD,conf.DB_HOST, conf.DB_PORT, conf.DB_SID)
-        engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
+        logger.debug("creating engine with driver :'%s'" % driver)
+        try: 
+            engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
+        except :
+            raise ORMError.createEngineError(conf)
     elif options.DB_TYPE == "sqlite":    
         driver = 'sqlite:///'+options.DB_SID
-        engine = create_engine(driver, echo=False)
-    
+        logger.debug("creating engine with driver :'%s'" % driver)
+        try:
+            engine = create_engine(driver, echo=False)
+        except :
+            raise ORMError.createEngineError(conf)
     return engine
 
 def setupDbMappers(conf):
     from sqlalchemy.orm import mapper
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
     from sqlalchemy     import ForeignKey, UniqueConstraint
+    
+    logger=logging.getLogger("sqlalchemy")
+    logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
+    logger.debug("Entering setupDbMappers")
     metadata = MetaData()
    
     # Scheduler
@@ -242,6 +254,22 @@ def setupDbMappers(conf):
           Column('udate'        , DateTime),
           Column('sync'         , Integer )
           )
+
+    #  Cell Table
+    ##################################################
+    tbl_project =  Table('tbl_cell',metadata,
+        Column('id'           , Integer, primary_key=True),
+        Column('name'        , String(255)),
+        Column('DBServers'        , String(512)),
+        Column('VLDBSyncSite'        , String(50)),
+        Column('PTDBSyncSite'        , String(50)),
+        Column('VLDBVersion'        , String(20)),
+        Column('PTDBVersion'        , String(20)),
+        
+        Column('cdate'        , DateTime),
+        Column('udate'        , DateTime),
+        )
+
 
     try  :
         metadata.create_all(conf.DB_ENGINE) 
