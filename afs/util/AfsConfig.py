@@ -45,9 +45,9 @@ def setupDefaultConfig():
         afs.defaultConfig.KRB5_REALM=options.KRB5_REALM
         
         # setup DB_CACHE if required
-        try: 
-            afs.defaultConfig.DB_CACHE = eval(options.DB_CACHE)
-        except:
+        if options.DB_CACHE.upper() == "TRUE" :  
+            afs.defaultConfig.DB_CACHE = True
+        else :
             afs.defaultConfig.DB_CACHE = False
             
         if afs.defaultConfig.DB_CACHE :
