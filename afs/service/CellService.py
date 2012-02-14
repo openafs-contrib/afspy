@@ -54,7 +54,7 @@ class CellService(object):
         Retrieve light-weight Server List
         """
         if db_cache :
-            fsList=self._getServListFromCache(includeParts=includeParts, dbserver=0 )
+            fsList=self._getServListFromCache(includeParts=includeParts, dbserver=False )
             return fsList
             
         nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token)
@@ -98,13 +98,16 @@ class CellService(object):
         """
         dbList = []
         if db_cache :
-            dbList=self._getServListFromCache(dbserver=1)
+            dbList=self._getServListFromCache(includeParts=False, dbserver=True)
             return dbList
         for na in self._bosDAO.getDBServList(serv, self._CFG.CELL_NAME) :
             d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
             DNSInfo= socket.gethostbyname_ex(na['hostname'])
             d['ipaddrs'] =DNSInfo[2] 
             d['servernames'] = [DNSInfo[0]]+DNSInfo[1]
+            # create artitical UUID = "::IP::" (which (shouldbe) unique as well, since the ports are fixed, NAT not considered...)
+            # FIXME!! this is not good. we should change our logic
+            d['uuid']="::%s::" % (d['ipaddrs'][0], )
             serv = Server()
             serv.setByDict(d) 
             # Cache Stuffz
@@ -191,10 +194,7 @@ class CellService(object):
             return serv
         
         session = self.DbSession()
-        if serv.uuid != "" :
-            servCache = session.query(Server).filter(Server.uuid == serv.uuid).first()
-        else : # DB-Servers have no uuid (yet)!
-            servCache=None
+        servCache = session.query(Server).filter(Server.uuid == serv.uuid).first()
         session.flush()
         
         if servCache:
@@ -208,7 +208,7 @@ class CellService(object):
 
         return servCache
     
-    def _getServListFromCache(self, includeParts=0, dbserver=0):
+    def _getServListFromCache(self, includeParts=False, dbserver=False):
         """
         return full Server List+partitions (if we query fileservers)
         """
@@ -219,8 +219,9 @@ class CellService(object):
         session = self.DbSession()
         # Do update
         servList = session.query(Server).filter(Server.dbserver == dbserver).all()
-        if includeParts :
-            for serv in servList :
-                serv.parts=session.query(Partition).filter(Partition.serv_uuid==serv.uuid).all()
+        if not dbserver :
+            if includeParts :
+                for serv in servList :
+                    serv.parts=session.query(Partition).filter(Partition.serv_uuid==serv.uuid).all()
         session.close()
         return servList

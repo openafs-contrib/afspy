@@ -56,6 +56,7 @@ def setupDbMappers(conf):
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
     from sqlalchemy     import ForeignKey, UniqueConstraint
     from sqlalchemy     import  PickleType
+
     logger=logging.getLogger("sqlalchemy")
     logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
     logger.debug("Entering setupDbMappers")
@@ -246,9 +247,9 @@ def setupDbMappers(conf):
           Column('ro_location_id_csv',  String(255)), 
           Column('rw_serv_id_csv',  String(255)), 
           Column('ro_serv_id_csv',  String(255)), 
-          Column('volnameRegEx_csv',  String(1024)),
-          Column('additionalVolnames_csv',  String(1024)), 
-          Column('excludedVolnames_csv',  String(1024)), 
+          Column('volnameRegEx_csv',  TEXT),
+          Column('additionalVolnames_csv',  TEXT), 
+          Column('excludedVolnames_csv',  TEXT), 
           Column('minSize_kB'         , Integer ), 
           Column('maxSize_kB'         , Integer ), 
           Column('minnum_ro'      , Integer),
