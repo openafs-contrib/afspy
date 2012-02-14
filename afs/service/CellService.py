@@ -1,5 +1,5 @@
 import afs.util.options
-import logging, socket
+import logging, socket, string
 
 from afs.dao.VolumeDAO import VolumeDAO
 from afs.dao.VLDbDAO import VLDbDAO
@@ -8,6 +8,7 @@ from afs.dao.FileServerDAO import FileServerDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.VLDbError import VLDbError
 from afs.exceptions.VolError import VolError
+from afs.exceptions.ORMError import  ORMError
 from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil
@@ -44,15 +45,18 @@ class CellService(object):
             self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE,expire_on_commit=False)
 
     
-    
     ###############################################
     # Server Section
     ###############################################    
    
-    def getFsList(self, includeParts=False):
+    def getFsList(self, includeParts=False, db_cache=True):
         """
         Retrieve light-weight Server List
         """
+        if db_cache :
+            fsList=self._getServListFromCache(includeParts=includeParts, dbserver=False )
+            return fsList
+            
         nameList = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token)
         ipList   = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True )
         
@@ -60,7 +64,7 @@ class CellService(object):
         nameDict = {}
         for el in nameList:
             DNSInfo=socket.gethostbyname_ex(el['name_or_ip'])
-            nameDict[el['uuid']] = [DNSInfo[0]]+DNSInfo[1]
+            nameDict[el['uuid']] = [DNSInfo[0], ]+DNSInfo[1]
         
         fsList = []
         for el in ipList:
@@ -78,6 +82,8 @@ class CellService(object):
                 partList = []
                 for elel in list:
                     part = Partition()
+                    # inject serv_uuid, to be used as "ForeignKey"
+                    elel["serv_uuid"]=el['uuid']
                     part.setByDict(elel)
                     # Cache Stuff
                     part = self._setPartIntoCache(part)
@@ -86,16 +92,22 @@ class CellService(object):
             fsList.append(serv)
         return  fsList
 
-    def getDBList(self, serv):
+    def getDBList(self, serv, db_cache=True):
         """
         return a light-weight DB-Server list
         """
         dbList = []
+        if db_cache :
+            dbList=self._getServListFromCache(includeParts=False, dbserver=True)
+            return dbList
         for na in self._bosDAO.getDBServList(serv, self._CFG.CELL_NAME) :
             d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
             DNSInfo= socket.gethostbyname_ex(na['hostname'])
             d['ipaddrs'] =DNSInfo[2] 
             d['servernames'] = [DNSInfo[0]]+DNSInfo[1]
+            # create artitical UUID = "::IP::" (which (shouldbe) unique as well, since the ports are fixed, NAT not considered...)
+            # FIXME!! this is not good. we should change our logic
+            d['uuid']="::%s::" % (d['ipaddrs'][0], )
             serv = Server()
             serv.setByDict(d) 
             # Cache Stuffz
@@ -130,15 +142,15 @@ class CellService(object):
     ################################################
 
 
-    def _getPartFromCache(self, serv, part):
-        #STORE info into  CACHE
+    def _getPartFromCache(self, serv_uuid, part):
+        #RETRIEVE info from  CACHE
         if not self._CFG.DB_CACHE:
-            return None
+            raise ORMError("DB_CACHE not configured")
         
         part = afsutil.canonicalizePartition(part)
         session = self.DbSession()
         # Do update
-        part = session.query(Partition).filter(Partition.part == part).filter(Partition.serv == serv).first
+        part = session.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == serv_uuid).first()
 
         session.close()
         return part
@@ -149,7 +161,7 @@ class CellService(object):
             return part
         
         session = self.DbSession()
-        partCache = session.query(Partition).filter(Partition.part == part.part).filter(Partition.serv == part.serv).first()
+        partCache = session.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == part.serv_uuid).first()
        
         if partCache:
             partCache.copyObj(part)         
@@ -182,7 +194,7 @@ class CellService(object):
             return serv
         
         session = self.DbSession()
-        servCache = session.query(Server).filter(Server.uuid== serv.uuid).first()
+        servCache = session.query(Server).filter(Server.uuid == serv.uuid).first()
         session.flush()
         
         if servCache:
@@ -190,9 +202,26 @@ class CellService(object):
         else:
             session.add(serv)
             servCache = serv
-        
+
         session.commit()  
         session.close()
 
         return servCache
     
+    def _getServListFromCache(self, includeParts=False, dbserver=False):
+        """
+        return full Server List+partitions (if we query fileservers)
+        """
+        #RETRIEVE info from  CACHE
+        if not self._CFG.DB_CACHE:
+            raise ORMError("DB_CACHE not configured")
+        
+        session = self.DbSession()
+        # Do update
+        servList = session.query(Server).filter(Server.dbserver == dbserver).all()
+        if not dbserver :
+            if includeParts :
+                for serv in servList :
+                    serv.parts=session.query(Partition).filter(Partition.serv_uuid==serv.uuid).all()
+        session.close()
+        return servList

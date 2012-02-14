@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, string, logging
+import sys, string, time
 sys.path.append("..")
 from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
 from afs.util.options import define, options
@@ -18,24 +18,39 @@ CS = CellService()
 # uncomment if debug wanted
 #CS.Logger.setLevel(logging.DEBUG)
 
-# get a light-weight list of all fileservers :
+def printServerList(FileServerList, DBServerList):
+    print "FileServers"
+    print "========="
+    for srv in FileServerList :
+        print "%s: %s" %( srv.servernames[0], string.join(srv.ipaddrs, ",") )
+        for p in srv.parts :
+            print "\t%s, total: %u free: %u " % (p.name, p.size, p.free)
+    print "DBServer"
+    print "======="
+    for srv in  DBServerList :
+        print "%s: %s" %( srv.servernames[0], string.join(srv.ipaddrs, ",") ), 
+        if srv.clonedbserver :
+            print " --- CLONE"
+        else :
+            print
 
-FileServerList=CS.getFsList(includeParts=True)
-print "FileServers"
-print "========="
-for srv in FileServerList :
-    print "%s: %s" %( string.join(srv.servernames, ","), string.join(srv.ipaddrs) )
-    for p in srv.parts :
-        print "\t%s, total: %u free: %u " % (p.name, p.size, p.free)
-# get a light-weight list of all dbservers
+# get a light-weight list of all fileservers and dbservers querying the Cell
 
-print "DBServer"
-print "======="
-DBServerList=CS.getDBList(FileServerList[0].servernames[0])
-for srv in  DBServerList :
-    print "%s: %s" %( string.join(srv.servernames, ","), string.join(srv.ipaddrs) ), 
-    if srv.clonedbserver :
-        print " --- CLONE"
-    else :
-        print
+startTime=time.mktime(time.localtime())
+FileServerList=CS.getFsList(includeParts=True, db_cache=False)
+DBServerList=CS.getDBList(FileServerList[0].servernames[0], db_cache=False)
+endTime=time.mktime(time.localtime())
 
+printServerList(FileServerList, DBServerList)
+print "Time required to get information : %d secs" % (endTime-startTime)
+
+
+# get a light-weight list of all fileservers and dbservers querying the Cell
+
+startTime=time.mktime(time.localtime())
+FileServerList=CS.getFsList(includeParts=True, db_cache=True)
+DBServerList=CS.getDBList(FileServerList[0].servernames[0], db_cache=True)
+endTime=time.mktime(time.localtime())
+
+printServerList(FileServerList, DBServerList)
+print "Time required to get information : %d secs" % (endTime-startTime)

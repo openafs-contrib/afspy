@@ -24,11 +24,12 @@ class Server(BaseModel):
         self.ipaddrs = []
         ## flag if this server is a fileserver
         self.fileserver = 0
+        ## this is in a separate table in the DB_CACHE
         self.parts={}
         ## flag if this server is a databaseserver
-        self.dbserver  = 0
+        self.dbserver  = False
         ## flag if this server is a databaseserver-Cloneonly
-        self.clonedbserver = 0
+        self.clonedbserver = False
         ## flag if this ??
         self.confserver = 0
         ## flag if this ??

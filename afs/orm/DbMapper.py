@@ -55,7 +55,8 @@ def setupDbMappers(conf):
     from sqlalchemy.orm import mapper
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
     from sqlalchemy     import ForeignKey, UniqueConstraint
-    
+    from sqlalchemy     import  PickleType
+
     logger=logging.getLogger("sqlalchemy")
     logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
     logger.debug("Entering setupDbMappers")
@@ -70,9 +71,11 @@ def setupDbMappers(conf):
           Column('id'           , Integer, primary_key=True),
           Column('uuid'         , String(255), index=True),
           Column('serv'        , String(15),  index=True),
-          Column('servername'         , String(255)),
-          Column('fileserver'   , Integer),
-          Column('dbserver'     , Integer ),
+          Column('servernames'         , PickleType(mutable=True)),
+          Column('ipaddrs'         , PickleType(mutable=True)),
+          Column('fileserver'   , Boolean),
+          Column('dbserver'     , Boolean ),
+          Column('clonedbserver'     , Boolean ),
           Column('confserver'   , Integer ),
           Column('distserver'   , Integer ),
           Column('version'      , String(32) ),
@@ -93,8 +96,8 @@ def setupDbMappers(conf):
     ##################################################
     tbl_partition = Table('tbl_partition', metadata,
           Column('id'           , Integer, primary_key=True),
-          Column('serv'         , String(255), index=True),
-          Column('part'         , String(2)),
+          Column('serv_uuid'         , String(255), index=True),
+          Column('name'         , String(2)),
           Column('device'       , String(255)),
           Column('fstype'       , String(12)),
           Column('category'        , String(2)),
@@ -244,9 +247,9 @@ def setupDbMappers(conf):
           Column('ro_location_id_csv',  String(255)), 
           Column('rw_serv_id_csv',  String(255)), 
           Column('ro_serv_id_csv',  String(255)), 
-          Column('volnameRegEx_csv',  Text),
-          Column('additionalVolnames_csv',  Text), 
-          Column('excludedVolnames_csv',  Text), 
+          Column('volnameRegEx_csv',  TEXT),
+          Column('additionalVolnames_csv',  TEXT), 
+          Column('excludedVolnames_csv',  TEXT), 
           Column('minSize_kB'         , Integer ), 
           Column('maxSize_kB'         , Integer ), 
           Column('minnum_ro'      , Integer),
