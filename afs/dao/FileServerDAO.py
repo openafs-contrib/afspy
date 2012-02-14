@@ -117,7 +117,7 @@ class FileServerDAO() :
 
     def getPartList(self,  serv, cellname, token) :
             """
-            return dict of  Partitions
+            return list  of  Partitions-dicts
             """
             RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
             CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
