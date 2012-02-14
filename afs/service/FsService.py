@@ -29,10 +29,6 @@ class FsService (object):
         self._svrDAO = FileServerDAO()
         self._procDAO = ProcessDAO()
         
-        # DB INIT    
-        if self._CFG.DB_CACHE:
-            from afs.orm.DbMapper import DbMapper
-            self.DbSession     = DbMapper(['Process'])
 
     ###############################################
     # BNode Section
@@ -40,23 +36,17 @@ class FsService (object):
 
     def getRestartTimes(self,name, **kwargs):
             """
-            Ask Bosserver about the restart times of the fileserver
+            return Dict about the restart times of the afs-server
             """
-            rc, general, binary=self._procDAO.getRestartTimes(name, self._CFG.CELL_NAME, self._CFG.Token)
-            if not rc :
-                return general, binary
+            TimesDict=self._procDAO.getRestartTimes(name, self._CFG.CELL_NAME, self._CFG.Token)
+            return TimesDict
             
     def setRestartTimes(self,name,time, restarttype,  **kwargs):
             """
             Ask Bosserver about the restart times of the fileserver
             """
-            rc, output, outerr=self._procDAO.setRestartTimes(name,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
-            if not rc :
-                return time
-            else :
-                return None
-                
-                
+            self._procDAO.setRestartTimes(name,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
+            return
     ###############################################
     # Volume Section
     ###############################################    
@@ -95,7 +85,7 @@ class FsService (object):
         DNSInfo=socket.gethostbyname_ex(servername)
         FileServer.servernames=[DNSInfo[0]]+DNSInfo[1]
         FileServer.ipaddrs=DNSInfo[2]
-        parts = self._svrDAO.getPartList(FileServer.Servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
+        parts = self._svrDAO.getPartList(FileServer.servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
         #FIXME  Cache 
         FileServer.parts = parts
         return FileServer
