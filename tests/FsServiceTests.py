@@ -30,15 +30,16 @@ class TestFsServiceMethods(unittest.TestCase):
         self.FsMng = FsService()
         self.FsName=self.TestCfg.get("FsService", "FS")
         self.FsPartitions=self.TestCfg.get("FsService", "Partitions").split(",")
+        self.FsPartitions.sort()
         if afs.defaultConfig.DB_CACHE :
             from sqlalchemy.orm import sessionmaker
             self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
         return
 
     def test_getRestartTimes(self):
-        generalRestartTimes,binaryRestartTimes = self.FsMng.getRestartTimes(self.FsName)
-        self.assertEqual("never",generalRestartTimes)
-        self.assertEqual("5:00 am",binaryRestartTimes)
+        TimesDict = self.FsMng.getRestartTimes(self.FsName)
+        self.assertEqual("never",TimesDict["general"])
+        self.assertEqual("5:00 am",TimesDict["binary"])
         return
 
     def test_setRestartTimes(self):
@@ -50,7 +51,11 @@ class TestFsServiceMethods(unittest.TestCase):
         
     def test_getServerObj(self) :
         server=self.FsMng.getFileServer(self.FsName)
-        self.assertEqual(self.FsPartitions, server.parts.keys())
+        parts=[]
+        for p in server.parts :
+            parts.append(p["name"])
+        parts.sort()
+        self.assertEqual(self.FsPartitions, parts)
         return
 
 if __name__ == '__main__' :

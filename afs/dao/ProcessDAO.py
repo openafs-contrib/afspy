@@ -45,6 +45,9 @@ class ProcessDAO() :
         return
     
     def getRestartTimes(self, servername, cellname, token):
+        """
+        return dict telling the restart times
+        """
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
         rc,output,outerr=afs.dao.bin.execute(CmdList)
         if rc :
@@ -53,9 +56,9 @@ class ProcessDAO() :
         if len(output) != 2 :
             raise ProcError( outerr, output)
         
-        st = []
-        st[generalRestart]=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
-        st[binaryRestart]=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
+        st = {}
+        st["general"]=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
+        st["binary"]=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
         
         return st
 
