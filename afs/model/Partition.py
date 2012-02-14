@@ -7,13 +7,14 @@ class Partition(BaseModel):
     Model object of  a Partition
     """
        
-    def __init__(self, id='', serv='', name='', free=0, size=0, used=0, perc=0):
+    def __init__(self, id='', serv_uuid='', name='', free=0, size=0, used=0, perc=0):
         """
         initialize an empty object
         """
         ## DB - ID
         self.id = None
-        self.serv   = serv
+        ## UUID of fileserver
+        self.serv_uuid   = serv_uuid
         ## canonicalized partition name e.g "ad" for "/vicepad"
         self.name   = name
         ## device-file

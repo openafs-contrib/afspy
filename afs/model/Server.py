@@ -24,6 +24,7 @@ class Server(BaseModel):
         self.ipaddrs = []
         ## flag if this server is a fileserver
         self.fileserver = 0
+        ## this is in a separate table in the DB_CACHE
         self.parts={}
         ## flag if this server is a databaseserver
         self.dbserver  = 0
