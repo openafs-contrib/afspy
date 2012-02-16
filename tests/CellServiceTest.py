@@ -27,6 +27,7 @@ class TestCellServiceMethods(unittest.TestCase):
         self.allDBs=self.TestCfg.get("CellService", "allDBs").split(",")
         self.allDBs.sort()
         self.FS=self.TestCfg.get("CellService", "FS")
+	self.FsUUID=self.TestCfg.get("CellService", "FsUUID")
         return
     
     def test_getDBList_live(self) :
@@ -57,6 +58,15 @@ class TestCellServiceMethods(unittest.TestCase):
         self.assertEqual(self.numFSs, len(FSList))
         return
         
+    def test_getFsUUID_live(self) :
+        uuid=self.CellService.getFsUUID(self.FS, db_cache=False)
+        self.assertEqual(self.FsUUID, uuid)
+        return
+
+    def test_getFsUUID_cached(self) :
+        uuid=self.CellService.getFsUUID(self.FS, db_cache=True)
+        self.assertEqual(self.FsUUID, uuid)
+        return
 
     
     
