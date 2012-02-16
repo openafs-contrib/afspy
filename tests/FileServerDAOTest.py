@@ -33,20 +33,16 @@ class TestFileServerDAOMethods(unittest.TestCase):
     
     def test_getVolList(self) :
         VolList=self.DAO.getVolList(self.FS,self.Part,self.Cell,None)
-        for v in VolList :
-            if v["vid"] == 1108623471 :
-                sys.stderr.write("\nV=%s" % v)
         return
         
     def test_getIdVolList(self) :
         IdVolList=self.DAO.getIdVolList(self.FS,self.Part,self.Cell,None)
-        sys.stderr.write("\nIdVolList=%s" % IdVolList)
         return
 
     def test_getPartList(self,) :
         PartList=self.DAO.getPartList(self.FS,self.Cell,None)
         for p in PartList :
-           if not p in self.allParts :
+           if not p["name"] in self.allParts :
                 self.assertEqual(p,"Not in Test.cfg")
         return
     

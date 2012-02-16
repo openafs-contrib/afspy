@@ -1,10 +1,6 @@
 import afs.util.options
-import logging, socket, string
+import socket, string
 
-from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.VLDbDAO import VLDbDAO
-from afs.dao.ProcessDAO import ProcessDAO
-from afs.dao.FileServerDAO import FileServerDAO
 from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.VLDbError import VLDbError
 from afs.exceptions.VolError import VolError
@@ -12,9 +8,10 @@ from afs.exceptions.ORMError import  ORMError
 from afs.model.Server import Server
 from afs.model.Partition import Partition
 from afs.util import afsutil
+from afs.service.BaseService import BaseService
 import afs
 
-class CellService(object):
+class CellService(BaseService):
     """
     Provides Service about a Cell global information.
     The cellname is set in the configuration passed to constructor.
@@ -22,29 +19,8 @@ class CellService(object):
     need to change self._CFG
     """
     def __init__(self,conf=None):
+        BaseService.__init__(self, conf, DAOList=["fs",  "bnode","vl", "vol"])
 
-        # CONF INIT 
-        if conf:
-            self._CFG = conf
-        else:
-            self._CFG = afs.defaultConfig
-
-        # LOG INIT
-        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
-        
-        # DAO INIT
-        self._vlDAO  = VLDbDAO()
-        self._volDAO = VolumeDAO()
-        self._bosDAO = ProcessDAO()
-        self._fsDAO = FileServerDAO()
-        # DB INIT    
-        if self._CFG.DB_CACHE :
-            import sqlalchemy.orm
-            from sqlalchemy import func, or_
-            self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE,expire_on_commit=False)
-
-    
     ###############################################
     # Server Section
     ###############################################    
@@ -92,7 +68,7 @@ class CellService(object):
             fsList.append(serv)
         return  fsList
 
-    def getDBList(self, serv, db_cache=True):
+    def getDBList(self, serv, db_cache=False):
         """
         return a light-weight DB-Server list
         """
@@ -100,7 +76,7 @@ class CellService(object):
         if db_cache :
             dbList=self._getServListFromCache(includeParts=False, dbserver=True)
             return dbList
-        for na in self._bosDAO.getDBServList(serv, self._CFG.CELL_NAME) :
+        for na in self._bnodeDAO.getDBServList(serv, self._CFG.CELL_NAME) :
             d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
             DNSInfo= socket.gethostbyname_ex(na['hostname'])
             d['ipaddrs'] =DNSInfo[2] 
@@ -115,12 +91,23 @@ class CellService(object):
             dbList.append(serv)
         return dbList
     
-    
+    def getFsUUID(self, name_or_ip, db_cache=False):
+        """
+        returns UUID of a fileserver, which is used as key for server-entries
+        in other tables
+        """
+        uuid=""
+        if db_cache :
+            uuid=self._getFsUUIDFromCache(name_or_ip)
+        else :
+            uuid=self._vlDAO.getFsUUID(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
+        return uuid
+
     ################################################
     # Statistcis DB BASE
     ################################################
     
-    #TODO Number of usrs 
+    #TODO Number of users 
     
     #getTotalVolume()
     
@@ -134,7 +121,7 @@ class CellService(object):
     
     #Volume offline
     
-    #Volume KO
+    #Volume OK
     
     
     ################################################
@@ -148,11 +135,8 @@ class CellService(object):
             raise ORMError("DB_CACHE not configured")
         
         part = afsutil.canonicalizePartition(part)
-        session = self.DbSession()
         # Do update
-        part = session.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == serv_uuid).first()
-
-        session.close()
+        part = self.DbSession.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == serv_uuid).first()
         return part
         
     def _setPartIntoCache(self,part):
@@ -160,18 +144,16 @@ class CellService(object):
         if not self._CFG.DB_CACHE:
             return part
         
-        session = self.DbSession()
-        partCache = session.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == part.serv_uuid).first()
+        partCache = self.DbSession.query(Partition).filter(Partition.name == part.name).filter(Partition.serv_uuid == part.serv_uuid).first()
        
         if partCache:
             partCache.copyObj(part)         
         else:
-            session.add(part) 
+            self.DbSession.add(part) 
             partCache = part 
         
-        session.flush() 
-        session.commit()  
-        session.close()
+        self.DbSession.flush() 
+        self.DbSession.commit()  
         
         return  partCache
     
@@ -179,12 +161,11 @@ class CellService(object):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
             return None
-        session = self.DbSession()
         # Do update
-        session.delete(part)
-            
-        session.commit()
-        session.close()
+        self.DbSession.delete(part)
+        
+        self.DbSession.commit()
+        return 
 
 
     def _setServIntoCache(self,serv):
@@ -193,18 +174,16 @@ class CellService(object):
         if not self._CFG.DB_CACHE:
             return serv
         
-        session = self.DbSession()
-        servCache = session.query(Server).filter(Server.uuid == serv.uuid).first()
-        session.flush()
+        servCache = self.DbSession.query(Server).filter(Server.uuid == serv.uuid).first()
+        self.DbSession.flush()
         
         if servCache:
             servCache.copyObj(serv)
         else:
-            session.add(serv)
+            self.DbSession.add(serv)
             servCache = serv
 
-        session.commit()  
-        session.close()
+        self.DbSession.commit()  
 
         return servCache
     
@@ -216,12 +195,24 @@ class CellService(object):
         if not self._CFG.DB_CACHE:
             raise ORMError("DB_CACHE not configured")
         
-        session = self.DbSession()
         # Do update
-        servList = session.query(Server).filter(Server.dbserver == dbserver).all()
+        servList = self.DbSession.query(Server).filter(Server.dbserver == dbserver).all()
         if not dbserver :
             if includeParts :
                 for serv in servList :
-                    serv.parts=session.query(Partition).filter(Partition.serv_uuid==serv.uuid).all()
-        session.close()
+                    serv.parts=self.DbSession.query(Partition).filter(Partition.serv_uuid==serv.uuid).all()
         return servList
+        
+    def _getFsUUIDFromCache(self, name_or_ip):
+        """
+        return uuid for a hostname or ipaddrs
+        """
+        #RETRIEVE info from  CACHE
+        if not self._CFG.DB_CACHE:
+            raise ORMError("DB_CACHE not configured")
+        list=self.DbSession.query(Server.uuid, Server.ipaddrs, Server.servernames).all()
+        for l in list :
+            uuid, ipaddrs, hostnames=l
+            if name_or_ip in ipaddrs or name_or_ip in hostnames : break
+            
+        return uuid

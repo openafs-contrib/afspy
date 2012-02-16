@@ -30,19 +30,27 @@ class TestVolServiceMethods(unittest.TestCase):
         self.VolID=int(self.TestCfg.get("VolService", "VolID"))
         self.VolName=self.TestCfg.get("VolService", "VolName")
         self.FS=self.TestCfg.get("VolService", "FS")
+        self.FSName=self.TestCfg.get("VolService", "FSName")
         self.Part=self.TestCfg.get("VolService", "Part")
         if afs.defaultConfig.DB_CACHE :
             from sqlalchemy.orm import sessionmaker
             self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
         return
     
-    def test_getVolbyName(self) :
-        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part)
+    def test_getVolbyName_live(self) :
+        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, db_cache=False)
         self.assertEqual(vol.vid, self.VolID)
-        self.assertEqual(vol.serv, self.FS)
+        self.assertEqual(vol.servername, self.FSName)
         self.assertEqual(vol.part, self.Part)
         return
-    
+
+    def test_getVolbyName_cached(self) :
+        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, db_cache=True)
+        self.assertEqual(vol.vid, self.VolID)
+        self.assertEqual(vol.servername, self.FSName)
+        self.assertEqual(vol.part, self.Part)
+        return
+
 if __name__ == '__main__' :
     define("setup", default="./Test.cfg", help="path to Testconfig")
     setupDefaultConfig()

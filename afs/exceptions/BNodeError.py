@@ -1,4 +1,4 @@
 from afs.exceptions.AfsError import AfsError
 
-class ProcError(AfsError):
+class BNodeError(AfsError):
     pass

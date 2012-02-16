@@ -32,7 +32,15 @@ class VLDbDAO() :
                 server['name_or_ip'] = output[i]                            
                 servers.append(server)
         return servers
-        
+
+    def  getFsUUID(self, name_or_ip, cellname, token) :
+        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % cellname ]
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if rc :
+            raise VLDbError("Error", outerr)
+        uuid=output[0].split()[1]
+        return uuid
+    
     def syncVLDb(self):
         """
         Check that volumes residing at given Fileserver/partition have a correct  VLDB entries.

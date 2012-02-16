@@ -2,7 +2,7 @@ import re,string,os,sys
 import afs.dao.bin
 
 from afs.util import afsutil
-from afs.exceptions.ProcError import ProcError
+from afs.exceptions.BNodeError import BNodeError
 
 def restartT2Minutes(Time):
     """
@@ -33,7 +33,7 @@ def minutes2restartT(Minutes) :
     Time = "%d:%02d %s" % (Minutes/60, Minutes%60,Pod)
     return Time
 
-class ProcessDAO() :
+class BNodeDAO() :
     """
     Direct Access Object for a Process (BNode)
     """

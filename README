@@ -1,5 +1,31 @@
 Structure of afspy
 
+afspy are (as the name suggests) python bindings to AFS, here
+in the implementation of openAFS.
+
+Layout :
+========
+
+afs/ : The actual module
+afs/dao/ : low-level interface
+afs/service/ : high-level interface
+afs/exceptions/ : custom exceptions
+afs/util/ : helper functions
+
+tests/ : unit-tests, requires some configuration to run in your cell
+examples/ :  some example scripts
+
+Usage
+=====
+
+Interactively:
+PYTHONSTARTUP=<PATH/TO/afspy>/afs/util/pythonstartup python
+
+in scripts:
+
+see examples
+
+
 Configuration
 =============
 
@@ -12,13 +38,7 @@ Config options are read as :
 
 Later definitions overwrite earlier.
 This configuration is stored in a AfsConfig-object.
-
-An application has to initialize it and pass it on to
-any service used.
-Of course the application can modify AfsConfig beforehand.
-
-# FixMe: we could store the default AfsConfig-Object in the module afs
-# and use that if no config-object is given
+and passed to any service called by default.
 
 Contents of the AfsConfig :
 =====================
@@ -29,7 +49,8 @@ Contents of the AfsConfig :
     - use keytab from file ...
     - pagsh; kinit  -k -t  $KRB5CCNAME; aklog ; call child..
     """
-- Cellname
+- AFS Cellname
+- Keberos REALM
 - DAO-implementation to use
 - DB-implementation to use.
 
@@ -52,11 +73,8 @@ DB-Cacheing
 If the option DB_CACHE is set to True.
 A connection to the configured DB is set up 
 and stored in the AfsConfig-Object.
-Since every Service gets an AfsConfig-Object with a valid DB connection,
-it just has to create a session and go on with its business.
-
-Any Instance of a Model-Object has to be detached from the sqlalchemy-session, so it 
-can be used as a normal object.
+Every service creates its own session, so that any created Object is attached
+to the DB-Cache as long as the service is alive.
 
 LiveCommand Execution
 ====================

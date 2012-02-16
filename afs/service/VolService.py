@@ -1,13 +1,13 @@
 import afs.util.options
 
-from afs.dao.VolumeDAO import VolumeDAO
 from afs.model.Volume import Volume
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
+from afs.service.CellService import CellService
 from afs.exceptions.VolError import VolError
-from afs.util import afsutil
-import afs.util.options 
-import logging    
+from afs.dao.VolumeDAO import VolumeDAO 
+from afs.util import afsutil, options
+
 
 class VolService (BaseService):
     """
@@ -17,28 +17,9 @@ class VolService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self)
-            
-        # LOAD Configuration from file if exist
-        # FIXME Move in decorator
-        if conf:
-            self._CFG = conf
-        else:
-            self._CFG = afs.defaultConfig
-        
-        # LOG INIT
-        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
-        self.Logger.debug("initializing object with conf=%s" % conf)
+        BaseService.__init__(self, conf, DAOList=["vol"])
+        self.CS=CellService()
        
-        # DAO INIT 
-        self._volDAO = VolumeDAO()
-        
-        # DB INIT 
-        if self._CFG.DB_CACHE :
-            import sqlalchemy.orm
-            from sqlalchemy import func, or_
-            self.DbSession = sqlalchemy.orm.sessionmaker(bind=self._CFG.DB_ENGINE)
-        
     ###############################################
     # Volume Section
     ###############################################    
@@ -46,7 +27,7 @@ class VolService (BaseService):
     """
     Retrieve Volume Group
     """
-    def getVolGroup(self, id ):
+    def getVolGroup(self, id , db_cache=False):
     
         list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
@@ -65,22 +46,25 @@ class VolService (BaseService):
     """
     Retrieve Volume Information by Name or ID
     """
-    def getVolume(self, name, serv, part):
-
+    def getVolume(self, name, serv, part,  db_cache=False):
+        if db_cache :
+            serv_uuid=self.CS.getFsUUID(serv)
+            vol=self._getFromCache(name, serv_uuid, part)
+            return vol
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
+        vdict["serv_uuid"]=self.CS.getFsUUID(serv)
         vol = None
         if vdict:
             vol = Volume()
             vol.setByDict(vdict)
-            vol = self._setIntoCache(vol)
+            self._setIntoCache(vol)
         return  vol
     
     """
     Retrieve Volume extended information
     """
-    def getVolExtended(self,id):
+    def getVolExtended(self,id, db_cache=False):
         pass
- 
  
     def release(self, id):
         #Check before the call (must be RW)
@@ -94,10 +78,8 @@ class VolService (BaseService):
             raise VolError('Error, no db Cache defined ',None)
         
          query._tbl= "Volume"
-         session = self.DbSession()
          queryc = query.getQueryCount()
-         count  = eval(queryc)
-         session.close()
+         count  = eval(queryc)         
          
          return count
  
@@ -106,10 +88,8 @@ class VolService (BaseService):
             raise VolError('Error, no db Cache defined ',None)
         
          query._tbl= "Volume"
-         session = self.DbSession()
          query  = query.getQuery()
          res    = eval(query)
-         session.close()
          
          return res
      
@@ -131,9 +111,8 @@ class VolService (BaseService):
         for el in list:
             idVolDict[el['vid']] = el
             
-        session = self.DbSession()
         
-        res  = session.query(Volume).filter(self.or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
+        res  = self.DbSession.query(Volume).filter(self.or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
         
         flush = 0
         for vol in res:
@@ -142,11 +121,10 @@ class VolService (BaseService):
                 vol.setByDict(idVolDict[vol.vid])
                 del idVolDict[vol.vid]
             else:     
-                session.delete(vol) 
+                self.DbSession.delete(vol) 
             
             if flush > self._CFG.DB_FLUSH:    
-                session.flush() 
-        session.flush()
+                self.DbSession.flush() 
         
         # ADD section 
         flush = 0
@@ -154,11 +132,10 @@ class VolService (BaseService):
             flush +=1
             vol = Volume()
             vol.setByDict(idVolDict[key])
-            session.add(vol)    
+            self.DbSession.add(vol)    
             if flush > self._CFG.DB_FLUSH:    
-                session.flush() 
-        session.flush()
-        session.commit()
+                self.DbSession.flush() 
+        self.DbSession.commit()
         
         return cUpdate
     
@@ -167,49 +144,41 @@ class VolService (BaseService):
     ################################################
 
 
-    def _getFromCache(self,id, serv, part):
+    def _getFromCache(self,id, serv_uuid, part):
         #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            return None
-        
-        part = afsutil.canonicalizePartition(part)
-        session = self.DbSession()
+            raise ORMError("DB_CACHE not configured")
         # Do update
-        vol = session.query(Volume).filter(Volume.vid == id).filter(Volume.serv == serv).filter(Volume.part == part).first
-
-        session.close()
+        vol = self.DbSession.query(Volume).filter(self.or_(Volume.vid == id, Volume.name == id)).filter(Volume.serv_uuid == serv_uuid).filter(Volume.part == part).first()
         return vol
         
     def _setIntoCache(self,vol):
          #STORE info into  CACHE
        
         if not self._CFG.DB_CACHE:
-            return vol
+            raise ORMError("DB_CACHE not configured")
         
-        session = self.DbSession()
-        volCache = session.query(Volume).filter(Volume.vid == vol.vid).filter(self.or_(Volume.serv == vol.serv,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
+        volCache = self.DbSession.query(Volume).filter(Volume.vid == vol.vid).filter(self.or_(Volume.serv_uuid == vol.serv_uuid,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
         
         if volCache:
             volCache.copyObj(vol)
-            session.flush()
+            self.DbSession.flush()
         else:
-            volCache=session.merge(vol)  
-            session.flush()
+            volCache=self.DbSession.merge(vol)  
+            self.DbSession.flush()
         
-        session.commit()  
-        session.close()
+        self.DbSession.commit()  
         return volCache
     
     def _delCache(self,vol):
          #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
             return None
-        session = self.DbSession()
         # Do update
-        session.delete(vol)
+        self.DbSession.delete(vol)
             
-        session.commit()
-        session.close()
+        self.DbSession.commit()
+        
     
     #MERGE ?  
     
