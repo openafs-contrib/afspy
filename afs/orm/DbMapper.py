@@ -24,7 +24,7 @@ def createDbEngine(conf):
     The returned engine must be incorporated in the 
     used AfsConfig object
     """
-    from sqlalchemy     import create_engine
+    from sqlalchemy import create_engine
     logger=logging.getLogger("sqlalchemy")
     logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
 
@@ -70,7 +70,6 @@ def setupDbMappers(conf):
     tbl_server = Table('tbl_server', metadata,
           Column('id'           , Integer, primary_key=True),
           Column('uuid'         , String(255), index=True),
-          Column('serv'        , String(15),  index=True),
           Column('servernames'         , PickleType(mutable=True)),
           Column('ipaddrs'         , PickleType(mutable=True)),
           Column('fileserver'   , Boolean),
@@ -117,7 +116,7 @@ def setupDbMappers(conf):
     mapper(Partition,tbl_partition) 
   
   
-    #  Process
+    #  BOS
     ##################################################
     tbl_bos = Table('tbl_bos', metadata,
           Column('id'           , Integer, primary_key=True),
@@ -133,7 +132,7 @@ def setupDbMappers(conf):
     from afs.model.Bos import Bos
     mapper(Bos,tbl_bos) 
   
-    #  Process
+    #  BNodes (Server Processes)
     ##################################################
     tbl_bnode = Table('tbl_bnode', metadata,
           Column('id'           , Integer, primary_key=True),
@@ -166,10 +165,10 @@ def setupDbMappers(conf):
           Column('id'           , Integer, primary_key=True),
           Column('name'         , String(255)),
           Column('vid'          , Integer,     index=True ),
-          Column('serv'         , String(255), index=True),
-          Column('servername'     , String(255), index=True),
+          Column('serv_uuid'         , String(255), index=True),
           Column('part'         , String(2),   index=True),
-          Column('parantID'     , Integer ),
+          Column('servername' , String(255 )), 
+          Column('parentID'     , Integer ),
           Column('backupID'     , Integer ),
           Column('cloneID'      , Integer ),
           Column('inUse'        , String(1)),
@@ -193,7 +192,7 @@ def setupDbMappers(conf):
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
-          UniqueConstraint('vid', 'serv', 'part', name='uix_1'),
+          UniqueConstraint('vid', 'serv_uuid', 'part', name='uix_1'),
           sqlite_autoincrement=True
           )
              
@@ -268,7 +267,6 @@ def setupDbMappers(conf):
         Column('PTDBSyncSite'        , String(50)),
         Column('VLDBVersion'        , String(20)),
         Column('PTDBVersion'        , String(20)),
-        
         Column('cdate'        , DateTime),
         Column('udate'        , DateTime),
         )

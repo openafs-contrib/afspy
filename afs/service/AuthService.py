@@ -1,30 +1,18 @@
-import logging
+from afs.service.BaseService import BaseService
 import afs.model.Token
-from afs.dao import PAGDAO
-from afs.dao import krb5DAO
 import getpass
 
 
-class TokenService(object):
+class TokenService(BaseService):
     """
     Provides Service for Token Management.
     Multiple methods of acquiring a token are included
     """
     
     def __init__(self,conf=None):
-        # CONF INIT 
-        if conf:
-            self._CFG = conf
-        else:
-            self._CFG = afs.defaultConfig
-
-        # LOG INIT
-        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
-
+        BaseService.__init__(self, conf, DAOList=["pag", "krb5"])
         # DAO INIT
-        self._pagDAO=PAGDAO.PAGDAO()
-        self._krb5DAO=krb5DAO.krb5DAO()
+
 
     def get_artificial_Token(self,AFSID,CELL_NAME):
         token = afs.model.Token.Token(AFSID, CELL_NAME)
@@ -54,7 +42,7 @@ class TokenService(object):
             if CredArgs != "" :
                 passwd=CredArgs
             else :
-                passwd = getpass.getpass()
+                passwd = getpass.getpass("Passord for %s@%s: " % (self._CFG.KRB5_PRINC,self._CFG.KRB5_REALM))
             KRB5CCNAME=self._krb5DAO.getTicketbyPassword(passwd, self._CFG.KRB5_PRINC,self._CFG.KRB5_REALM)
             self._pagDAO.obtainTokenFromTicket(KRB5CCNAME, self._CFG.KRB5_REALM, self._CFG.CELL_NAME)
             self._krb5DAO.destroyTicket(KRB5CCNAME)

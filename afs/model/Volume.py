@@ -13,16 +13,18 @@ class Volume(BaseModel) :
         """
         initializes to an empty Volume
         """
-        ##Name of the Volume in the VLDB
+        ## DB internal id
         self.id       = None
+        ##Name of the Volume in the VLDB
         self.name     = ''
         ##numerical ID of the Volume
         self.vid      = -1
-        ## Servername, where this volume is stored
-        self.serv     = ""
-        self.servername = ""
+        ## ServerUUID where this volume is stored
+        self.serv_uuid   = ""
         ## Partitionname, where this volume is stored.
         self.part     = ""
+        ## hostname, not to be used for queries
+        self.servername = ""
         ## numerical ID of  RW Volume
         self.parentID = 0
         ## numerical ID of Backup Volume
