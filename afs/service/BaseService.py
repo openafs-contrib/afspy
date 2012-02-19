@@ -21,6 +21,8 @@ class BaseService(object):
         
         # LOG INIT
         self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
+        numeric_level = getattr(logging,afs.defaultConfig.LogLevel.upper() , None)
+        self.Logger.setLevel(numeric_level)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
         
         # DB INIT 
@@ -52,6 +54,9 @@ class BaseService(object):
                 elif dao == "krb5" :
                     from afs.dao import krb5DAO
                     self._krb5DAO=krb5DAO.krb5DAO()
+                elif dao == "ubik" :
+                    from afs.dao import UbikPeerDAO
+                    self._ubikDAO=UbikPeerDAO.UbikPeerDAO()
                 else :
                     raise AfsError("internal Error. invalid DAO '%s' requested" % dao)
         else :
