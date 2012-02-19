@@ -1,0 +1,35 @@
+import re,string,os,sys
+import afs.dao.bin
+from afs.exceptions.AfsError import AfsError
+
+class DNSconfDAO():
+    """
+    get Cellinformation from DNS Records
+    """
+    
+    def __init__(self):
+        return
+    
+    def getDBServList(self,cellname):
+        """
+        Returns the dbservers from AFSDB records
+        """
+        CmdList=[afs.dao.bin.DIGBIN , "AFSDB", cellname]
+        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        if rc :
+            raise AfsError
+        # parse "This workstation belongs to cell 'beolink.org'"
+        DBServers = []
+        inAnswerSection=False
+        for line in output :
+            if not inAnswerSection : 
+                if line == ";; ANSWER SECTION:" :
+                    inAnswerSection=True
+                continue
+            if line[:2] == ";;" : continue
+            srv=line.split()[-1:][0]
+            # remove trailing dot, not required and may cause confusion
+            if srv[len(srv)-1] == "." : srv=srv[:len(srv)-1]
+            DBServers.append(srv)
+        return DBServers
+        

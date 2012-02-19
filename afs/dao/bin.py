@@ -14,6 +14,7 @@ AKLOGBIN="/usr/bin/aklog"
 KINITBIN="/usr/bin/kinit"
 KLISTBIN="/usr/bin/klist"
 KDESTROYBIN="/usr/lib/mit/bin/kdestroy"
+DIGBIN="/usr/bin/dig"
 
 class ExecError( BaseException):
     def __init__(self, message, stack=[]):

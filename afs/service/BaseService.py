@@ -57,6 +57,9 @@ class BaseService(object):
                 elif dao == "ubik" :
                     from afs.dao import UbikPeerDAO
                     self._ubikDAO=UbikPeerDAO.UbikPeerDAO()
+                elif dao == "dns" :
+                    from afs.dao import DNSconfDAO
+                    self._dnsDAO=DNSconfDAO.DNSconfDAO()
                 else :
                     raise AfsError("internal Error. invalid DAO '%s' requested" % dao)
         else :
