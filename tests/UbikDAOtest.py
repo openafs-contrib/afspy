@@ -26,10 +26,10 @@ class TestUbikDAOMethods(unittest.TestCase):
         self.Cell=self.TestCfg.get("general", "Cell").lower()
         self.User=self.TestCfg.get("general", "User")
         self.Pass=self.TestCfg.get("general", "Pass")
+        self.minUbikDBVersion=self.TestCfg.get("general","minUbikDBVersion")
         self.SyncSite=self.TestCfg.get("UbikDAO","SyncSite")
         self.DBPort=self.TestCfg.get("UbikDAO","DBPort")
         self.DBState=self.TestCfg.get("UbikDAO","DBState")
-        self.minDBVersion=self.TestCfg.get("UbikDAO","minDBVersion")
         self.allHosts=self.TestCfg.get("UbikDAO","allDBs").split(",")
         self.allHosts.sort()
         self.not_SyncSite=""
@@ -79,7 +79,7 @@ class TestUbikDAOMethods(unittest.TestCase):
  
     def do_test_getDBVersion(self, servername) :
         DBVersion=self.DAO.getDBVersion(self.SyncSite, self.DBPort)
-        self.assertTrue((DBVersion>self.minDBVersion))
+        self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
     
     def test_getDBVersion_syncSite(self)  :
