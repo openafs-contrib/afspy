@@ -1,15 +1,17 @@
 import re,string,os,sys
 import afs.dao.bin
 from afs.exceptions.UbikError import UbikError
+from afs.dao.BaseDAO import BaseDAO
 
-class UbikPeerDAO():
+class UbikPeerDAO(BaseDAO):
     
     """
     udebug 
     """
     
-    def __init__(self):
-        pass
+    def __init__(self) :
+        BaseDAO.__init__(self)
+        return
     
     SyncRX=re.compile("Sync host (.*) was set (\d+) secs ago")
     SyncRX2=re.compile("I am sync site until (\d+) secs from now \(at (.*)\) \((\d+) servers\)")
@@ -54,7 +56,7 @@ class UbikPeerDAO():
         Parsing is always the same, so do it here.
         """
         CmdList=[afs.dao.bin.UDEBUGBIN,"-server", "%s"  % servername, "-port", "%s" % port,  "-long"]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise ubikError(rc)
         d= { "SyncSite" : "", 

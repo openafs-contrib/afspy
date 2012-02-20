@@ -3,6 +3,7 @@ import afs.dao.bin
 
 from afs.util import afsutil
 from afs.exceptions.BNodeError import BNodeError
+from afs.dao.BaseDAO import BaseDAO
 
 def restartT2Minutes(Time):
     """
@@ -33,7 +34,7 @@ def minutes2restartT(Minutes) :
     Time = "%d:%02d %s" % (Minutes/60, Minutes%60,Pod)
     return Time
 
-class BNodeDAO() :
+class BNodeDAO(BaseDAO) :
     """
     Direct Access Object for a Process (BNode)
     """
@@ -42,6 +43,7 @@ class BNodeDAO() :
     DBServerRegEx=re.compile("Host (\d+) is (\S+)")
 
     def __init__(self) :
+        BaseDAO.__init__(self)
         return
     
     def getRestartTimes(self, servername, cellname, token):
@@ -49,7 +51,7 @@ class BNodeDAO() :
         return dict telling the restart times
         """
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise ProcError( outerr, output)
         
@@ -71,7 +73,7 @@ class BNodeDAO() :
              raise ProcError( "invalid restarttype=%s" % restarttype, '')
              return 1, "invalid restarttype=%s" % restarttype
         CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         
         return 
 
@@ -122,7 +124,7 @@ class BNodeDAO() :
         get list of all database-servers known to a given AFS-server
         """
         CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise ProcError( outerr, output)
             

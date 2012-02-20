@@ -1,13 +1,15 @@
 import re,string,os,sys
 import afs.dao.bin
 from afs.exceptions.AfsError import AfsError
+from afs.dao.BaseDAO import BaseDAO
 
-class DNSconfDAO():
+class DNSconfDAO(BaseDAO):
     """
     get Cellinformation from DNS Records
     """
     
-    def __init__(self):
+    def __init__(self) :
+        BaseDAO.__init__(self)
         return
     
     def getDBServList(self,cellname):
@@ -15,7 +17,7 @@ class DNSconfDAO():
         Returns the dbservers from AFSDB records
         """
         CmdList=[afs.dao.bin.DIGBIN , "AFSDB", cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise AfsError
         # parse "This workstation belongs to cell 'beolink.org'"

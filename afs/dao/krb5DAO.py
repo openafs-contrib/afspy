@@ -1,15 +1,17 @@
 import string,re,sys,time, tempfile, os
 import afs.dao.bin
 from afs.exceptions.krb5Error import krb5Error
+from afs.dao.BaseDAO import BaseDAO
 
-class krb5DAO(object) :
+class krb5DAO(BaseDAO) :
     
     """
     low-level Kerberos stuff 
     """
     
-    def __init__(self):
-        pass
+    def __init__(self) :
+        BaseDAO.__init__(self)
+        return
         
     def getKRB5CCNAME(self):
         handle, KRB5CCNAME=tempfile.mkstemp()
@@ -18,14 +20,14 @@ class krb5DAO(object) :
 
     def listTicket(self, KRB5CCNAME):
         CmdList=[afs.dao.bin.KLISTBIN ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
+        rc,output,outerr=self.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
         if rc :
             raise KrbError
         return KRB5CCNAME
 
     def destroyTicket(self, KRB5CCNAME):
         CmdList=[afs.dao.bin.KDESTROYBIN, "-c","%s" % KRB5CCNAME ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
+        rc,output,outerr=self.execute(CmdList, env={"KRB5CCNAME":KRB5CCNAME})
         if rc :
             raise KrbError
         return
@@ -43,7 +45,7 @@ class krb5DAO(object) :
                 CmdList += ["%s@%s" % (principal,realm)]
             else :
                 CmdList += ["%s" % principal]
-        rc,output,outerr=afs.dao.bin.execute(CmdList, Input=password)
+        rc,output,outerr=self.execute(CmdList, Input=password)
         if rc :
             raise KrbError
         return KRB5CCNAME
@@ -61,7 +63,7 @@ class krb5DAO(object) :
                 CmdList += ["%s@%s" % (principal,realm)]
             else :
                 CmdList += ["%s" % principal]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise KrbError
         return KRB5CCNAME

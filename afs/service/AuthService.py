@@ -42,7 +42,7 @@ class TokenService(BaseService):
             if CredArgs != "" :
                 passwd=CredArgs
             else :
-                passwd = getpass.getpass("Passord for %s@%s: " % (self._CFG.KRB5_PRINC,self._CFG.KRB5_REALM))
+                passwd = getpass.getpass("Password for %s@%s: " % (self._CFG.KRB5_PRINC,self._CFG.KRB5_REALM))
             KRB5CCNAME=self._krb5DAO.getTicketbyPassword(passwd, self._CFG.KRB5_PRINC,self._CFG.KRB5_REALM)
             self._pagDAO.obtainTokenFromTicket(KRB5CCNAME, self._CFG.KRB5_REALM, self._CFG.CELL_NAME)
             self._krb5DAO.destroyTicket(KRB5CCNAME)
