@@ -18,18 +18,18 @@ CS = CellService()
 # uncomment if debug wanted
 #CS.Logger.setLevel(logging.DEBUG)
 
-def printServerList(FileServerList, DBServerList):
+def printServerList(CellInfo):
     print "FileServers"
     print "========="
-    for srv in FileServerList :
-        print "%s: %s" %( srv.servernames[0], string.join(srv.ipaddrs, ",") )
-        for p in srv.parts :
-            print "\t%s, total: %u free: %u " % (p.name, p.size, p.free)
+    for srv in CellInfo.FileServers :
+        print "%s: %s" %( srv["hostnames"][0], string.join(srv["ipaddrs"], ",") )
+        for p in srv["partitions"] :
+            print "\t%s, size: %u free: %u " % (p["name"], p["size"], p["free"])
     print "DBServer"
     print "======="
-    for srv in  DBServerList :
-        print "%s: %s" %( srv.servernames[0], string.join(srv.ipaddrs, ",") ), 
-        if srv.clonedbserver :
+    for srv in  CellInfo.DBServers :
+        print "%s: %s" %( srv["hostnames"][0], string.join(srv["ipaddrs"], ",") ), 
+        if srv["clonedbserver"] :
             print " --- CLONE"
         else :
             print
@@ -37,20 +37,19 @@ def printServerList(FileServerList, DBServerList):
 # get a light-weight list of all fileservers and dbservers querying the Cell
 
 startTime=time.mktime(time.localtime())
-FileServerList=CS.getFsList(includeParts=True, db_cache=False)
-DBServerList=CS.getDBList(FileServerList[0].servernames[0], db_cache=False)
+
+CellInfo=CS.getCellInfo()
 endTime=time.mktime(time.localtime())
 
-printServerList(FileServerList, DBServerList)
+printServerList(CellInfo)
 print "Time required to get information : %d secs" % (endTime-startTime)
 
 
 # get a light-weight list of all fileservers and dbservers querying the Cell
 
 startTime=time.mktime(time.localtime())
-FileServerList=CS.getFsList(includeParts=True, db_cache=True)
-DBServerList=CS.getDBList(FileServerList[0].servernames[0], db_cache=True)
+CellInfo=CS.getCellInfo(cached=True)
 endTime=time.mktime(time.localtime())
 
-printServerList(FileServerList, DBServerList)
+printServerList(CellInfo)
 print "Time required to get information : %d secs" % (endTime-startTime)
