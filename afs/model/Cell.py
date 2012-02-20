@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-class Cell(BaseModel, Base) : 
+class Cell(BaseModel) : 
     """
     empty Model for Cell
     """
@@ -11,21 +11,20 @@ class Cell(BaseModel, Base) :
         """
         Initializes empty shell
         """
+        
         ## Database definitions
         ## Cellname
         self.Name=""
-        ## DB-Server CSV-list of hostnames
-        self.DbServers=""
+        ## DB-Server python list of DB-ServerDicts
+        self.DBServers=[]
         ## VLDb-Version
-        self.VLDbVer=-1
+        self.VLDBVersion=-1
         ## VLDb-syncsite, hostname
-        self.SyncVLDbServer=""
+        self.VLDBSyncSite=""
         ## PTDb-Version
-        self.PTDbVer=-1
+        self.PTDBVersion=-1
         ## PTDb-syncsite, hostname
-        self.SyncPTDbServer=""
-        ## FileServer CSV-list of hostnames
-        self.FileServer=[]
-        ## linked Cells
-        self.linkedCells=[]
+        self.PTDBSyncSite=""
+        ## FileServer python list of FS-ServerDicts
+        self.FileServers=[]
         return

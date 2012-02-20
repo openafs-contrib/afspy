@@ -257,20 +257,29 @@ def setupDbMappers(conf):
           Column('sync'         , Integer )
           )
 
+    #Map Table to object
+    from afs.model.Project import Project
+    mapper(Project,tbl_project) 
+
     #  Cell Table
     ##################################################
-    tbl_project =  Table('tbl_cell',metadata,
+    tbl_cell =  Table('tbl_cell',metadata,
         Column('id'           , Integer, primary_key=True),
-        Column('name'        , String(255)),
+        Column('name'        , String(255), index=True ),
         Column('DBServers'        , String(512)),
         Column('VLDBSyncSite'        , String(50)),
         Column('PTDBSyncSite'        , String(50)),
         Column('VLDBVersion'        , String(20)),
         Column('PTDBVersion'        , String(20)),
+        Column('FileServers'         , PickleType(mutable=True)),
+        Column('DBServers'         , PickleType(mutable=True)),
         Column('cdate'        , DateTime),
         Column('udate'        , DateTime),
         )
-
+        
+    #Map Table to object
+    from afs.model.Cell import Cell
+    mapper(Cell,tbl_cell) 
 
     try  :
         metadata.create_all(conf.DB_ENGINE) 
