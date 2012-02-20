@@ -1,21 +1,23 @@
 import re,string,os,sys
 import afs.dao.bin
+from afs.dao.BaseDAO import BaseDAO
 
-class RxOsdDAO():
+class RxOsdDAO(BaseDAO):
     
     """
     stuff to do with rxosd-servers
     """
     
-    def __init__(self):
-        pass
+    def __init__(self) :
+        BaseDAO.__init__(self)
+        return
     
     def examine(self, osd_id, fid,cellname,token,lun=0):
         """
         examine an object 
         """
         CmdList=[afs.dao.bin.OSDBIN, "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         
@@ -30,7 +32,7 @@ class RxOsdDAO():
         CmdList=[afs.dao.bin.OSDBIN, "fetchq", "-cell",  "%s" % cellname ]
         if osd_id :
             CmdList += ["-name" , "%s" % osd_id]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         FetchQDict={}
@@ -41,7 +43,7 @@ class RxOsdDAO():
         query Servers for it tuneables
         """
         CmdList=[afs.dao.bin.OSDBIN, "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         settingsList=[]
@@ -52,7 +54,7 @@ class RxOsdDAO():
         query Servers for it tuneables
         """
         CmdList=[afs.dao.bin.OSDBIN, "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         value=""
@@ -63,7 +65,7 @@ class RxOsdDAO():
         set Server tunable. Verifies result
         """ 
         CmdList=[afs.dao.bin.OSDBIN, "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         newSettings=self.getServeSettings(self,osd_id,key,cellname,token)
@@ -80,7 +82,7 @@ class RxOsdDAO():
         CmdList=[afs.dao.bin.OSDBIN, "objects", "-osd","%s" % osd_id, "-volume", "%s" % vid, "-cell",  "%s" % cellname ]
         if osd_id :
             CmdList += ["-lun" , "%s" % lun]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         obj_list=[]
@@ -93,7 +95,7 @@ class RxOsdDAO():
         CmdList=[afs.dao.bin.OSDBIN, "statistics", "-osd","%s" % osd_id, "-cell",  "%s" % cellname ]
         if extended :
             CmdList += ["-verbose" ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         statDict={}
@@ -104,7 +106,7 @@ class RxOsdDAO():
         reset RPC-statistics of a RxOsd-sever
         """
         CmdList=[afs.dao.bin.OSDBIN, "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         return 
@@ -116,7 +118,7 @@ class RxOsdDAO():
         CmdList=[afs.dao.bin.OSDBIN, "threads", "-server","%s" % osd_id, "-cell",  "%s" % cellname ]
         if extended :
             CmdList += ["-verbose" ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         threadList=[]
@@ -135,7 +137,7 @@ class RxOsdDAO():
         else :
             raise RxOsdError("Error", "invalid criteria %s" % criteria)
             
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise RxOsdError("Error", outerr)
         candList=[]

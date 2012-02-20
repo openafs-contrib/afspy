@@ -2,13 +2,16 @@ import re,string,os,sys, datetime
 import afs.dao.bin
 from afs.util import afsutil
 from afs.exceptions.FServError import FServError
+from afs.dao.BaseDAO import BaseDAO
 
-class FileServerDAO() :
+class FileServerDAO(BaseDAO) :
     """
     low level access to the FileServer/VolServer pair
     """
+
     def __init__(self) :
-        pass
+        BaseDAO.__init__(self)
+        return
     
     def getVolList(self, serv, part,  cellname, token) :
         """
@@ -18,7 +21,7 @@ class FileServerDAO() :
         part = afsutil.canonicalizePartition(part)
         CmdList = [afs.dao.bin.VOSBIN,"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  cellname]
         
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise FServError("Error",outerror)
         
@@ -101,7 +104,7 @@ class FileServerDAO() :
             RX=re.compile("^(\d+)")
             CmdList=[afs.dao.bin.VOSBIN,"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % cell]
  
-            rc,output,outerr=afs.dao.bin.execute(CmdList)
+            rc,output,outerr=self.execute(CmdList)
             if rc :
                  raise FServError("Error", outerr)
             volIds = []
@@ -121,7 +124,7 @@ class FileServerDAO() :
             """
             RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
             CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
-            rc,output,outerr=afs.dao.bin.execute(CmdList)
+            rc,output,outerr=self.execute(CmdList)
             if rc :
                  raise FServError("Error", outerr)
             partitions= []

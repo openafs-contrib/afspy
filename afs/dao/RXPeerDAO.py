@@ -1,7 +1,8 @@
 import re,string,os,sys
 import afs.dao.bin
+from afs.dao.BaseDAO import BaseDAO
 
-class RXPeerDAO():
+class RXPeerDAO(BaseDAO):
 
     """
     rxdebug and friends
@@ -9,12 +10,13 @@ class RXPeerDAO():
 
     RXVerRegEx=re.compile("AFS version:  OpenAFS(.*)built (.*)")
 
-    def __init__(self):
-        pass
+    def __init__(self) :
+        BaseDAO.__init__(self)
+        return
         
     def getVersionandBuildDate(self, servername, port):
         CmdList=[afs.dao.bin.RXDebugBIN,"-server", "%s"  % servername, "-port", "%s" % port, "-version"]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             return ""
         if len(output) != 2 :

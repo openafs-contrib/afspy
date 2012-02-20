@@ -4,15 +4,17 @@ import afs.dao.bin
 from datetime import datetime
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
+from afs.dao.BaseDAO import BaseDAO
 
 
-class VolumeDAO(object) :
+class VolumeDAO(BaseDAO) :
     """
     Provides Methods to query and modify live AFS-Volumes
     """
     
     def __init__(self) :
-        pass
+        BaseDAO.__init__(self)
+        return
 
     def move(self,ID, DstServer,DstPartition, cellname, token) :
         """
@@ -20,7 +22,7 @@ class VolumeDAO(object) :
         an remove/addsite/release
         """
         CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         # use output for logging.
         if rc:
             raise VolError("Error", outerr)
@@ -30,7 +32,7 @@ class VolumeDAO(object) :
         release this volume
         """
         CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
     
@@ -39,7 +41,7 @@ class VolumeDAO(object) :
         sets Blockquota
         """
         CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
         
@@ -48,7 +50,7 @@ class VolumeDAO(object) :
         Dumps a volume into a file
         """
         CmdList=["vos", "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
 
@@ -57,7 +59,7 @@ class VolumeDAO(object) :
         Restores this (abstract) volume from a file.
         """
         CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
     
@@ -66,7 +68,7 @@ class VolumeDAO(object) :
         converts this RO-Volume to a RW
         """
         CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
 
@@ -76,7 +78,7 @@ class VolumeDAO(object) :
         """
         id = 0
         CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
         
@@ -87,7 +89,7 @@ class VolumeDAO(object) :
         remove this Volume from the Server
         """
         CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList) 
+        rc,output,outerr=self.execute(CmdList) 
         if rc:
              raise VolError("Error", outerr)
     
@@ -98,7 +100,7 @@ class VolumeDAO(object) :
         """
         
         CmdList = [afs.dao.bin.VOSBIN,"examine", "-id", "%s"  % vid , "-format","-cell", "%s" %  cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
        
         if rc :
             raise VolError("Error", outerr)
@@ -158,7 +160,7 @@ class VolumeDAO(object) :
         """
         part = afsutil.canonicalizePartition(part)
         CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-format","-cell", "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VolError("Error", outerr)
         
@@ -260,7 +262,7 @@ class VolumeDAO(object) :
         """
         """
         CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-extended","-cell", "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VolError("Error", outerr)
         

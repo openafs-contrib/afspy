@@ -2,12 +2,15 @@ import re,string,os,sys
 import afs.dao.bin
 
 from afs.exceptions.VLDbError import VLDbError
+from afs.dao.BaseDAO import BaseDAO
 
-class VLDbDAO() :
+class VLDbDAO(BaseDAO) :
     """
     Provides low-level acces to the Volume Location Database
     """
+
     def __init__(self) :
+        BaseDAO.__init__(self)
         return
     
     def getFsServList(self,cellname, token, noresolve=False):
@@ -18,7 +21,7 @@ class VLDbDAO() :
             CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname, "-noresolve" ]
         else:
             CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VLDbError("Error", outerr)
        
@@ -35,7 +38,7 @@ class VLDbDAO() :
 
     def  getFsUUID(self, name_or_ip, cellname, token) :
         CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VLDbError("Error", outerr)
         uuid=output[0].split()[1]
@@ -70,7 +73,7 @@ class VLDbDAO() :
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
         CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList) 
+        rc,output,outerr=self.execute(CmdList) 
         if rc:
             raise VLDbError("Error", outerr)
     
@@ -79,7 +82,7 @@ class VLDbDAO() :
         removes entry for a RO-Volume in VLDB
         """
         CmdList=["vos", "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=afs.dao.bin.execute(CmdList) 
+        rc,output,outerr=self.execute(CmdList) 
         if rc:
             raise VLDbError("Error", outerr)
         
@@ -88,7 +91,7 @@ class VLDbDAO() :
         locks volume in VLDB
         """
         CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VLDbError("Error", outerr)
     
@@ -97,7 +100,7 @@ class VLDbDAO() :
         unlocks volume in VLDB
         """
         CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=afs.dao.bin.execute(CmdList)
+        rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VLDbError("Error", outerr)
     

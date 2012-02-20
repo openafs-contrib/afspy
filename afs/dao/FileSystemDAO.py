@@ -2,15 +2,18 @@ import re,string,os,sys
 import afs.dao.bin
 from afs.util import afsutil
 from afs.exceptions.FSError import FSError
+from afs.dao.BaseDAO import BaseDAO
 
-class FileSystemDAO() :
+class FileSystemDAO(BaseDAO) :
     """
     low level access to the FileSystem
     ATM this requires a cache-manager, since most of 
     it is done through an AFS-path
     """
+
     def __init__(self) :
-        pass
+        BaseDAO.__init__(self)
+        return
             
 
     def  makeMountpoint(self, path, target) :
