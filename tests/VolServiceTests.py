@@ -38,14 +38,14 @@ class TestVolServiceMethods(unittest.TestCase):
         return
     
     def test_getVolbyName_live(self) :
-        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, db_cache=False)
+        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, cached=False)
         self.assertEqual(vol.vid, self.VolID)
         self.assertEqual(vol.servername, self.FSName)
         self.assertEqual(vol.part, self.Part)
         return
 
     def test_getVolbyName_cached(self) :
-        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, db_cache=True)
+        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, cached=True)
         self.assertEqual(vol.vid, self.VolID)
         self.assertEqual(vol.servername, self.FSName)
         self.assertEqual(vol.part, self.Part)

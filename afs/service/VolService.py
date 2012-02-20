@@ -27,7 +27,7 @@ class VolService (BaseService):
     """
     Retrieve Volume Group
     """
-    def getVolGroup(self, id , db_cache=False):
+    def getVolGroup(self, id , cached=False):
     
         list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
@@ -46,8 +46,8 @@ class VolService (BaseService):
     """
     Retrieve Volume Information by Name or ID
     """
-    def getVolume(self, name, serv, part,  db_cache=False):
-        if db_cache :
+    def getVolume(self, name, serv, part,  cached=False):
+        if cached :
             serv_uuid=self.CS.getFsUUID(serv)
             vol=self._getFromCache(name, serv_uuid, part)
             return vol
@@ -57,13 +57,14 @@ class VolService (BaseService):
         if vdict:
             vol = Volume()
             vol.setByDict(vdict)
-            self._setIntoCache(vol)
+            if self._CFG.DB_CACHE :
+                self._setIntoCache(vol)
         return  vol
     
     """
     Retrieve Volume extended information
     """
-    def getVolExtended(self,id, db_cache=False):
+    def getVolExtended(self,id, cached=False):
         pass
  
     def release(self, id):
