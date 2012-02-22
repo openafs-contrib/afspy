@@ -1,3 +1,5 @@
 # Init 
 import logging
-logger=logging.getLogger("util")
+_logger=logging.getLogger("util")
+LogExtra={'classname' : "util"}
+logger=logging.LoggerAdapter(_logger,LogExtra)

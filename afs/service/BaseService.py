@@ -20,10 +20,12 @@ class BaseService(object):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
-        self.Logger=logging.getLogger("afs.%s" % self.__class__.__name__)
-        numeric_level = getattr(logging,afs.defaultConfig.LogLevel.upper() , None)
-        self.Logger.setLevel(numeric_level)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__,conf))
+        Logger=logging.getLogger("afs.service.%s" % self.__class__.__name__)
+        LogExtra={'classname' : self.__class__.__name__}
+        self.Logger=logging.LoggerAdapter(Logger,LogExtra)
+        numeric_level = getattr(logging,afs.defaultConfig.classLogLevels[self.__class__.__name__].upper() , None)
+        Logger.setLevel(numeric_level)
+        self.Logger.debug("initializing Object with conf=%s" % (conf))
         
         # DB INIT 
         if self._CFG.DB_CACHE :

@@ -2,12 +2,12 @@ import sys,logging
 import afs.util.options
 from afs.util.options import define, options
 import afs.exceptions.ORMError as  ORMError
+from afs.orm import logger
 
 def setupOptions():
     """
     Only to be called from AfsConfig
     """
-    define("DB_LogLevel", default="WARN", help="Set Loglevel of DB-Logging")
     define("DB_SID" , default="db/afspy", help="Database name or for sqlite path to DB file")
     define("DB_TYPE" , default="sqlite", help="Type of DB. [mysql|sqlite]")
     # mysql options
@@ -17,6 +17,7 @@ def setupOptions():
     define("DB_PASSWD" , default="", help="Database password")
     define("DB_FLUSH", default=100, help="Max Number of elements in Buffer")
 
+    
 def createDbEngine(conf):
     """
     using conf, setup the core DB-engine
@@ -25,8 +26,6 @@ def createDbEngine(conf):
     used AfsConfig object
     """
     from sqlalchemy import create_engine
-    logger=logging.getLogger("sqlalchemy")
-    logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
 
     # Option definition
     ###########################################
@@ -57,8 +56,6 @@ def setupDbMappers(conf):
     from sqlalchemy     import ForeignKey, UniqueConstraint
     from sqlalchemy     import  PickleType
 
-    logger=logging.getLogger("sqlalchemy")
-    logger.setLevel(getattr(logging, conf.DB_LogLevel.upper()))
     logger.debug("Entering setupDbMappers")
     metadata = MetaData()
    
