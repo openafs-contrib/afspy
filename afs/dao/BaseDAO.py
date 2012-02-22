@@ -21,18 +21,18 @@ class BaseDAO(object) :
     
     def __init__(self):
         # LOG INIT
-        self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)
+        LogExtra={'classname' : self.__class__.__name__}
+        Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)
+	self.Logger=logging.LoggerAdapter(Logger,LogExtra)
         # we would like to have DAO directly useable
         # thus, just try to setup logging
         try :
-            from afs.util.AfsConfig import AfsConfig
             import afs
-            numeric_level = getattr(logging,afs.defaultConfig.LogLevel.upper() , None)
-            self.Logger.setLevel(numeric_level)
+            numeric_level = getattr(logging,afs.defaultConfig.classLogLevels[self.__class__.__name__].upper() , None)
+            Logger.setLevel(numeric_level)
+            self.Logger.debug("initializing %s-Object" % (self.__class__.__name__))
         except :
-            pass 
-    
-        self.Logger.debug("initializing %s-Object" % self.__class__.__name__)
+            pass
         
         return
         

@@ -49,10 +49,18 @@ Contents of the AfsConfig :
     - use keytab from file ...
     - pagsh; kinit  -k -t  $KRB5CCNAME; aklog ; call child..
     """
-- AFS Cellname
-- Keberos REALM
+- default AFS Cellname
+- default Keberos REALM
 - DAO-implementation to use
 - DB-implementation to use.
+- Logging. There are two types of Loglevels,
+  - the global one for all modules : 
+     e.g.  globalLogLevel="[debug|info|warn|critical]"
+  - a class local one to override the global one for certain classes.
+    CSV list of Classname=Loglevel pairs:
+    e.g. classLogLevels="CellService=warn,UbikPeerDAO=warn,FileServerDAO=debug"
+    beside the normal classes, also "util" and "sqlalchemy" are available.
+
 
 Policies :
 ========
