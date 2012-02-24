@@ -1,13 +1,15 @@
-import sys, os
+import sys, os, atexit
 import afs.util.options
 import logging
 import sqlalchemy
+import tempfile
 from types import IntType, StringType, LongType,  UnicodeType
 #import module-wide logger
 from afs.util import  logger,_logger
-
+from afs.exceptions import AfsError
 from afs.util.options import define, options   
 import afs
+
 
 def setupOptions():
     """
@@ -15,6 +17,8 @@ def setupOptions():
     """
     define("conf", default="",help="path to configuration file")
     define("DB_CACHE",  default="False", help="use DB cache")
+    define("DAOImplementation", default="childprocs", help="Implementation of how to access AFS-Cell" )
+    define("DAO_SPOOL_PARENTDIR", default="/tmp/afspy/", help="If using 'childprocs'-DAO,  use spool dir under this path")
     define("globalLogLevel", default="info", help="global python Loglevel")
     define("classLogLevels", default="info", help="CSV list of 'class=LogLevel', to turn logging on and off for specific classes")
     define("CELL_NAME", default="beolink.org", help="Default Cell")
@@ -56,11 +60,23 @@ def setupDefaultConfig():
         numeric_level = getattr(logging,afs.defaultConfig.globalLogLevel.upper() , None)
         _logger.setLevel(numeric_level)
         
-         
         afs.defaultConfig.CELL_NAME = options.CELL_NAME
         afs.defaultConfig.KRB5_PRINC=options.KRB5_PRINC
         afs.defaultConfig.KRB5_REALM=options.KRB5_REALM
-       
+        
+        # setup DAO
+        if options.DAOImplementation != "childprocs" :
+            raise AfsError.AfsError("Only childprocs are implemented yet.")
+        
+        afs.defaultConfig.DAOImplementation=options.DAOImplementation
+        afs.defaultConfig.DAO_SPOOL_PARENTDIR = options.DAO_SPOOL_PARENTDIR
+        # create Spooldir itself
+        if not os.path.isdir(afs.defaultConfig.DAO_SPOOL_PARENTDIR) :
+            raise AfsError.AfsError("Given SpoolParentDir '%s' for DAO does not exists or is no directory. Fix this yourself." %afs.defaultConfig.DAO_SPOOL_PARENTDIR)
+        afs.defaultConfig.DAOSpoolDir=tempfile.mkdtemp(prefix=afs.defaultConfig.DAO_SPOOL_PARENTDIR)
+        # register deletion of TempDir at program exit
+        atexit.register(os.rmdir, afs.defaultConfig.DAOSpoolDir)
+        
         # setup DB_CACHE if required
         if options.DB_CACHE.upper() == "TRUE" :  
             afs.defaultConfig.DB_CACHE = True
@@ -69,8 +85,8 @@ def setupDefaultConfig():
         logger.debug("DB_CACHE='%s'" %afs.defaultConfig.DB_CACHE )
         sqlalchemyLogLevel=afs.defaultConfig.classLogLevels.get("sqlalchemy", None)
         if sqlalchemyLogLevel != None :
-		sqlalchemyLogger=logging.getLogger("sqlalchemy")
-		sqlalchemyLogger.setLevel(getattr(logging, afs.defaultConfig.classLogLevels["sqlalchemy"].upper()))
+            sqlalchemyLogger=logging.getLogger("sqlalchemy")
+            sqlalchemyLogger.setLevel(getattr(logging, afs.defaultConfig.classLogLevels["sqlalchemy"].upper()))
         
         if afs.defaultConfig.DB_CACHE :
             afs.defaultConfig.DB_TYPE=options.DB_TYPE
@@ -124,5 +140,4 @@ class AfsConfig(object):
              elif isinstance(attr, datetime.datetime):
                 res[attr] = value.isoformat('-')
         return res
-        
-        
+
