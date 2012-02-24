@@ -11,7 +11,7 @@ class BaseService(object):
     Provides implementation for basic methods for all Service.
     """
     
-    def __init__(self,conf=None, DAOList=[], DAOImplementation="childprocs"):
+    def __init__(self,conf=None, DAOList=[]):
         
         # CONF INIT
         if conf:
@@ -39,7 +39,7 @@ class BaseService(object):
             self.or_ = or_
         
         # DAO INIT 
-        if DAOImplementation == "childprocs" :
+        if self._CFG.DAOImplementation == "childprocs" :
             for dao in DAOList :
                 if dao == "vl":
                     from afs.dao.VLDbDAO import VLDbDAO
