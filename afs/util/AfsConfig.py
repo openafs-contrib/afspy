@@ -5,7 +5,7 @@ import sqlalchemy
 import tempfile
 from types import IntType, StringType, LongType,  UnicodeType
 #import module-wide logger
-from afs.util import  logger,_logger
+from afs.util import  logger
 from afs.exceptions import AfsError
 from afs.util.options import define, options   
 import afs
@@ -58,7 +58,7 @@ def setupDefaultConfig():
             afs.defaultConfig.classLogLevels[Name] = Level
         afs.defaultConfig.globalLogLevel=options.globalLogLevel
         numeric_level = getattr(logging,afs.defaultConfig.globalLogLevel.upper() , None)
-        _logger.setLevel(numeric_level)
+        logger.setLevel(numeric_level)
         
         afs.defaultConfig.CELL_NAME = options.CELL_NAME
         afs.defaultConfig.KRB5_PRINC=options.KRB5_PRINC

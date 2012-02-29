@@ -5,12 +5,9 @@ __all__=["DbMapper",]
 import afs
 import logging
 
-_logger=logging.getLogger("DBCache")
+logger=logging.getLogger("DBCache")
 if getattr(afs,"defaultConfig",None) :
     if getattr(afs.defaultConfig, "classBasedLogLevels", None) :
         classBasedLogLevel=afs.defaultConfig.classLogLevels.get("DBCache", None)
         if classBasedLogLevel != None :
             _logger.setLevel(getattr(logging, afs.defaultConfig.classBasedLogLevels["DBCache"].upper()))
-
-LogExtra={'classname' : "DBCache"}
-logger=logging.LoggerAdapter(_logger,LogExtra)

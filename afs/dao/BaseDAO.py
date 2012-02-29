@@ -1,7 +1,7 @@
 import logging
 import string,os,sys
 import subprocess,types
-
+import tempfile
 
 class ExecError( BaseException):
     def __init__(self, message, stack=[]):
@@ -21,32 +21,34 @@ class BaseDAO(object) :
     
     def __init__(self):
         # LOG INIT
-        LogExtra={'classname' : self.__class__.__name__}
-        Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)
-        self.Logger=logging.LoggerAdapter(Logger,LogExtra)
+        self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)
         # we would like to have DAO directly useable
-        # thus, just try to setup logging
+        # thus, just try to setup logging from config, do not force it
         try :
             import afs
             if afs.defaultConfig.classLogLevels.has_key(self.__class__.__name__) :
                 numeric_level = getattr(logging,afs.defaultConfig.classLogLevels[self.__class__.__name__].upper() , None)
             else :
                 numeric_level = getattr(logging,afs.defaultConfig.globalLogLevel.upper(), None)
-            Logger.setLevel(numeric_level)
+            self.Logger.setLevel(numeric_level)
             self.Logger.debug("initializing %s-Object" % (self.__class__.__name__))
         except :
             pass
         return
         
-    def execute(self,CmdList, Input="", env={}) :
+    def execute(self,CmdList,  env={}, Input="", stdout=None, stderr=None) :
         self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
+        if stdout == None :
+            stdout=subprocess.PIPE
+        if stderr == None :
+            stderr = subprocess.PIPE
+
         if Input == "" :
-            pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+            pipo=subprocess.Popen(CmdList,stdout=stdout,stderr=stderr, env=env)
             _output,_outerr=pipo.communicate()
         else :
-            pipo=subprocess.Popen(CmdList,stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.PIPE, env=env)
+            pipo=subprocess.Popen(CmdList,stdin=subprocess.PIPE, stdout=stdout,stderr=stderr, env=env)
             _output,_outerr=pipo.communicate(Input)
-            
         if pipo.returncode != 0 :
             if pipo.returncode == 13 : # permission denied
                 return 13, "","Permission denied"
@@ -67,6 +69,45 @@ class BaseDAO(object) :
         for line in _outerr :
             if line == "" : continue
             outerr.append(line)
+        return pipo.returncode,output,outerr
+
+    def execute_detached(self,CmdList, SpoolDir, env={}, Input="") :
+        self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
+        outFile=tempfile.NamedTemporaryFile(prefix=SpoolDir, delete=False)
+        errFile=file(outFile.name, "w+")
+        self.Logger.info("detaching redirecting to file '%s' and '%s.err'" % (outFile.name, errFile.name) )
+        
+        ## partly from {{{ http://code.activestate.com/recipes/66012/ (r1)
+        ## and stuff from comments.
+        ## the second fork is done in execute() itself.
+        # do the UNIX double-fork magic, see Stevens' "Advanced 
+        # Programming in the UNIX Environment" for details (ISBN 0201563177)
+        try: 
+            pid = os.fork() 
+            if pid > 0:
+                # exit first parent,close Files here
+                outFile.close()
+                errFile.close()
+                sys.exit(0) 
+        except OSError, e: 
+            errFile.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror) )
+            sys.exit(1)
+
+        # decouple from parent environment
+        os.chdir(SpoolDir) 
+        os.setsid() 
+        os.umask(127) 
+        
+        # flush and redirect i/o-streams
+        dev_null = file('/dev/null', 'r')
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os.dup2(outFile.fileno(), sys.stdout.fileno())
+        os.dup2(errFile.fileno(), sys.stderr.fileno())
+        os.dup2(dev_null.fileno(), sys.stdin.fileno())
+        ## end of http://code.activestate.com/recipes/66012/ }}}
+   
+        self.execute(CmdList, env=env, Input=Input, stdout=outFile, stderr=errFile)
         return pipo.returncode,output,outerr
 
     def safeStrip(self,Thing) :
