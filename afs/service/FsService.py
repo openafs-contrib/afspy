@@ -1,11 +1,8 @@
-import logging, socket
-from afs.service.BaseService import BaseService
+import socket
 
-from afs.dao.FileServerDAO import FileServerDAO
-from afs.dao.BNodeDAO import BNodeDAO
-from afs.exceptions.FSError import  FSError
+from afs.service.BaseService import BaseService
 from afs.model.Server import Server
-import afs
+
 
 class FsService (BaseService):
     """

@@ -1,4 +1,3 @@
-import re,string,os,sys
 import afs.dao.bin
 from afs.exceptions.CMError import CMError
 from afs.dao.BaseDAO import BaseDAO

@@ -1,6 +1,7 @@
-import string,re,sys,time
+import re
 import afs.dao.bin
 from afs.exceptions.krb5Error import krb5Error
+from afs.exceptions.AfsError import AfsError
 from afs.dao.BaseDAO import BaseDAO
 
 class PAGDAO(BaseDAO) :
@@ -20,7 +21,7 @@ class PAGDAO(BaseDAO) :
         CmdList=[afs.dao.bin.TOKENBIN ]
         rc,output,outerr=self.execute(CmdList)
         if rc :
-            raise PagError
+            raise AfsError()
         line_no = output.index("Tokens held by the Cache Manager:")
         while 1 :
             if "--End of list--"  in output[line_no] : break

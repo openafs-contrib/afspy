@@ -6,10 +6,9 @@ from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
+from afs.util.AfsConfig import  setupDefaultConfig
 from afs.util.options import define, options
 from afs.dao import CacheManagerDAO 
-import afs
 
 class TestCacheManagerDAOMethods(unittest.TestCase):
     """

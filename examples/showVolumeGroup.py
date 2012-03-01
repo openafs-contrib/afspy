@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
 sys.path.append("..")
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
-from afs.util.options import define, options
+from afs.util.AfsConfig import setupDefaultConfig
+
 from afs.service.VolService import VolService
 import afs
 

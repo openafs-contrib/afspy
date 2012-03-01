@@ -1,3 +1,5 @@
+from model.Volume import Volume
+
 class QueryVol(object):
     """
     Query the DB or live data
@@ -37,7 +39,6 @@ class QueryVol(object):
         if kwargs.get("cellname"):
             cellname = kwargs.get("cellname")
         
-        volIdList = []
         servers = []
         
         #Create a Server List

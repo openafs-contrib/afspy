@@ -1,4 +1,4 @@
-import re,string,os,sys, datetime
+import re, datetime
 import afs.dao.bin
 from afs.util import afsutil
 from afs.exceptions.FServError import FServError
@@ -23,12 +23,8 @@ class FileServerDAO(BaseDAO) :
         
         rc,output,outerr=self.execute(CmdList)
         if rc :
-            raise FServError("Error",outerror)
+            raise FServError("Error",outerr)
         
-        line_no = 0
-        line = output[line_no]
-       
-       
         # first line gives Name, ID, Type, Used and Status 
         volList = [] 
         dateT=datetime.datetime(1970, 1, 1)

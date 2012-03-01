@@ -1,6 +1,3 @@
-
-from afs.factory.ServerTypeFactory import ServerType
-from afs.factory.BNodeTypeFactory import BNodeType
 from afs.model.BaseModel import BaseModel
 from datetime import datetime
 

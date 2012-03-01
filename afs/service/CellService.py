@@ -1,16 +1,8 @@
-import afs.util.options
-import socket, string
+import socket
 
-from afs.util.AfsConfig import AfsConfig
-from afs.exceptions.VLDbError import VLDbError
-from afs.exceptions.VolError import VolError
 from afs.exceptions.ORMError import  ORMError
-from afs.model.Server import Server
-from afs.model.Partition import Partition
 from afs.model.Cell import Cell
-from afs.util import afsutil
 from afs.service.BaseService import BaseService
-import afs
 
 class CellService(BaseService):
     """

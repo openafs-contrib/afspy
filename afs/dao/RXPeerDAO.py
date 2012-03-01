@@ -1,4 +1,4 @@
-import re,string,os,sys
+import re
 import afs.dao.bin
 from afs.dao.BaseDAO import BaseDAO
 
@@ -23,7 +23,7 @@ class RXPeerDAO(BaseDAO):
             version="Not readable."
             return ""
         else :
-            M=RXVerRegEx.match(output[1])
+            M=self.RXVerRegEx.match(output[1])
             if not M :
                 version=""
                 builddate=""

@@ -10,10 +10,9 @@ from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
+from afs.util.AfsConfig import  setupDefaultConfig
 from afs.util.options import define, options
 from afs.service import CellService
-import afs
 
 class TestCellServiceMethods(unittest.TestCase):
     """

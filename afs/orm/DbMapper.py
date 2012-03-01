@@ -1,5 +1,4 @@
-import sys,logging
-import afs.util.options
+import sys
 from afs.util.options import define, options
 import afs.exceptions.ORMError as  ORMError
 from afs.orm import logger
@@ -53,7 +52,7 @@ def createDbEngine(conf):
 def setupDbMappers(conf):
     from sqlalchemy.orm import mapper
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import ForeignKey, UniqueConstraint
+    from sqlalchemy     import  UniqueConstraint
     from sqlalchemy     import  PickleType
 
     logger.debug("Entering setupDbMappers")

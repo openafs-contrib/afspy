@@ -1,6 +1,3 @@
-
-
-
 class QueryCache(object):
     
     limit  = None
@@ -35,7 +32,7 @@ class QueryCache(object):
                 query += "order_by("
         
             #FIXME CHECK sqlAlchemy syntax for order !!!!!
-            for el in sel.sort:
+            for el in self.sort:
                 query += "%s.%s" % (self._tbl, el)  
             
             if dir:

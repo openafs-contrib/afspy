@@ -1,5 +1,3 @@
-
-
 from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
