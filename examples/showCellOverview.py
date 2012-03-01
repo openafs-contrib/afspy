@@ -2,8 +2,8 @@
 
 import sys, string, time
 sys.path.append("..")
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
-from afs.util.options import define, options
+
+from afs.util.AfsConfig import  setupDefaultConfig
 from afs.service.CellService import CellService
 import afs
 

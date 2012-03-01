@@ -1,4 +1,4 @@
-import re,string,os,sys
+import re
 import afs.dao.bin
 from afs.exceptions.UbikError import UbikError
 from afs.dao.BaseDAO import BaseDAO
@@ -58,7 +58,7 @@ class UbikPeerDAO(BaseDAO):
         CmdList=[afs.dao.bin.UDEBUGBIN,"-server", "%s"  % servername, "-port", "%s" % port,  "-long"]
         rc,output,outerr=self.execute(CmdList)
         if rc :
-            raise ubikError(rc)
+            raise UbikError(rc)
         d= { "SyncSite" : "", 
             "DBState" : "", 
             "syncDBVersion" :-1, 

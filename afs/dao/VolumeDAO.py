@@ -1,4 +1,4 @@
-import string,re,sys,time
+import re
 import afs.dao.bin
 
 from datetime import datetime
@@ -58,7 +58,7 @@ class VolumeDAO(BaseDAO) :
         """
         Restores this (abstract) volume from a file.
         """
-        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
+        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -77,7 +77,7 @@ class VolumeDAO(BaseDAO) :
         create a Volume
         """
         id = 0
-        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % Name , "-maxquota", "%s" % Quota, "-cell",  "%s" % cellname]
+        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -116,11 +116,7 @@ class VolumeDAO(BaseDAO) :
         # first line gives Name, ID, Type, Used and Status  
         #volList = {"RW": [], "RO": [] }
         
-        roID = 0
-        rwID = 0
-        bkId = 0
         numSite = 0
-        numServer = 0
         
         #FIXME Escape line when you find 
         for i in range(0, len(output)):

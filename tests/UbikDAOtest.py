@@ -6,10 +6,10 @@ from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
+from afs.util.AfsConfig import setupDefaultConfig
 from afs.util.options import define, options
 from afs.dao import UbikPeerDAO 
-import afs
+
 
 class TestUbikDAOMethods(unittest.TestCase):
     """

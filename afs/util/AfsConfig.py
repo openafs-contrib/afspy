@@ -9,6 +9,8 @@ from afs.util import  logger
 from afs.exceptions import AfsError
 from afs.util.options import define, options   
 import afs
+import afs.orm.DbMapper
+import datetime
 
 
 def setupOptions():
@@ -24,7 +26,6 @@ def setupOptions():
     define("CELL_NAME", default="beolink.org", help="Default Cell")
     define("KRB5_PRINC",  default="BEO", help="Kerberos5 Principal to use")
     define("KRB5_REALM",  default="BEOLINK.ORG", help="Kerberos5 REALM to use")
-    from afs.orm.DbMapper import setupOptions
     afs.orm.DbMapper.setupOptions() 
     return
 

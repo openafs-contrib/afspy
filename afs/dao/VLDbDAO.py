@@ -1,6 +1,4 @@
-import re,string,os,sys
 import afs.dao.bin
-
 from afs.exceptions.VLDbError import VLDbError
 from afs.dao.BaseDAO import BaseDAO
 

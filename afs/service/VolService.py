@@ -1,12 +1,10 @@
-import afs.util.options
-
 from afs.model.Volume import Volume
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
 from afs.service.CellService import CellService
 from afs.exceptions.VolError import VolError
-from afs.dao.VolumeDAO import VolumeDAO 
-from afs.util import afsutil, options
+from afs.exceptions.AfsError import AfsError
+from afs.util import afsutil
 
 
 class VolService (BaseService):
@@ -148,7 +146,7 @@ class VolService (BaseService):
     def _getFromCache(self,id, serv_uuid, part):
         #STORE info into  CACHE
         if not self._CFG.DB_CACHE:
-            raise ORMError("DB_CACHE not configured")
+            raise AfsError("DB_CACHE not configured")
         # Do update
         vol = self.DbSession.query(Volume).filter(self.or_(Volume.vid == id, Volume.name == id)).filter(Volume.serv_uuid == serv_uuid).filter(Volume.part == part).first()
         return vol
@@ -157,7 +155,7 @@ class VolService (BaseService):
          #STORE info into  CACHE
        
         if not self._CFG.DB_CACHE:
-            raise ORMError("DB_CACHE not configured")
+            raise AfsError("DB_CACHE not configured")
         
         volCache = self.DbSession.query(Volume).filter(Volume.vid == vol.vid).filter(self.or_(Volume.serv_uuid == vol.serv_uuid,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
         

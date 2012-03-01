@@ -1,7 +1,6 @@
-import re,string,os,sys
+import re
 import afs.dao.bin
 
-from afs.util import afsutil
 from afs.exceptions.BNodeError import BNodeError
 from afs.dao.BaseDAO import BaseDAO
 
@@ -53,10 +52,10 @@ class BNodeDAO(BaseDAO) :
         CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
         rc,output,outerr=self.execute(CmdList)
         if rc :
-            raise ProcError( outerr, output)
+            raise BNodeError( outerr, output)
         
         if len(output) != 2 :
-            raise ProcError( outerr, output)
+            raise BNodeError( outerr, output)
         
         st = {}
         st["general"]=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
@@ -70,7 +69,7 @@ class BNodeDAO(BaseDAO) :
         elif restarttype == "binary" :
             option = "-newbinary"
         else :
-             raise ProcError( "invalid restarttype=%s" % restarttype, '')
+             raise BNodeError( "invalid restarttype=%s" % restarttype, '')
              return 1, "invalid restarttype=%s" % restarttype
         CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
         rc,output,outerr=self.execute(CmdList)
@@ -126,7 +125,7 @@ class BNodeDAO(BaseDAO) :
         CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc :
-            raise ProcError( outerr, output)
+            raise BNodeError( outerr, output)
             
         DBServers=[]
         for line in output :

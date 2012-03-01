@@ -1,5 +1,4 @@
 from datetime import datetime
-from afs.factory.VolTypeFactory import VolType
 from afs.factory.VolStatusFactory import VolStatus 
 from afs.model.BaseModel import BaseModel
 
