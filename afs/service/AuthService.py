@@ -3,7 +3,7 @@ import afs.model.Token
 import getpass
 
 
-class TokenService(BaseService):
+class AuthService(BaseService):
     """
     Provides Service for Token Management.
     Multiple methods of acquiring a token are included

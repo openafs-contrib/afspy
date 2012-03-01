@@ -1,7 +1,7 @@
 import logging
 import string,os,sys
 import subprocess,types
-import tempfile
+import tempfile, traceback
 
 class ExecError( BaseException):
     def __init__(self, message, stack=[]):
@@ -19,7 +19,7 @@ class BaseDAO(object) :
     The mother of all DAOs
     """
     
-    def __init__(self):
+    def __init__(self) :
         # LOG INIT
         self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)
         # we would like to have DAO directly useable
@@ -37,6 +37,9 @@ class BaseDAO(object) :
         return
         
     def execute(self,CmdList,  env={}, Input="", stdout=None, stderr=None) :
+        tb=traceback.extract_stack()
+        moduleName=tb[len(tb)-2][0].split("/")[-1:][0]
+        self.Logger.debug("BaseDAO.execute called from %s.%s from %s:%s" % (self.__class__.__name__,tb[len(tb)-2][2], moduleName,  tb[len(tb)-2][1]))
         self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
         if stdout == None :
             stdout=subprocess.PIPE
@@ -69,9 +72,13 @@ class BaseDAO(object) :
         for line in _outerr :
             if line == "" : continue
             outerr.append(line)
+        self.Logger.debug("Leaving BaseDAO.execute called from %s:%s and returning %s" % (self.__class__.__name__, tb[len(tb)-2][2], (pipo.returncode, output, outerr)))
         return pipo.returncode,output,outerr
 
     def execute_detached(self,CmdList, SpoolDir, env={}, Input="") :
+        tb=traceback.extract_stack()
+        moduleName=tb[len(tb)-2][0].split("/")[-1:][0]
+        self.Logger.debug("BaseDAO.execute_detached called from %s.%s from %s:%s" % (self.__class__.__name__,tb[len(tb)-2][2], moduleName,  tb[len(tb)-2][1]))
         self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
         outFile=tempfile.NamedTemporaryFile(prefix=SpoolDir, delete=False)
         errFile=file(outFile.name, "w+")
@@ -107,8 +114,9 @@ class BaseDAO(object) :
         os.dup2(dev_null.fileno(), sys.stdin.fileno())
         ## end of http://code.activestate.com/recipes/66012/ }}}
    
-        self.execute(CmdList, env=env, Input=Input, stdout=outFile, stderr=errFile)
-        return pipo.returncode,output,outerr
+        rc, output, outerr=self.execute(CmdList, env=env, Input=Input, stdout=outFile, stderr=errFile)
+        self.Logger.debug("Leaving BaseDAO.execute_detached called from %s:%s and returning %s" % ( self.__class__.__name__,tb[len(tb)-2][2], (rc, output, outerr)))
+        return rc,output,outerr
 
     def safeStrip(self,Thing) :
         if type(Thing) == types.StringType :

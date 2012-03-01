@@ -20,7 +20,7 @@ class TestAuthServiceMethods(unittest.TestCase):
         """
         setup
         """
-        self.AuthService = AuthService.TokenService()
+        self.AuthService = AuthService.AuthService()
         self.TestCfg=ConfigParser()
         self.TestCfg.read(options.setup)
         self.Cell=self.TestCfg.get("general", "Cell").lower()
