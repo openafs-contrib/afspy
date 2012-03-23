@@ -4,6 +4,8 @@ from afs.service.BaseService import BaseService
 from afs.model.Server import Server
 
 
+
+
 class FsService (BaseService):
     """
     Provides Service about a FileServer
@@ -12,7 +14,7 @@ class FsService (BaseService):
     _CFG    = None
     
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "bnode"])
+        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl"])
         
 
     ###############################################
@@ -61,20 +63,43 @@ class FsService (BaseService):
     ###############################################
     
     
-    def getFileServer(self,servername,**kwargs):
+    def getFileServer(self,name_or_ip,cached=False):
         """
         Retrieve Server 
         """
         FileServer =Server()
         # get DNS-info about server
-        DNSInfo=socket.gethostbyname_ex(servername)
+        DNSInfo=socket.gethostbyname_ex(name_or_ip)
         FileServer.servernames=[DNSInfo[0]]+DNSInfo[1]
         FileServer.ipaddrs=DNSInfo[2]
+        # UUID
+        FileServer.uuid=self.getUUID(name_or_ip, self._CFG.CELL_NAME, cached)
         parts = self._fsDAO.getPartList(FileServer.servernames[0], self._CFG.CELL_NAME, self._CFG.Token)
         #FIXME  Cache 
         FileServer.parts = parts
         return FileServer
 
+    #
+    # convenience functions  
+    #
+
+    def getUUID(self, name_or_ip="", cellname="", cached=False):
+        """
+        returns UUID of a fileserver, which is used as key for server-entries
+        in other tables
+        """
+        uuid=""
+        if cellname == "" :
+            cellname = self._CFG.CELL_NAME
+        if cached :
+            cellCache=self._getFromCache(cellname)
+            for serv in cellCache.FileServers :
+                if name_or_ip in serv["ipaddrs"] or name_or_ip in serv["hostnames"]: 
+                    uuid = serv["uuid"]
+                    break
+        else :
+            self._vlDAO.getFsUUID(name_or_ip, cellname, self._CFG.Token)
+        return uuid
 
         ################################################
         # Statistcis DB BASE
