@@ -31,27 +31,6 @@ class CellService(BaseService):
             self._setIntoCache(cell)
         return cell
         
-#
-# convenience functions 
-#
-
-    def getFsUUID(self, name_or_ip, cellname="", cached=False):
-        """
-        returns UUID of a fileserver, which is used as key for server-entries
-        in other tables
-        """
-        uuid=""
-        if cellname == "" :
-            cellname = self._CFG.CELL_NAME
-        if cached :
-            cellCache=self._getFromCache(cellname)
-            for serv in cellCache.FileServers :
-                if name_or_ip in serv["ipaddrs"] or name_or_ip in serv["hostnames"]: 
-                    uuid = serv["uuid"]
-                    break
-        else :
-            uuid=self._vlDAO.getFsUUID(name_or_ip, cellname, self._CFG.Token)
-        return uuid
     
     ###############################################
     # Internal helper Section
@@ -59,7 +38,7 @@ class CellService(BaseService):
    
     def _getFileServers(self):
         """
-        Return FileServers is a list of uuid and hostname pair as dict for each fileserver
+        Return FileServers as a list of uuid and hostname pair as dict for each fileserver
         """
         self.Logger.debug("refreshing FileServers from live system")
         FileServers =[]

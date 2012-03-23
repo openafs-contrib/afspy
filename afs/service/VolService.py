@@ -2,6 +2,7 @@ from afs.model.Volume import Volume
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
 from afs.service.CellService import CellService
+from afs.service.FsService import FsService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
 from afs.util import afsutil
@@ -17,6 +18,7 @@ class VolService (BaseService):
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["vol"])
         self.CS=CellService()
+        self.FsS=FsService()
        
     ###############################################
     # Volume Section
@@ -46,11 +48,11 @@ class VolService (BaseService):
     """
     def getVolume(self, name, serv, part,  cached=False):
         if cached :
-            serv_uuid=self.CS.getFsUUID(serv)
+            serv_uuid=self.FsS.getUUID(serv)
             vol=self._getFromCache(name, serv_uuid, part)
             return vol
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
-        vdict["serv_uuid"]=self.CS.getFsUUID(serv)
+        vdict["serv_uuid"]=self.FsS.getUUID(serv)
         vol = None
         if vdict:
             vol = Volume()
