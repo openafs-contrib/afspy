@@ -3,21 +3,25 @@ from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
 
-class VolumeExtra(BaseModel):
+class ExtVolAttr(BaseModel):
     """
-    Model object of  a Partition
+    Model object of extra Attributes to a volume.
+    IN DB_CACHE, this is stored in an own table
     """
-       
-    def __init__(self, id='', mincopy=0, owner='', project='', edate=datetime.now(), category=''):
+    
+    def __init__(self, vid=-1, mincopy=0, owner='', projectID=-1):
         """
         initialize an empty object
         """
-        self.id            = id
+        ## ID of Volume, foreign key to volume-table
+        ## SHOULD point to RWID
+        self.vid=vid
+        ## num Volumes at least required.
         self.mincopy       = mincopy
+        ## Owner of the volume (string)
         self.owner         = owner
-        self.project       = project
-        self.edate         = edate
-        self.category      = category
+        ## projectID this Volume belongs to
+        self.projectID       = projectID
         self.cdate         = datetime.now()
         self.udate         = datetime.now()
         self.sync          = 0
@@ -25,5 +29,3 @@ class VolumeExtra(BaseModel):
 
     def __repr__(self):
         return "<VolumeExtra('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')>" % (self.id, self.fquota, self.blockfs, self.block_osd_on, self.block_osd_off, self.pinned, self.osdpolicy, self.cdate, self.udate, self.sync)
-    
- 
