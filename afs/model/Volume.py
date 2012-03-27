@@ -16,7 +16,7 @@ class Volume(BaseModel) :
         self.id       = None
         ##Name of the Volume in the VLDB
         self.name     = ''
-        ##numerical ID of the Volume
+        ##numerical ID of the Volume, can be RW, RO or BK
         self.vid      = -1
         ## ServerUUID where this volume is stored
         self.serv_uuid   = ""
@@ -39,9 +39,9 @@ class Volume(BaseModel) :
         self.backupDate    = datetime.fromtimestamp(0)
         self.copyDate      = datetime.fromtimestamp(0)
         self.flags    = 0
-        self.diskused = 0
-        self.maxquota = 0 
-        self.minquota = 0
+        self.diskused = -1
+        self.maxquota = -1
+        self.minquota = -1
         self.status   = VolStatus.OK
         self.filecount = 0
         self.dayUse  = 0
@@ -50,9 +50,7 @@ class Volume(BaseModel) :
         self.spare3  = 0
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
-        self.sync    = 0
-
-    
+        self.sync    = 0    
     
     #@property
     #  create property for timestamp

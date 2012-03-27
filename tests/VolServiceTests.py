@@ -44,7 +44,6 @@ class TestVolServiceSetMethods(unittest.TestCase, SetupTestVolService):
     def setUp(self):
         return SetupTestVolService.setUp(self) 
 
-
     def test_setExtendedVolumeAttributes(self):
         volExtAttrDict={
                         "mincopy" : self.minCopy, 

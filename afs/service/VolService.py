@@ -54,6 +54,7 @@ class VolService (BaseService):
             return vol
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         vdict["serv_uuid"]=self.FsS.getUUID(serv)
+        vdict.pop("serv")
         vol = None
         if vdict:
             vol = Volume()
