@@ -9,7 +9,9 @@ class Server(BaseModel):
     
     def __init__(self):
         """
-        initialize an empty object
+        initialize an empty object.
+        Partitions are not in the same Table in DB_CACHE as 
+        Server, so the attribute Parts will be inserted by VolumeService
         """
         ## for db index
         self.id = None
@@ -21,8 +23,6 @@ class Server(BaseModel):
         self.ipaddrs = []
         ## flag if this server is a fileserver
         self.fileserver = 0
-        ## this is in a separate table in the DB_CACHE
-        self.parts={}
         ## flag if this server is a databaseserver
         self.dbserver  = False
         ## flag if this server is a databaseserver-Cloneonly
@@ -33,8 +33,6 @@ class Server(BaseModel):
         self.distserver = 0
         ## rxdebug version string
         self.version = ""
-        ## ??
-        self.category = ''
         ## ??
         self.status   = ''
         ## Id for table location where this server is placed physically
@@ -48,4 +46,4 @@ class Server(BaseModel):
         ## flag if this object is synced with reality.
         self.sync    = 0
         ## flag if this object is not fully filled yet
-        self.isComplete = False
+        self._isComplete = False

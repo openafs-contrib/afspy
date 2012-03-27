@@ -6,7 +6,11 @@ class Bos(BaseModel):
     Model object of a BOS ()
     """
     
-    def __init__(self):
+    def __init__(self, servername="NA"):
+        ## DB - ID
+        self.id = None
+        ## DNS-Name
+        self.servername=servername
         self.generalRestartTime=""
         self.binaryRestartTime=""
         self.cdate   = datetime.now()
