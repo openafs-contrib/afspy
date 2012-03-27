@@ -1,7 +1,6 @@
 import afs.util.options
 import logging
 
-from afs.util.AfsConfig import AfsConfig
 from afs.exceptions.AfsError import AfsError
 
 import afs
@@ -30,9 +29,7 @@ class BaseService(object):
         
         # DB INIT 
         if self._CFG.DB_CACHE :
-            import sqlalchemy.orm
-            from sqlalchemy import func, or_
-            
+            from sqlalchemy import or_
             self.DbSession = afs.DbSessionFactory()
             self.or_ = or_
         
@@ -66,7 +63,7 @@ class BaseService(object):
                 else :
                     raise AfsError("internal Error. invalid DAO '%s' requested" % dao)
         else :
-            raise AfsError("internal Error. DAO-implementation '%s' not available" % DAOImplementation)
+            raise AfsError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)
     
     def execQuery(self, query):
         conn = self._CFG.DB_ENGINE.connect()

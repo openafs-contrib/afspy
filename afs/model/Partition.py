@@ -7,7 +7,7 @@ class Partition(BaseModel):
     Model object of  a Partition
     """
        
-    def __init__(self, id='', serv_uuid='', name='', free=0, size=0, used=0, perc=0):
+    def __init__(self, id='', serv_uuid='', name='', free=-1, size=-1, used=-1, usedPerc=-1):
         """
         initialize an empty object
         """
@@ -19,12 +19,12 @@ class Partition(BaseModel):
         self.name   = name
         ## device-file
         self.device = ''
-        self.fstype = ''
-        self.category  = ''
+        ## list of projects-id having volumes on that partition
+        self.projects=[]
         self.free   = free
         self.size   = size
         self.used   = used
-        self.perc   = perc
+        self.usedPerc   = usedPerc
         self.status = ''
         self.description = ''
         self.cdate   = datetime.now()
