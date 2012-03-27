@@ -7,12 +7,12 @@ class ExtVolAttr_OSD(BaseModel):
     Model object of  a Partition
     """
        
-    def __init__(self, rwid=-1, fquota=0, blockfs=0, block_osd_on=0, block_osd_off=0, pinned=0, osdpolicy=0):
+    def __init__(self, vid=-1, fquota=0, blockfs=0, block_osd_on=0, block_osd_off=0, pinned=0, osdpolicy=0):
         """
         initialize an empty object
         """
         ## RWID of Volume, foreign key to volume-table
-        self.rwid            = rwid
+        self.vid            = vid
         ## file-quota number of files allowed in this volume
         self.fquota        = fquota
         ## number of blocks stored on Fileserver directly

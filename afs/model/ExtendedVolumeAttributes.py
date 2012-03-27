@@ -22,6 +22,8 @@ class ExtVolAttr(BaseModel):
         self.owner         = owner
         ## projectID this Volume belongs to
         self.projectID       = projectID
+        ## if volume should stay on the present server.
+        self.pinnedOnServer = 0
         self.cdate         = datetime.now()
         self.udate         = datetime.now()
         self.sync          = 0

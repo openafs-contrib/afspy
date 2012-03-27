@@ -1,6 +1,6 @@
 import sys
 from afs.util.options import define, options
-import afs.exceptions.ORMError as  ORMError
+from afs.exceptions.ORMError import ORMError
 from afs.orm import logger
 
 def setupOptions():
@@ -49,8 +49,26 @@ def createDbEngine(conf):
             raise ORMError.createEngineError(conf)
     return engine
 
-def setupDbMappers(conf):
+def safeMapping( ModelClass, TableDef):
+    from afs.model.BaseModel import BaseModel
     from sqlalchemy.orm import mapper
+    ModelObj=ModelClass()
+    ModelAttributes=dir(ModelObj)
+    BaseModelAttributes=dir(BaseModel())
+    m=mapper(ModelClass, TableDef)
+    mappedColumns=m.columns.keys()
+    for k in ModelAttributes :
+        # ignore private sqlalchemy methods
+        if k[0] == "_" : continue
+        # ignore stuff defined in BaseModel (includes all general private methods of an obj.)
+        if k in BaseModelAttributes : continue
+        if not k in mappedColumns :
+            raise ORMError("Mapping of model Object '%s' not correct. Attribute '%s' not mapped." % (ModelObj.__class__.__name__,k) )
+    for c in mappedColumns :
+        if not c in ModelAttributes :
+            raise ORMError("Mapping of model Object '%s' not correct. Mapped attribute '%s' not in Objectmodel." % (ModelObj.__class__.__name__, c))
+    
+def setupDbMappers(conf):
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
     from sqlalchemy     import  UniqueConstraint,  ForeignKeyConstraint
     from sqlalchemy     import  PickleType
@@ -74,7 +92,6 @@ def setupDbMappers(conf):
           Column('confserver'   , Integer ),
           Column('distserver'   , Integer ),
           Column('version'      , String(32) ),
-          Column('class'        , String(2)),
           Column('status'       , String(2)),
           Column('id_location'  , Integer ),
           Column('description'  , TEXT ),
@@ -85,7 +102,7 @@ def setupDbMappers(conf):
           )
     #Mapping Table
     from afs.model.Server import Server
-    mapper(Server,tbl_server)  
+    safeMapping(Server,tbl_server)
       
     #  Partition
     ##################################################
@@ -94,12 +111,11 @@ def setupDbMappers(conf):
           Column('serv_uuid'         , String(255), index=True),
           Column('name'         , String(2)),
           Column('device'       , String(255)),
-          Column('fstype'       , String(12)),
-          Column('category'        , String(2)),
           Column('size'         , Integer ),
           Column('free'         , Integer ),
           Column('used'         , Integer ),
           Column('usedPerc'         , Float ),
+          Column('projectIDs'      , PickleType),
           Column('status'       , String(2)),
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
@@ -109,14 +125,14 @@ def setupDbMappers(conf):
           ) 
     #Mapping Table
     from afs.model.Partition import Partition
-    mapper(Partition,tbl_partition) 
+    safeMapping(Partition,tbl_partition)
   
   
     #  BOS
     ##################################################
     tbl_bos = Table('tbl_bos', metadata,
           Column('id'           , Integer, primary_key=True),
-          Column('serv'         , String(255)),
+          Column('servername'         , String(255)),
           Column('generalRestartTime' , DateTime),
           Column('binaryRestartTime'  , DateTime),
           Column('cdate'        , DateTime),
@@ -126,15 +142,16 @@ def setupDbMappers(conf):
           ) 
     #Mapping Table
     from afs.model.Bos import Bos
-    mapper(Bos,tbl_bos) 
+    safeMapping(Bos,tbl_bos)
   
     #  BNodes (Server Processes)
     ##################################################
     tbl_bnode = Table('tbl_bnode', metadata,
           Column('id'           , Integer, primary_key=True),
           Column('bos_id'       , Integer),
-          Column('type'         , String(2)),
+          Column('BNodeType'         , String(2)),
           Column('status'       , String(2)),
+          Column('Commands'    , String(255)),
           Column('startdate'    , String(255)),
           Column('startcount'   , String(255)),
           Column('exitdate'     , String(255)),
@@ -153,7 +170,7 @@ def setupDbMappers(conf):
           ) 
     #Mapping Table
     from afs.model.BNode import BNode
-    mapper(BNode,tbl_bnode) 
+    safeMapping(BNode,tbl_bnode) 
 
     #  Volume
     ##################################################
@@ -195,7 +212,7 @@ def setupDbMappers(conf):
              
     #Mapping Table
     from afs.model.Volume import Volume
-    mapper(Volume,tbl_volume) 
+    safeMapping(Volume,tbl_volume)
     
     #  Volume Ext Param
     ##################################################
@@ -204,8 +221,7 @@ def setupDbMappers(conf):
           Column('mincopy'      , Integer),
           Column('owner'        , String(255)),
           Column('projectID'      , Integer),
-          Column('edate'        , Integer),
-          Column('category'     , String(2)),
+          Column('pinnedOnServer'       , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ), 
@@ -213,7 +229,7 @@ def setupDbMappers(conf):
           ) 
     #Mapping Table
     from afs.model.ExtendedVolumeAttributes import ExtVolAttr
-    mapper(ExtVolAttr,tbl_extvolattr) 
+    safeMapping(ExtVolAttr,tbl_extvolattr)
    
     #  Project Table
     ##################################################
@@ -239,13 +255,13 @@ def setupDbMappers(conf):
 
     #Map Table to object
     from afs.model.Project import Project
-    mapper(Project,tbl_project) 
+    safeMapping(Project,tbl_project)
 
     #  Cell Table
     ##################################################
     tbl_cell =  Table('tbl_cell',metadata,
         Column('id'           , Integer, primary_key=True),
-        Column('name'        , String(255), index=True ),
+        Column('Name'        , String(255), index=True ),
         Column('DBServers'        , String(512)),
         Column('VLDBSyncSite'        , String(50)),
         Column('PTDBSyncSite'        , String(50)),
@@ -259,7 +275,7 @@ def setupDbMappers(conf):
         
     #Map Table to object
     from afs.model.Cell import Cell
-    mapper(Cell,tbl_cell) 
+    safeMapping(Cell,tbl_cell)
 
     #  Volume OSD Param
     ##################################################
@@ -269,7 +285,6 @@ def setupDbMappers(conf):
           Column('blockfs'      , Integer),
           Column('block_osd_on' , Integer),
           Column('block_osd_off', Integer),
-          Column('pinned'       , Integer),
           Column('osdpolicy'    , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
@@ -278,7 +293,7 @@ def setupDbMappers(conf):
           )   
     #Mapping Table
     from afs.model.ExtendedVolumeAttributes_OSD import ExtVolAttr_OSD
-    mapper(ExtVolAttr_OSD,tbl_extvolattr_osd) 
+    safeMapping(ExtVolAttr_OSD,tbl_extvolattr_osd) 
 
 
     metadata.create_all(conf.DB_ENGINE) 

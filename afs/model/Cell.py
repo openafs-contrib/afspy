@@ -1,7 +1,5 @@
+from datetime import datetime
 from afs.model.BaseModel import BaseModel
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
 
 class Cell(BaseModel) : 
     """
@@ -13,6 +11,8 @@ class Cell(BaseModel) :
         """
         
         ## Database definitions
+        ## DB - ID
+        self.id = None
         ## Cellname
         self.Name=""
         ## DB-Server python list of DB-ServerDicts
@@ -27,4 +27,6 @@ class Cell(BaseModel) :
         self.PTDBSyncSite=""
         ## FileServer python list of FS-ServerDicts
         self.FileServers=[]
+        self.cdate   = datetime.now()
+        self.udate   = datetime.now()
         return

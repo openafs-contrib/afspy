@@ -20,7 +20,7 @@ class Partition(BaseModel):
         ## device-file
         self.device = ''
         ## list of projects-id having volumes on that partition
-        self.projects=[]
+        self.projectIDs=[]
         self.free   = free
         self.size   = size
         self.used   = used
@@ -30,4 +30,4 @@ class Partition(BaseModel):
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
-        self.isComplete = False
+        self._isComplete = False
