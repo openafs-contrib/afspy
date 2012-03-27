@@ -1,5 +1,6 @@
 import datetime
 from types import *
+from afs.exceptions.AfsError import AfsError
 
 class BaseModel(object):
     """
@@ -20,9 +21,14 @@ class BaseModel(object):
                 res += "]\n"
         return res
     
-    
     def setByDict(self,objByDict):      
+        """
+        fill in object by dict.
+        It is an error to try to create new attributes.with this method
+        """
         for key, value in objByDict.iteritems():
+            if not hasattr(self,key) :
+                raise AfsError("Cannot create new attribute '%s' to object '%s'" %(key, self.__class__.__name__))
             if key != "id" and key != "cdate":
                 setattr(self,key,value)
           
