@@ -1,4 +1,5 @@
 from afs.model.Volume import Volume
+from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
 from afs.service.CellService import CellService
@@ -60,14 +61,36 @@ class VolService (BaseService):
             if self._CFG.DB_CACHE :
                 self._setIntoCache(vol)
         return  vol
+
+    def getExtVolAttr(self, vid):
+        """
+        get Extended Volume Attribute Object
+        works only with cache
+        """
+        ext_vol_attr=self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
+        return ext_vol_attr
     
-    """
-    Retrieve Volume extended information
-    """
-    def getVolExtended(self,id, cached=False):
-        pass
+    def setExtVolAttr(self, vid, dict):
+        """
+        set Extended Volume Attributes by dict
+        """
+        thisExtVolAttr=ExtVolAttr(vid=vid)
+        thisExtVolAttr.setByDict(dict)
+        volCache = self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
+        if volCache:
+            volCache.copyObj(thisExtVolAttr)
+            self.DbSession.flush()
+        else:
+            volCache=self.DbSession.merge(thisExtVolAttr)  
+            self.DbSession.flush()
+        self.DbSession.commit()  
+        return thisExtVolAttr
  
-    def release(self, id):
+    ################################################
+    # AFS-operations
+    ################################################
+ 
+    def release(self, id) :
         #Check before the call (must be RW)
         pass
  
@@ -85,20 +108,13 @@ class VolService (BaseService):
          return count
  
     def getVolByQuery(self,query):
-         if not self._CFG.DB_CACHE:
+        if not self._CFG.DB_CACHE:
             raise VolError('Error, no db Cache defined ',None)
         
-         query._tbl= "Volume"
-         query  = query.getQuery()
-         res    = eval(query)
-         
-         return res
-     
-    def execQuery(self):
-        pass
-    
-    def execOrmQuery(self):
-        pass
+        query._tbl= "Volume"
+        query  = query.getQuery()
+        res    = eval(query)
+        return res
  
     def refreshCache(self, serv, part):
         if not self._CFG.DB_CACHE:
@@ -111,8 +127,6 @@ class VolService (BaseService):
         cUpdate = len(list)
         for el in list:
             idVolDict[el['vid']] = el
-            
-        
         res  = self.DbSession.query(Volume).filter(self.or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
         
         flush = 0
@@ -179,9 +193,4 @@ class VolService (BaseService):
         self.DbSession.delete(vol)
             
         self.DbSession.commit()
-        
-    
-    #MERGE ?  
-    
-      
     

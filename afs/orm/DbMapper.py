@@ -52,7 +52,7 @@ def createDbEngine(conf):
 def setupDbMappers(conf):
     from sqlalchemy.orm import mapper
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  UniqueConstraint
+    from sqlalchemy     import  UniqueConstraint,  ForeignKeyConstraint
     from sqlalchemy     import  PickleType
 
     logger.debug("Entering setupDbMappers")
@@ -188,36 +188,18 @@ def setupDbMappers(conf):
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
-          UniqueConstraint('vid', 'serv_uuid', 'part', name='uix_1'),
+          UniqueConstraint('vid', 'serv_uuid', 'part','name',  name='uix_1'),
           sqlite_autoincrement=True
           )
              
     #Mapping Table
     from afs.model.Volume import Volume
     mapper(Volume,tbl_volume) 
-
-    #  Volume OSD Param
-    ##################################################
-    tbl_volume_osd = Table('tbl_volume_osd', metadata,
-          Column('id'           , Integer, primary_key=True),
-          Column('fquota'       , Integer),
-          Column('blockfs'      , Integer),
-          Column('block_osd_on' , Integer),
-          Column('block_osd_off', Integer),
-          Column('pinned'       , Integer),
-          Column('osdpolicy'    , Integer),
-          Column('cdate'        , DateTime),
-          Column('udate'        , DateTime),
-          Column('sync'         , Integer )
-          )   
-    #Mapping Table
-    from afs.model.VolumeOSD import VolumeOSD
-    mapper(VolumeOSD,tbl_volume_osd) 
     
     #  Volume Ext Param
     ##################################################
-    tbl_volume_extra= Table('tbl_volume_extra', metadata,
-          Column('id'           , Integer, primary_key=True),
+    tbl_extvolattr= Table('tbl_extvolattr', metadata,
+          Column('vid', Integer, primary_key=True ), 
           Column('mincopy'      , Integer),
           Column('owner'        , String(255)),
           Column('project'      , String(255)),
@@ -225,11 +207,12 @@ def setupDbMappers(conf):
           Column('category'     , String(2)),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer )
+          Column('sync'         , Integer ), 
+          ForeignKeyConstraint(['vid'], ['tbl_volume.vid'])
           ) 
     #Mapping Table
-    from afs.model.VolumeExtra import VolumeExtra
-    mapper(VolumeExtra,tbl_volume_extra) 
+    from afs.model.ExtendedVolumeAttributes import ExtVolAttr
+    mapper(ExtVolAttr,tbl_extvolattr) 
    
     #  Project Table
     ##################################################
@@ -277,6 +260,27 @@ def setupDbMappers(conf):
     from afs.model.Cell import Cell
     mapper(Cell,tbl_cell) 
 
+    #  Volume OSD Param
+    ##################################################
+    tbl_extvolattr_osd= Table('tbl_extvolattr_osd', metadata,
+          Column('vid'           , Integer, primary_key=True),
+          Column('fquota'       , Integer),
+          Column('blockfs'      , Integer),
+          Column('block_osd_on' , Integer),
+          Column('block_osd_off', Integer),
+          Column('pinned'       , Integer),
+          Column('osdpolicy'    , Integer),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          Column('sync'         , Integer ), 
+          ForeignKeyConstraint(['vid'], ['tbl_volume.vid'])
+          )   
+    #Mapping Table
+    from afs.model.ExtendedVolumeAttributes_OSD import ExtVolAttr_OSD
+    mapper(ExtVolAttr_OSD,tbl_extvolattr_osd) 
+
+
+    metadata.create_all(conf.DB_ENGINE) 
     try  :
         metadata.create_all(conf.DB_ENGINE) 
     except :
