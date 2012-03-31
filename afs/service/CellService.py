@@ -43,12 +43,16 @@ class CellService(BaseService):
         self.Logger.debug("refreshing FileServers from live system")
         FileServers =[]
         for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token) :
-            DNSInfo= socket.gethostbyname_ex(na['name_or_ip'])
-            na['ipaddrs'] =DNSInfo[2] 
-            na['hostnames'] = [DNSInfo[0]]+DNSInfo[1]
-            na.pop('name_or_ip')
-            na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
-            FileServers.append(na)
+            try:
+                DNSInfo= socket.gethostbyname_ex(na['name_or_ip'])
+                na['ipaddrs'] =DNSInfo[2] 
+                na['hostnames'] = [DNSInfo[0]]+DNSInfo[1]
+                na.pop('name_or_ip')
+                na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
+                FileServers.append(na)
+            except :
+                print "Error"
+                #self.Logger.error("Error on scanning file server: %s" % e)
         return  FileServers
     
     def _getDBServers(self):
@@ -119,7 +123,7 @@ class CellService(BaseService):
         if cellname == "" :
             cellname = self._CFG.CELL_NAME
         self.Logger.debug("loading Cell '%s' from DB_CACHE"  % cellname)
-        cell=self.DbSession.query(Cell).filter(Cell.name == cellname).first()
+        cell=self.DbSession.query(Cell).filter(Cell.Name == cellname).first()
         return cell
         
     def _setIntoCache(self,cell):
@@ -127,7 +131,7 @@ class CellService(BaseService):
         if not self._CFG.DB_CACHE:
             raise ORMError("DB_CACHE not configured")
         
-        cellCache=self.DbSession.query(Cell).filter(Cell.name == self._CFG.CELL_NAME).first()
+        cellCache=self.DbSession.query(Cell).filter(Cell.Name == self._CFG.CELL_NAME).first()
         
         if cellCache:
             cellCache.copyObj(cell)

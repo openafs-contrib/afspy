@@ -4,7 +4,7 @@
 ## pathes to required binaries
 VOSBIN="/usr/sbin/vos"
 RXDEBUGBIN="/usr/sbin/rxdebug"
-UDEBUGBIN="/usr/bin/udebug"
+UDEBUGBIN="/usr/sbin/udebug"
 FSBIN="/usr/bin/fs"
 OSDBIN="osd"
 BOSBIN="/usr/sbin/bos"

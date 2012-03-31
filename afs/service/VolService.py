@@ -17,7 +17,7 @@ class VolService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["vol"])
+        BaseService.__init__(self, conf, DAOList=["vol","fs"])
         self.CS=CellService()
         self.FsS=FsService()
        
@@ -122,13 +122,13 @@ class VolService (BaseService):
             raise VolError('Error, no db Cache defined ',None)
        
         part = afsutil.canonicalizePartition(part)
-        list = self._volDAO.getVolList( serv, part, self._CFG.CELL_NAME, self._CFG.Token)
+        list = self._fsDAO.getVolList( serv, part, self._CFG.CELL_NAME, self._CFG.Token)
         #Convert into dictionary
         idVolDict = {}
         cUpdate = len(list)
         for el in list:
             idVolDict[el['vid']] = el
-        res  = self.DbSession.query(Volume).filter(self.or_(Volume.serv == serv,Volume.servername == serv )).filter(Volume.part == part)
+        res  = self.DbSession.query(Volume).filter(self.or_(Volume.serv_uuid == serv,Volume.servername == serv )).filter(Volume.part == part)
         
         flush = 0
         for vol in res:

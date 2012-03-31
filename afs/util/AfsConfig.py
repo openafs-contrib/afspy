@@ -1,14 +1,12 @@
 import sys, os, atexit
 import afs.util.options
 import logging
-import sqlalchemy
 import tempfile
 from types import IntType, StringType, LongType,  UnicodeType
 #import module-wide logger
 from afs.util import  logger
 from afs.exceptions import AfsError
 from afs.util.options import define, options   
-import afs
 import afs.orm.DbMapper
 import datetime
 
@@ -22,7 +20,7 @@ def setupOptions():
     define("DAOImplementation", default="childprocs", help="Implementation of how to access AFS-Cell" )
     define("DAO_SPOOL_PARENTDIR", default="/tmp/afspy/", help="If using 'childprocs'-DAO,  use spool dir under this path")
     define("globalLogLevel", default="info", help="global python Loglevel")
-    define("classLogLevels", default="info", help="CSV list of 'class=LogLevel', to turn logging on and off for specific classes")
+    define("classLogLevels", default="", help="CSV list of 'class=LogLevel', to turn logging on and off for specific classes")
     define("CELL_NAME", default="beolink.org", help="Default Cell")
     define("KRB5_PRINC",  default="BEO", help="Kerberos5 Principal to use")
     define("KRB5_REALM",  default="BEOLINK.ORG", help="Kerberos5 REALM to use")
@@ -36,6 +34,7 @@ def setupDefaultConfig():
         BASE_CFG_FILE="/etc/sysconfig/afspy"
         
         afs.util.options.parse_command_line()
+        
         #LOCAL
         if os.path.exists(BASE_CFG_FILE) :
             afs.defaultConfig.load(BASE_CFG_FILE)
@@ -54,9 +53,12 @@ def setupDefaultConfig():
         # setup the different loglevel
         afs.defaultConfig.givenClassLogLevels=options.classLogLevels
         afs.defaultConfig.classLogLevels={}
-        for i in afs.defaultConfig.givenClassLogLevels.split(",") :
-            Name, Level=i.split("=")
-            afs.defaultConfig.classLogLevels[Name] = Level
+
+        if afs.defaultConfig.givenClassLogLevels != "":
+            for i in afs.defaultConfig.givenClassLogLevels.split(",") :
+                Name, Level=i.split("=")
+                afs.defaultConfig.classLogLevels[Name] = Level
+            
         afs.defaultConfig.globalLogLevel=options.globalLogLevel
         numeric_level = getattr(logging,afs.defaultConfig.globalLogLevel.upper() , None)
         logger.setLevel(numeric_level)
@@ -90,6 +92,9 @@ def setupDefaultConfig():
             sqlalchemyLogger.setLevel(getattr(logging, afs.defaultConfig.classLogLevels["sqlalchemy"].upper()))
         
         if afs.defaultConfig.DB_CACHE :
+            #import sql class
+            import sqlalchemy
+            
             afs.defaultConfig.DB_TYPE=options.DB_TYPE
             afs.defaultConfig.DB_SID=options.DB_SID
             afs.defaultConfig.DB_HOST=options.DB_HOST
