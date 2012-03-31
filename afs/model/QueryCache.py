@@ -19,7 +19,7 @@ class QueryCache(object):
         
     def getQuery(self):
         
-        query = "session.query(%s)" % self._tbl
+        query = "self.DbSession.query(%s)" % self._tbl
         
         # Filter Section
         query += self._createFilter()
@@ -46,7 +46,7 @@ class QueryCache(object):
         return query
     
     def getQueryCount(self):
-        query = "session.query(%s)" % self._tbl
+        query = "self.DbSession.query(%s)" % self._tbl
         
         # Filter Section
         query += self._createFilter() + ".count()"

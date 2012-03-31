@@ -52,11 +52,13 @@ def createDbEngine(conf):
 def safeMapping( ModelClass, TableDef):
     from afs.model.BaseModel import BaseModel
     from sqlalchemy.orm import mapper
+    
     ModelObj=ModelClass()
     ModelAttributes=dir(ModelObj)
     BaseModelAttributes=dir(BaseModel())
     m=mapper(ModelClass, TableDef)
     mappedColumns=m.columns.keys()
+    
     for k in ModelAttributes :
         # ignore private sqlalchemy methods
         if k[0] == "_" : continue
@@ -64,6 +66,7 @@ def safeMapping( ModelClass, TableDef):
         if k in BaseModelAttributes : continue
         if not k in mappedColumns :
             raise ORMError("Mapping of model Object '%s' not correct. Attribute '%s' not mapped." % (ModelObj.__class__.__name__,k) )
+    
     for c in mappedColumns :
         if not c in ModelAttributes :
             raise ORMError("Mapping of model Object '%s' not correct. Mapped attribute '%s' not in Objectmodel." % (ModelObj.__class__.__name__, c))
@@ -178,9 +181,9 @@ def setupDbMappers(conf):
           Column('id'           , Integer, primary_key=True),
           Column('name'         , String(255)),
           Column('vid'          , Integer,     index=True ),
-          Column('serv_uuid'         , String(255), index=True),
+          Column('serv_uuid'    , String(255), index=True),
           Column('part'         , String(2),   index=True),
-          Column('servername' , String(255 )), 
+          Column('servername'   , String(255 )), 
           Column('parentID'     , Integer ),
           Column('backupID'     , Integer ),
           Column('cloneID'      , Integer ),
@@ -189,7 +192,7 @@ def setupDbMappers(conf):
           Column('destroyMe'    , String(1)),
           Column('type'         , String(2)),
           Column('creationDate' , DateTime),
-          Column('accessDate' , DateTime),
+          Column('accessDate'   , DateTime),
           Column('updateDate'   , DateTime),
           Column('backupDate'   , DateTime),
           Column('copyDate'     , DateTime),
@@ -206,7 +209,8 @@ def setupDbMappers(conf):
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
-          UniqueConstraint('vid', 'serv_uuid', 'part','name',  name='uix_1'),
+          # old installation
+          #UniqueConstraint('vid', 'servername', 'part','name',  name='uix_1'),
           sqlite_autoincrement=True
           )
              

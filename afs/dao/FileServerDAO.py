@@ -34,61 +34,92 @@ class FileServerDAO(BaseDAO) :
             if splits[0] == "BEGIN_OF_ENTRY":
                     vol = {}
                     splits = output[i+1].split()
-                    vol['name']     = splits[1]
-                    splits = output[i+2].split()
-                    vol['vid']      = int(splits[1])
-                    splits = output[i+3].split()
-                    vol['serv']     = splits[1]
-                    if len(splits) > 2:
-                        vol['servername']     = splits[2]
-                    splits = output[i+4].split()
-                    vol['part']     = afsutil.canonicalizePartition(splits[1])
-                    splits = output[i+5].split()
-                    vol['status']     = splits[1]
-                    splits = output[i+6].split()
-                    vol['backupID'] = int(splits[1])
-                    splits = output[i+7].split()
-                    vol['parentID'] = int(splits[1])
-                    splits = output[i+8].split()
-                    vol['cloneID']  = int(splits[1])
-                    splits = output[i+9].split()
-                    vol['inUse']    = splits[1]
-                    splits = output[i+10].split()
-                    vol['needsSalvaged'] = splits[1]
-                    splits = output[i+11].split()
-                    vol['destroyMe']     = splits[1]
-                    splits = output[i+12].split()
-                    vol['type']          = splits[1]
-                    splits = output[i+13].split()
-                    vol['creationDate']  =  dateT.fromtimestamp(float(splits[1]))
-                    splits = output[i+14].split()
-                    vol['accessDate']    = dateT.fromtimestamp(float(splits[1]))
-                    splits = output[i+15].split()
-                    vol['updateDate']    = dateT.fromtimestamp(float(splits[1]))
-                    splits = output[i+16].split()
-                    vol['backupDate']     = dateT.fromtimestamp(float(splits[1]))
-                    splits = output[i+17].split()
-                    vol['copyDate']      = dateT.fromtimestamp(float(splits[1]))
-                    splits = output[i+18].split()
-                    vol['flags']         = splits[1]
-                    splits = output[i+19].split()
-                    vol['diskused']      = int(splits[1])
-                    splits = output[i+20].split()
-                    vol['maxquota']      = int(splits[1])
-                    splits = output[i+21].split()
-                    vol['minquota']      = int(splits[1])
-                    splits = output[i+22].split()
-                    vol['filecount']     = int(splits[1])
-                    splits = output[i+23].split()
-                    vol['dayUse']        = int(splits[1])
-                    splits = output[i+24].split()
-                    vol['weekUse']       = int(splits[1])
-                    splits = output[i+25].split()
-                    vol['spare2']        = splits[1]
-                    splits = output[i+26].split()
-                    vol['spare3']        = splits[1]
+                    # Invalid volume, something wrong
+                    if splits[0] != 'name':
+                        #vol['valid'] = False 
+                        if  splits[0] == 'id':
+                            vol['vid']      = int(splits[1])
+                        
+                        splits = output[i+2].split()
+                        if  splits[0] == 'serv':
+                            vol['servername']     = splits[1] 
+                        
+                        splits = output[i+3].split()   
+                        if  splits[0] == 'part':
+                             vol['part']     = afsutil.canonicalizePartition(splits[1]) 
+                             
+                        splits = output[i+4].split()
+                        if  splits[0] == 'status':
+                            vol['status']     = splits[1] 
+                        
+                        while output[i] != "END_OF_ENTRY":
+                            i = i+1  
+                            
+                    # Valid volume                           
+                    else:  
+                        #vol['valid'] = True 
+                        vol['name']     = splits[1]
+                        splits = output[i+2].split()
+                        
+                        vol['vid']      = int(splits[1])
+                        splits = output[i+3].split()
+                        #vol['serv']     = splits[1]
+                        
+                        if len(splits) > 2:
+                           vol['servername']     = splits[2]
+                        else:
+                           #Only ip is available 
+                           vol['servername']     = splits[1] 
+                        splits = output[i+4].split()
+                        vol['part']     = afsutil.canonicalizePartition(splits[1])
+                        splits = output[i+5].split()
+                        vol['status']     = splits[1]
+                        splits = output[i+6].split()
+                        vol['backupID'] = int(splits[1])
+                        splits = output[i+7].split()
+                        vol['parentID'] = int(splits[1])
+                        splits = output[i+8].split()
+                        vol['cloneID']  = int(splits[1])
+                        splits = output[i+9].split()
+                        vol['inUse']    = splits[1]
+                        splits = output[i+10].split()
+                        vol['needsSalvaged'] = splits[1]
+                        splits = output[i+11].split()
+                        vol['destroyMe']     = splits[1]
+                        splits = output[i+12].split()
+                        vol['type']          = splits[1]
+                        splits = output[i+13].split()
+                        vol['creationDate']  =  dateT.fromtimestamp(float(splits[1]))
+                        splits = output[i+14].split()
+                        vol['accessDate']    = dateT.fromtimestamp(float(splits[1]))
+                        splits = output[i+15].split()
+                        vol['updateDate']    = dateT.fromtimestamp(float(splits[1]))
+                        splits = output[i+16].split()
+                        vol['backupDate']     = dateT.fromtimestamp(float(splits[1]))
+                        splits = output[i+17].split()
+                        vol['copyDate']      = dateT.fromtimestamp(float(splits[1]))
+                        splits = output[i+18].split()
+                        vol['flags']         = splits[1]
+                        splits = output[i+19].split()
+                        vol['diskused']      = int(splits[1])
+                        splits = output[i+20].split()
+                        vol['maxquota']      = int(splits[1])
+                        splits = output[i+21].split()
+                        vol['minquota']      = int(splits[1])
+                        splits = output[i+22].split()
+                        vol['filecount']     = int(splits[1])
+                        splits = output[i+23].split()
+                        vol['dayUse']        = int(splits[1])
+                        splits = output[i+24].split()
+                        vol['weekUse']       = int(splits[1])
+                        splits = output[i+25].split()
+                        vol['spare2']        = splits[1]
+                        splits = output[i+26].split()
+                        vol['spare3']        = splits[1]
+                        i = i+26
+                    
                     volList.append(vol)
-                    i = i+26
+                    
               
         return volList
         
