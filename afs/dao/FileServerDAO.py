@@ -119,8 +119,6 @@ class FileServerDAO(BaseDAO) :
                         i = i+26
                     
                     volList.append(vol)
-                    
-              
         return volList
         
     def getIdVolList(self, server, part, cell, token):
@@ -146,25 +144,24 @@ class FileServerDAO(BaseDAO) :
             return volIds
 
     def getPartList(self,  serv, cellname, token) :
-            """
-            return list  of  Partitions-dicts
-            """
-            RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
-            CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
-            rc,output,outerr=self.execute(CmdList)
-            if rc :
-                 raise FServError("Error", outerr)
-            partitions= []
-            for line in output :
-                m=RX.match(line)
-                if not m :
-                    raise FServError("Error parsing output" , line)
+        """
+        return list  of  Partitions-dicts
+        """       
+        RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
+        CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
+        rc,output,outerr=self.execute(CmdList)
+        if rc :
+                raise FServError("Error", outerr)
+        partitions= []
+        for line in output :
+            m=RX.match(line)
+            if not m :
+                raise FServError("Error parsing output" , line)
 
-                part, free, size=m.groups()
-                used = long(size)-long(free)
-                if size != 0:
-                    perc = (used/long(size))*100
-                perc= 0
-                partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
-            
-            return partitions
+            part, free, size=m.groups()
+            used = long(size)-long(free)
+            if size != 0:
+                perc = (used/long(size))*100
+            perc= 0
+            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
+        return partitions
