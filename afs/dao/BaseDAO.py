@@ -40,6 +40,7 @@ class BaseDAO(object) :
         tb=traceback.extract_stack()
         moduleName=tb[len(tb)-2][0].split("/")[-1:][0]
         self.Logger.debug("BaseDAO.execute called from %s.%s from %s:%s" % (self.__class__.__name__,tb[len(tb)-2][2], moduleName,  tb[len(tb)-2][1]))
+        self.Logger.debug("method %s.%s called from %s.%s from %s:%s" % (self.__class__.__name__, tb[len(tb)-2][2], self.__class__.__name__,tb[len(tb)-3][2], moduleName,  tb[len(tb)-3][1]))
         self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
         if stdout == None :
             stdout=subprocess.PIPE
