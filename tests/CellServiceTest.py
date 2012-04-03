@@ -16,7 +16,7 @@ from afs.service import CellService
 
 class TestCellServiceMethods(unittest.TestCase):
     """
-    Tests VolService Methods
+    Tests CellService Methods
     """
     
     def setUp(self):

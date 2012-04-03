@@ -13,6 +13,9 @@ import afs
 
 
 class SetupTestVolService :
+    """
+    Tests VolService Methods
+    """
     def setUp(self):
         """
         setup token and VolService

@@ -13,7 +13,7 @@ import afs
 
 class TestAuthServiceMethods(unittest.TestCase):
     """
-    Tests VolService Methods
+    Tests AuthService Methods
     """
     
     def setUp(self):
