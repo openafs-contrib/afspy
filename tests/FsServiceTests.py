@@ -53,7 +53,7 @@ class TestFsServiceMethods(unittest.TestCase):
         server=self.FsMng.getFileServer(self.FsName)
         parts=[]
         for p in server.parts :
-            parts.append(p["name"])
+            parts.append(server. parts[p]["name"])
         parts.sort()
         self.assertEqual(self.FsPartitions, parts)
         return

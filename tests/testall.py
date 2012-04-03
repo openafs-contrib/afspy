@@ -8,7 +8,7 @@ exit_on_fail=True
 for f in os.listdir(".") :
     if f == "testall.py" : continue
     if "Test" in f and f[-3:] == ".py" :
-       	print "Executing test %s" % f
+        print "Executing test %s" % f
         print "================="
         CmdList=[f]
         pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -20,10 +20,10 @@ for f in os.listdir(".") :
         print result
         print 
         if "FAILED" in result :
-	    if exit_on_fail :
-		for line in _outerr :
-		    print line
+            if exit_on_fail :
+                for line in _outerr :
+                    print line
                 sys.exit(0)
-	    numFailed += 1
+            numFailed += 1
 
 print "Total number of Failed units: %s" % numFailed	

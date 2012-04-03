@@ -32,10 +32,16 @@ class TestFileServerDAOMethods(unittest.TestCase):
     
     def test_getVolList(self) :
         VolList=self.DAO.getVolList(self.FS,self.Part,self.Cell,None)
+        # this is somewhat silly, but what can you do ?
+        # maybe check structure of result ?
+        self.assertTrue(len(VolList)> 100)
         return
         
     def test_getIdVolList(self) :
         IdVolList=self.DAO.getIdVolList(self.FS,self.Part,self.Cell,None)
+        # this is somewhat silly, but what can you do ?
+        # maybe check structure of result ?
+        self.assertTrue(len(IdVolList)> 100)
         return
 
     def test_getPartList(self,) :
