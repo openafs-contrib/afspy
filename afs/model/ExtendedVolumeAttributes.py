@@ -24,10 +24,9 @@ class ExtVolAttr(BaseModel):
         self.projectID       = projectID
         ## if volume should stay on the present server.
         self.pinnedOnServer = 0
+        ## creation date of this object
         self.cdate         = datetime.now()
+        ## update date of this object
         self.udate         = datetime.now()
+        ##  flag if this object is in sync with reality
         self.sync          = 0
-
-
-    def __repr__(self):
-        return "<VolumeExtra('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')>" % (self.id, self.fquota, self.blockfs, self.block_osd_on, self.block_osd_off, self.pinned, self.osdpolicy, self.cdate, self.udate, self.sync)

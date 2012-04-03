@@ -29,9 +29,3 @@ class ExtVolAttr_OSD(BaseModel):
         self.udate         = datetime.now()
         ## ?? to be removed
         self.sync          = 0
-
-
-    def __repr__(self):
-        return "<VolumeOSD('%s',%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')>" % (self.id, self.fquota, self.blockfs, self.block_osd_on, self.block_osd_off, self.pinned, self.osdpolicy, self.cdate, self.udate, self.sync)
-    
- 

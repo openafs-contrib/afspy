@@ -10,8 +10,10 @@ class PTDB(BaseModel) :
         """
         ## list of server Objs providing this DB
         self.DBServers=[]
-        ## syncsite
+        ## syncsite, master-server
         self.SyncServer=None
+        ## ?
         self.numEntries=0
+        ## DB-version
         self.DBVersion=-1
         return

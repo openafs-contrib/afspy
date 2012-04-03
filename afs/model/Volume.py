@@ -55,7 +55,5 @@ class Volume(BaseModel) :
     #@property
     #  create property for timestamp
   
-#    def __repr__(self):
-#        return "<Volume('%s','%s', %s', '%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s', '%s', '%s','%s', '%s')>" % ( self.id, self.name, self.vid, self.serv, self.servername, self.part, self.parentID, self.backupID, self.cloneID, self.inUse, self.needsSalvaged, self.destroyMe, self.type,  self.creationDate, self.accessDate, self.updateDate, self.backupDate, self.copyDate, self.flags, self.diskused,  self.maxquota,   self.minquota, self.status,  self.filecount, self.dayUse, self.weekUse, self.spare2, self.spare3 ) 
 
    
