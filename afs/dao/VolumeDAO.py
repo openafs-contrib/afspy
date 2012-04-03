@@ -6,7 +6,6 @@ from afs.exceptions.VolError import VolError
 from afs.util import afsutil
 from afs.dao.BaseDAO import BaseDAO
 
-
 class VolumeDAO(BaseDAO) :
     """
     Provides Methods to query and modify live AFS-Volumes
@@ -149,25 +148,26 @@ class VolumeDAO(BaseDAO) :
         return volGroup
        
 
-    def getVolume(self, vid, serv, part, cellname, token) :
+    def getVolume(self, name_or_id, serv, part,   cellname, token) :
         """
         Volume entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
-        part = afsutil.canonicalizePartition(part)
-        CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-format","-cell", "%s" % cellname]
+        if part :
+            part = afsutil.canonicalizePartition(part)
+        CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VolError("Error", outerr)
         
         line_no = 0
         line = output[line_no]
-        vol = None
        
         if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
             or re.search("does not exist in VLDB",line) :
-            return vol
-       
+            self.Logger.info("Did not find volume %s in VLDB" % name_or_id)
+            return None
+        
         # first line gives Name, ID, Type, Used and Status 
         find = False    
         vol  = {}
@@ -179,12 +179,11 @@ class VolumeDAO(BaseDAO) :
                 line2 = output[i+1].split()
                 line3 = output[i+2].split()
                 line4 = output[i+3].split()
-                if ((line1[1] == str(vid) or\
-                     line2[1] == str(vid) ) and \
-                     (line3[1] == serv or\
-                      line3[2] == serv) and\
-                      (afsutil.canonicalizePartition(line4[1]) == part)):
-
+                if ((line1[1] == str(name_or_id) or\
+                    line2[1] == str(name_or_id) ) and \
+                    (line3[1] == serv or \
+                    line3[2] == serv) and \
+                    ((afsutil.canonicalizePartition(line4[1]) == part) or (part == None))) :
                     find = True
                     splits = output[i].split()
                     vol['name']     = splits[1]
@@ -240,12 +239,12 @@ class VolumeDAO(BaseDAO) :
                     vol['spare2']        = splits[1]
                     splits = output[i+25].split()
                     vol['spare3']        = splits[1]
-                                     
                     break
                 else:
                     i = i+25
         
         if not find :
+            self.Logger.info("Did not find volume %s" % name_or_id)
             vol = None
                     
         return vol
