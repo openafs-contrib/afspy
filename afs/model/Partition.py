@@ -30,4 +30,4 @@ class Partition(BaseModel):
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
-        self._isComplete = False
+        self.isComplete = False

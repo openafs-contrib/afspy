@@ -101,6 +101,7 @@ def setupDbMappers(conf):
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
+          Column('isComplete'   , Boolean ),
           sqlite_autoincrement=True
           )
     #Mapping Table
@@ -124,6 +125,7 @@ def setupDbMappers(conf):
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ),
+          Column('isComplete'   , Boolean ),
           sqlite_autoincrement=True
           ) 
     #Mapping Table
