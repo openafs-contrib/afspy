@@ -11,5 +11,5 @@ class Token(object):
         initialize an empty object
         """
         #Check the cell
-        self._CELL_NAME = cellname
-        self._AFS_ID = afsid
+        self.CELL_NAME = cellname
+        self.AFS_ID = afsid

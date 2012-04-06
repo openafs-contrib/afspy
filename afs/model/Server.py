@@ -46,4 +46,4 @@ class Server(BaseModel):
         ## flag if this object is synced with reality.
         self.sync    = 0
         ## flag if this object is not fully filled yet
-        self._isComplete = False
+        self.isComplete = False
