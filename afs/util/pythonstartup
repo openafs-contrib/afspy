@@ -1,7 +1,6 @@
 import sys
 sys.path.append("../..")
 from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
-from afs.util.options import define, options
 from afs.service import *
 import afs
 

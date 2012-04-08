@@ -11,8 +11,7 @@ class AuthService(BaseService):
     
     def __init__(self,conf=None):
         BaseService.__init__(self, conf, DAOList=["pag", "krb5"])
-        # DAO INIT
-
+        return
 
     def get_artificial_Token(self,AFSID,CELL_NAME):
         token = afs.model.Token.Token(AFSID, CELL_NAME)

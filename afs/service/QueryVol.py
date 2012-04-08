@@ -1,4 +1,4 @@
-from model.Volume import Volume
+from afs.model.Volume import Volume
 
 class QueryVol(object):
     """

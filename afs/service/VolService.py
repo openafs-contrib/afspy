@@ -49,7 +49,7 @@ class VolService (BaseService):
     """
     def getVolume(self, name, serv, part,  cached=False):
         if cached :
-            serv_uuid=self.FsS.getUUID(serv)
+            serv_uuid=self.FsS.getUUID(serv, cached=cached)
             vol=self._getFromCache(name, serv_uuid, part)
             return vol
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
@@ -68,7 +68,9 @@ class VolService (BaseService):
         get Extended Volume Attribute Object
         works only with cache
         """
-        ext_vol_attr=self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
+        ext_vol_attr=None
+        if self._CFG.DB_CACHE :
+            ext_vol_attr=self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
         return ext_vol_attr
     
     def setExtVolAttr(self, vid, dict):
@@ -195,3 +197,14 @@ class VolService (BaseService):
             
         self.DbSession.commit()
     
+    def bulkUpdate(self, volDictlist):
+        """
+        takes a list of volume-dicts and inserts them into the SQL
+        database directly.
+        check out executemany()
+        """
+        vol=Volume()
+        print dir(vol)
+        print dir(self.DbSession)
+        vol.__table__.insert().execute(volDictlist)
+        return

@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import unittest
-import sys, os
+import sys, os, argparse
 from ConfigParser import ConfigParser
 
 sys.path.append("..")
 
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
-from afs.util.options import define, options
+from afs.util.AfsConfig import parseDefaultConfig
 from afs.dao import DNSconfDAO 
 import afs
 
@@ -35,8 +34,9 @@ class TestDNSconfDAO(unittest.TestCase):
         return 
         
 if __name__ == '__main__' :
-    define("setup", default="./Test.cfg", help="path to Testconfig")
-    setupDefaultConfig()
+    myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
+    myParser.add_argument("--setup", default="./Test.cfg", help="path to Testconfig")
+    parseDefaultConfig(myParser)
     if not os.path.exists(options.setup) :
         sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
         sys.exit(2)

@@ -1,4 +1,3 @@
-import afs.util.options
 import logging
 
 from afs.exceptions.AfsError import AfsError
@@ -19,13 +18,11 @@ class BaseService(object):
             self._CFG = afs.defaultConfig
         
         # LOG INIT
+        classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
+        numericLogLevel = getattr(logging,classLogLevel, 0)
         self.Logger=logging.getLogger("afs.service.%s" % self.__class__.__name__)
-        if afs.defaultConfig.classLogLevels.has_key(self.__class__.__name__) :
-            numeric_level = getattr(logging,afs.defaultConfig.classLogLevels[self.__class__.__name__].upper() , None)
-        else :
-            numeric_level = getattr(logging,afs.defaultConfig.globalLogLevel.upper(), None)
-        self.Logger.setLevel(numeric_level)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, conf))
+        self.Logger.setLevel(numericLogLevel)
+        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, conf))      
         
         # DB INIT 
         if self._CFG.DB_CACHE :

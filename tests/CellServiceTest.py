@@ -5,16 +5,14 @@ CellInfo_live=None
 CellInfo_cached=None
 
 import unittest
-import sys, os
-from ConfigParser import ConfigParser
+import sys
+from BaseTest import parseCMDLine, basicTestSetup
 
 sys.path.append("..")
 
-from afs.util.AfsConfig import  setupDefaultConfig
-from afs.util.options import define, options
 from afs.service import CellService
 
-class TestCellServiceMethods(unittest.TestCase):
+class TestCellServiceMethods(unittest.TestCase, basicTestSetup):
     """
     Tests CellService Methods
     """
@@ -23,12 +21,10 @@ class TestCellServiceMethods(unittest.TestCase):
         """
         setup
         """
+        basicTestSetup.setUp(self)
         self.CellService = CellService.CellService()
-        self.TestCfg=ConfigParser()
-        self.TestCfg.read(options.setup)
         self.numFSs=int(self.TestCfg.get("CellService", "numFSs"))
         self.allDBs=self.TestCfg.get("CellService", "allDBs").split(",")
-        self.minUbikDBVersion=self.TestCfg.get("general","minUbikDBVersion")
         self.allDBs.sort()
         self.FS=self.TestCfg.get("CellService", "FS")
         self.FsUUID=self.TestCfg.get("CellService", "FsUUID")
@@ -60,16 +56,6 @@ class TestCellServiceMethods(unittest.TestCase):
     def test_getFSServers_cached(self) :
         FSList=CellInfo_cached.FileServers
         self.assertEqual(self.numFSs, len(FSList))
-        return
-        
-    def test_getFsUUID_live(self) :
-        uuid=self.CellService.getFsUUID(self.FS, cached=False)
-        self.assertEqual(self.FsUUID, uuid)
-        return
-
-    def test_getFsUUID_cached(self) :
-        uuid=self.CellService.getFsUUID(self.FS,cached=True)
-        self.assertEqual(self.FsUUID, uuid)
         return
         
     def test_PTDBVersion_cached(self):
@@ -113,11 +99,7 @@ class TestCellServiceMethods(unittest.TestCase):
         return
 
 if __name__ == '__main__' :
-    define("setup", default="./Test.cfg", help="path to Testconfig")
-    setupDefaultConfig()
-    if not os.path.exists(options.setup) :
-        sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
-        sys.exit(2)
+    parseCMDLine()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCellServiceMethods)
     CS=CellService.CellService()
     CellInfo_live=CS.getCellInfo(cached=False)

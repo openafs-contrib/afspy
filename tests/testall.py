@@ -6,7 +6,7 @@ numFailed=0
 exit_on_fail=True
 
 for f in os.listdir(".") :
-    if f == "testall.py" : continue
+    if f in ["testall.py","BaseTest.py"] : continue
     if "Test" in f and f[-3:] == ".py" :
         print "Executing test %s" % f
         print "================="
