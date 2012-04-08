@@ -1,31 +1,22 @@
 #!/usr/bin/env python
 
 import unittest
-import sys, os
-from ConfigParser import ConfigParser
+import sys
 
 sys.path.append("..")
-
-from afs.util.AfsConfig import setupDefaultConfig
-from afs.util.options import define, options
 from afs.service.VolService import VolService
-import afs
+from BaseTest import parseCMDLine, basicTestSetup
 
-
-class SetupTestVolService :
+class SetupTestVolService(basicTestSetup) :
     """
     Tests VolService Methods
     """
+    
     def setUp(self):
         """
-        setup token and VolService
+        setup VolService
         """
-        self.TestCfg=ConfigParser()
-        self.TestCfg.read(options.setup)
-        self.Cell=self.TestCfg.get("general", "Cell")
-        afs.defaultConfig.AFSCell=self.Cell
-        self.User=self.TestCfg.get("general", "User")
-        self.Pass=self.TestCfg.get("general", "Pass")
+        basicTestSetup.setUp(self)
         self.volMng = VolService()
         self.VolID=int(self.TestCfg.get("VolService", "VolID"))
         self.VolName=self.TestCfg.get("VolService", "VolName")
@@ -34,9 +25,6 @@ class SetupTestVolService :
         self.FS=self.TestCfg.get("VolService", "FS")
         self.FSName=self.TestCfg.get("VolService", "FSName")
         self.Part=self.TestCfg.get("VolService", "Part")
-        if afs.defaultConfig.DB_CACHE :
-            from sqlalchemy.orm import sessionmaker
-            self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
         return    
 
 class TestVolServiceSetMethods(unittest.TestCase, SetupTestVolService):
@@ -88,11 +76,7 @@ class TestVolServiceCachedMethods(unittest.TestCase, SetupTestVolService):
         return
 
 if __name__ == '__main__' :
-    define("setup", default="./Test.cfg", help="path to Testconfig")
-    setupDefaultConfig()
-    if not os.path.exists(options.setup) :
-        sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
-        sys.exit(2)
+    parseCMDLine()
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceSetMethods)

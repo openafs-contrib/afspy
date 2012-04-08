@@ -1,23 +1,11 @@
 import sys
-from afs.util.options import define, options
 from afs.exceptions.ORMError import ORMError
-from afs.orm import logger
+import afs
+import logging
 
-def setupOptions():
-    """
-    Only to be called from AfsConfig
-    """
-    define("DB_SID" , default="db/afspy", help="Database name or for sqlite path to DB file")
-    define("DB_TYPE" , default="sqlite", help="Type of DB. [mysql|sqlite]")
-    # mysql options
-    define("DB_HOST", default="", help="Database host")
-    define("DB_PORT", default="", help="Database port", type=int)
-    define("DB_USER", default="", help="Database user")
-    define("DB_PASSWD" , default="", help="Database password")
-    define("DB_FLUSH", default=100, help="Max Number of elements in Buffer")
+logger=logging.getLogger("afs.DB_CACHE")
 
-    
-def createDbEngine(conf):
+def createDbEngine(conf=None):
     """
     using conf, setup the core DB-engine
     and return it.
@@ -25,6 +13,10 @@ def createDbEngine(conf):
     used AfsConfig object
     """
     from sqlalchemy import create_engine
+    if conf:
+        _CFG = conf
+    else:
+        _CFG = afs.defaultConfig
 
     # Option definition
     ###########################################
@@ -40,8 +32,8 @@ def createDbEngine(conf):
             engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
         except :
             raise ORMError.createEngineError(conf)
-    elif options.DB_TYPE == "sqlite":    
-        driver = 'sqlite:///'+options.DB_SID
+    elif _CFG.DB_TYPE == "sqlite":    
+        driver = 'sqlite:///'+_CFG.DB_SID
         logger.debug("creating engine with driver :'%s'" % driver)
         try:
             engine = create_engine(driver, echo=False)
@@ -71,11 +63,16 @@ def safeMapping( ModelClass, TableDef):
         if not c in ModelAttributes :
             raise ORMError("Mapping of model Object '%s' not correct. Mapped attribute '%s' not in Objectmodel." % (ModelObj.__class__.__name__, c))
     
-def setupDbMappers(conf):
+def setupDbMappers(conf=None):
     from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  UniqueConstraint,  ForeignKeyConstraint
+    from sqlalchemy     import  ForeignKeyConstraint
     from sqlalchemy     import  PickleType
-
+    
+    if conf:
+        _CFG = conf
+    else:
+        _CFG = afs.defaultConfig
+   
     logger.debug("Entering setupDbMappers")
     metadata = MetaData()
    
@@ -306,11 +303,11 @@ def setupDbMappers(conf):
     try  :
         metadata.create_all(conf.DB_ENGINE) 
     except :
-        sys.stderr.write("Cannot connect to %s-Database.\n" % options.DB_TYPE)
-        if options.DB_TYPE == "mysql":
+        sys.stderr.write("Cannot connect to %s-Database.\n" % _CFG.DB_TYPE)
+        if _CFG.DB_TYPE == "mysql":
             sys.stderr.write("Are the MySQL parameters correct and the DB-Server up and running ?\n")
-        elif options.DB_TYPE == "sqlite":
-            sys.stderr.write("Is the path \"%s\" to the sqlite-DB accessible ?\n" % options.DB_SID)
+        elif _CFG.DB_TYPE == "sqlite":
+            sys.stderr.write("Is the path \"%s\" to the sqlite-DB accessible ?\n" % _CFG.DB_SID)
         sys.exit(1)
     return
     

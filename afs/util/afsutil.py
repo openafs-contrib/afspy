@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-import re,types
+import re,types, socket, logging
 
 useRXOSD=True
+Logger=logging.getLogger("afs.util")
+
 
 SizeUnit=['kB','MB','GB','TB','PB']
 PartRX=re.compile("/?(?:vicep)?([a-z][a-z]?)")
@@ -48,10 +50,20 @@ def canonicalizeVolume(volname):
         return volname[0:len(volname)-9]
     
     if volname.endswith(".backup"):
-         return volname[0:len(volname)-6]
+        return volname[0:len(volname)-6]
 
- 
- 
+def getDNSInfo(name_or_ip):
+        """ 
+        get DNS-info about server
+        """
+        hostname=socket.getfqdn(name_or_ip)
+        DNSInfo=socket.gethostbyname_ex(hostname)
+        servernames=[DNSInfo[0]]+DNSInfo[1]
+        ipaddrs=DNSInfo[2]
+        Logger.debug("%s resolves to (%s,%s)\n" % (name_or_ip, servernames, ipaddrs))
+        if "nxdomain" in servernames[0] : raise utilError("cannot resolve DNS")
+        return servernames, ipaddrs
+
 if __name__ == "__main__"  :
    print "Some basic methods used for afspy"
    print humanReadableSize(32768*29+2342)

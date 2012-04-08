@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 
 import unittest
-import sys, os
-from ConfigParser import ConfigParser
+import sys
+from BaseTest import parseCMDLine, basicTestSetup
 
 sys.path.append("..")
-
-from afs.util.AfsConfig import setupDefaultConfig
-from afs.util.options import define, options
 from afs.dao import UbikPeerDAO 
 
 
-class TestUbikDAOMethods(unittest.TestCase):
+class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
     """
     Tests UbikPeerDAO Methods
     """
@@ -20,13 +17,8 @@ class TestUbikDAOMethods(unittest.TestCase):
         """
         setup
         """
-        self.DAO = UbikPeerDAO.UbikPeerDAO()
-        self.TestCfg=ConfigParser()
-        self.TestCfg.read(options.setup)
-        self.Cell=self.TestCfg.get("general", "Cell").lower()
-        self.User=self.TestCfg.get("general", "User")
-        self.Pass=self.TestCfg.get("general", "Pass")
-        self.minUbikDBVersion=self.TestCfg.get("general","minUbikDBVersion")
+        basicTestSetup.setUp(self)
+
         self.SyncSite=self.TestCfg.get("UbikDAO","SyncSite")
         self.DBPort=self.TestCfg.get("UbikDAO","DBPort")
         self.DBState=self.TestCfg.get("UbikDAO","DBState")
@@ -40,6 +32,8 @@ class TestUbikDAOMethods(unittest.TestCase):
             if self.SyncSite != srv :
                 self.not_SyncSite=srv
                 break
+                
+        self.DAO = UbikPeerDAO.UbikPeerDAO()
         return
 
     def do_test_getSyncSite(self, servername):
@@ -134,10 +128,6 @@ class TestUbikDAOMethods(unittest.TestCase):
 
 
 if __name__ == '__main__' :
-    define("setup", default="./Test.cfg", help="path to Testconfig")
-    setupDefaultConfig()
-    if not os.path.exists(options.setup) :
-        sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
-        sys.exit(2)
+    parseCMDLine()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestUbikDAOMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)

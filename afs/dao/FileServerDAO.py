@@ -163,5 +163,5 @@ class FileServerDAO(BaseDAO) :
             if size != 0:
                 perc = (used/long(size))*100
             perc= 0
-            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "perc": perc})
+            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "usedPerc": perc})
         return partitions

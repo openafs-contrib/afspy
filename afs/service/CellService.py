@@ -3,6 +3,7 @@ import socket
 from afs.exceptions.ORMError import  ORMError
 from afs.model.Cell import Cell
 from afs.service.BaseService import BaseService
+from afs.util import afsutil
 
 class CellService(BaseService):
     """
@@ -43,16 +44,15 @@ class CellService(BaseService):
         self.Logger.debug("refreshing FileServers from live system")
         FileServers =[]
         for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token) :
-            try:
-                DNSInfo= socket.gethostbyname_ex(na['name_or_ip'])
-                na['ipaddrs'] =DNSInfo[2] 
-                na['hostnames'] = [DNSInfo[0]]+DNSInfo[1]
-                na.pop('name_or_ip')
-                na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
-                FileServers.append(na)
-            except :
-                print "Error"
-                #self.Logger.error("Error on scanning file server: %s" % e)
+            na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['name_or_ip'])
+            na.pop('name_or_ip')
+            for ip in na['ipaddrs'] :
+                if ip in self._CFG.ignoreIPList :
+                    self.Logger.debug("ignoring IP=%s" %ip)
+                    continue
+                else :
+                    na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
+                    FileServers.append(na)
         return  FileServers
     
     def _getDBServers(self):
@@ -72,8 +72,10 @@ class CellService(BaseService):
             pass
         if len(DBServList) == 0 :
             # get one fileserver and from that one the DBServList
-            FSServ = self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True )[0]["name_or_ip"]
-            DBServList = self._bnodeDAO.getDBServList(FSServ, self._CFG.CELL_NAME) 
+            # we need to make sure to get the IP
+            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True ) :
+                if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
+            DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], self._CFG.CELL_NAME) 
         
         for na in DBServList :
             d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
