@@ -31,14 +31,14 @@ def createDbEngine(conf=None):
         try: 
             engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
         except :
-            raise ORMError.createEngineError(conf)
+            raise ORMError("Cannot create DB Engine for type mysql using driver %s" % driver )
     elif _CFG.DB_TYPE == "sqlite":    
         driver = 'sqlite:///'+_CFG.DB_SID
         logger.debug("creating engine with driver :'%s'" % driver)
         try:
             engine = create_engine(driver, echo=False)
         except :
-            raise ORMError.createEngineError(conf)
+            raise ORMError("Cannot create DB Engine for type sqlite using driver %s " % driver )
     return engine
 
 def safeMapping( ModelClass, TableDef):
