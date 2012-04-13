@@ -4,10 +4,12 @@ import unittest
 import sys
 
 sys.path.append("..")
+import afs
 from afs.service.VolService import VolService
+
 from BaseTest import parseCMDLine, basicTestSetup
 
-class SetupTestVolService(basicTestSetup) :
+class SetupTest(basicTestSetup) :
     """
     Tests VolService Methods
     """
@@ -27,15 +29,18 @@ class SetupTestVolService(basicTestSetup) :
         self.Part=self.TestCfg.get("VolService", "Part")
         return    
 
-class TestVolServiceSetMethods(unittest.TestCase, SetupTestVolService):
+class TestVolServiceSetMethods(unittest.TestCase, SetupTest):
     """
     Test VolService setter- and live- Methods
     """
 
     def setUp(self):
-        return SetupTestVolService.setUp(self) 
+        return SetupTest.setUp(self) 
 
     def test_setExtendedVolumeAttributes(self):
+        if not afs.defaultConfig.DB_CACHE :
+            self.assertEqual(None, None)
+            return
         volExtAttrDict={
                         "mincopy" : self.minCopy, 
                         "owner" : self.Owner, 
@@ -54,12 +59,12 @@ class TestVolServiceSetMethods(unittest.TestCase, SetupTestVolService):
     
 
 
-class TestVolServiceCachedMethods(unittest.TestCase, SetupTestVolService):
+class TestVolServiceCachedMethods(unittest.TestCase, SetupTest):
     """
     Tests VolService getter Methods
     """
     def setUp(self):
-        return SetupTestVolService.setUp(self) 
+        return SetupTest.setUp(self) 
 
     def test_getVolbyName_cached(self) :
         vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, cached=True)
@@ -83,5 +88,8 @@ if __name__ == '__main__' :
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceCachedMethods)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    if afs.defaultConfig.DB_CACHE :
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceCachedMethods)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+    else :
+        sys.stderr.write("Skipped,  because DB_CACHE is disabled.\n")
