@@ -5,9 +5,9 @@ from BaseTest import parseCMDLine, basicTestSetup
 
 sys.path.append("..")
 from afs.service.FsService import FsService
+import afs
 
-
-class SetupTestFsService(basicTestSetup) :
+class SetupTest(basicTestSetup) :
     """
     setup TestFs config
     """
@@ -24,7 +24,7 @@ class SetupTestFsService(basicTestSetup) :
         return    
 
 
-class TestFsServiceSetMethods(unittest.TestCase, SetupTestFsService):
+class TestFsServiceSetMethods(unittest.TestCase, SetupTest):
     """
     Tests FsService Methods
     """
@@ -33,7 +33,7 @@ class TestFsServiceSetMethods(unittest.TestCase, SetupTestFsService):
         """
         setup token and FsService
         """
-        SetupTestFsService.setUp(self)
+        SetupTest.setUp(self)
         return
 
     def test_setRestartTimes(self):
@@ -58,7 +58,7 @@ class TestFsServiceSetMethods(unittest.TestCase, SetupTestFsService):
         self.assertEqual(self.FsPartitions, parts)
         return
 
-class TestFsServiceCachedMethods(unittest.TestCase, SetupTestFsService):
+class TestFsServiceCachedMethods(unittest.TestCase, SetupTest):
     """
     Tests FsService Methods
     """
@@ -67,7 +67,7 @@ class TestFsServiceCachedMethods(unittest.TestCase, SetupTestFsService):
         """
         setup token and FsService
         """
-        SetupTestFsService.setUp(self)
+        SetupTest.setUp(self)
         return
 
     def test_getServerObj(self) :
@@ -87,5 +87,8 @@ if __name__ == '__main__' :
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceCachedMethods)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    if afs.defaultConfig.DB_CACHE :
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceCachedMethods)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+    else :
+         sys.stderr.write("Skipped,  because DB_CACHE is disabled.\n")

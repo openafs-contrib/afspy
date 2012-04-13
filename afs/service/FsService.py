@@ -112,7 +112,8 @@ class FsService (BaseService):
             FileServer.uuid=uuid
             FileServer.servernames=servernames
             FileServer.ipaddrs=ipaddrs
-            self._setServerIntoCache(FileServer)
+            if  self._CFG.DB_CACHE:
+                self._setServerIntoCache(FileServer)
         return FileServer.uuid
 
     def getProjects(self, name_or_ip):
@@ -207,6 +208,8 @@ class FsService (BaseService):
         """
         update DB cache
         """
+        if not self._CFG.DB_CACHE:
+            raise AfsError("DB_CACHE not configured")
         part.serv_uuid=serv_uuid
         self.Logger.debug("setting into cache: %s" % part)
         partCache = self.DbSession.query(Partition).filter(Partition.serv_uuid == serv_uuid).filter(Partition.name == part.name).first()
