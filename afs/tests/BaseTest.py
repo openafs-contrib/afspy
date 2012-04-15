@@ -1,7 +1,6 @@
 import sys, os,argparse
 from ConfigParser import ConfigParser
 
-sys.path.append("..")
 from afs.util.AfsConfig import parseDefaultConfig
 import afs
 

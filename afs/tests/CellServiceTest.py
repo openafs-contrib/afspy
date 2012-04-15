@@ -4,7 +4,6 @@ import unittest
 import sys
 from BaseTest import parseCMDLine, basicTestSetup
 
-sys.path.append("..")
 import afs
 
 from afs.service import CellService

@@ -1,0 +1,22 @@
+Design decisions in this package
+
+
+Policies
+========
+
+* DAO returns dictionary of list of dicts
+
+* DAO always raises an execption on error
+
+* DAO are agnostic of the model.
+
+* Partitions are used canonicalized only
+
+* Id are integer. DAO has to convert it.  Same for quota,  number of files access
+
+* Timestamps are datetime.
+
+* DAOs are distinguished on the RPC-Level.
+
+* Services never call another service, but multiple DAOs
+

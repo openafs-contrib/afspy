@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
 from BaseTest import parseCMDLine, basicTestSetup
 
-sys.path.append("..")
 from afs.service import AuthService
 import afs
 

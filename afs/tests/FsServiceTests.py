@@ -3,7 +3,6 @@
 import unittest, sys
 from BaseTest import parseCMDLine, basicTestSetup
 
-sys.path.append("..")
 from afs.service.FsService import FsService
 import afs
 
