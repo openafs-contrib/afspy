@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
 from BaseTest import parseCMDLine, basicTestSetup
 
-sys.path.append("..")
 from afs.dao import FileServerDAO 
 
 class TestFileServerDAOMethods(unittest.TestCase, basicTestSetup):

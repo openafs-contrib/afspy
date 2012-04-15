@@ -12,8 +12,8 @@ def parseDefaultConfig(myParser=None):
     setup all available options
     """
     HOME=os.environ.get("HOME","")
-    ## System-wide Configuration file
-    BASE_CFG_FILE="/etc/sysconfig/afspy"
+    ## module-wide Configuration file
+    BASE_CFG_FILE="%s/etc/afspy.cfg" % os.path.dirname(afs.__file__)
     if not myParser :
         myParser = afs.argParser
     

@@ -4,8 +4,6 @@ import unittest
 import sys, os, argparse
 from ConfigParser import ConfigParser
 
-sys.path.append("..")
-
 from afs.util.AfsConfig import parseDefaultConfig
 from afs.dao import DNSconfDAO 
 import afs

@@ -1,8 +1,0 @@
-import sys
-sys.path.append("../..")
-from afs.util.AfsConfig import AfsConfig, setupDefaultConfig
-from afs.service import *
-import afs
-
-print "afs: Setting up defaultconfig"
-setupDefaultConfig()

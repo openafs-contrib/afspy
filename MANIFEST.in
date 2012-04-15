@@ -1,0 +1,4 @@
+include *.txt 
+include afs/etc/*.cfg
+include afs/etc/pythonstartup
+recursive-include docs *.txt 

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
 
-sys.path.append("..")
 import afs
 from afs.service.VolService import VolService
 

@@ -1,0 +1,75 @@
+#
+# Template of an afspy configuration
+# ATTENTION: the comments above each value are parsed
+# by setup.py. So only modify them if you now what you are doing.
+# giving a real value to an option overrides the default.
+#
+
+## Type:        string
+## Default:    
+## Mandatory: true
+# The name of the cell to use by default
+CELL_NAME=
+
+## Type: string
+## Default: 
+## Mandatory: true
+# The name of the Kerberos Realm to use by default 
+KRB5_REALM=
+
+## Type:        string
+## Default:     false
+## Allowed: true,false
+# The name of the cell to use by default
+# Triggers using a database cache
+# if set to "false", all options DB_* have no effect.
+DB_CACHE=
+
+## Type: string
+## Default: sqlite
+## Allowed: sqlite,mysql
+# type of DB backend 
+DB_TYPE=
+
+## Type: string
+## Default: afspy_test
+# Name of the database (or path in case of sqlite)  
+DB_SID=
+
+## Type: string
+## Default: localhost
+# Database host
+# only relevant if you don't use sqlite
+DB_HOST=
+
+## Type: integer
+## Default:3306 
+# Database port
+# only relevant if you don't use sqlite
+DB_PORT=
+
+## Type: string
+## Default: 
+# Database user
+# only relevant if you don't use sqlite
+DB_USER=
+
+## Type: string
+## Default: warn
+## Allowed: OFF,critical,error,warn,info,debug
+# defaultLogLevel
+# globalLogLevel: default log level for all of afspy
+# module local LogLevels have to be installed by hand.
+# e.g.:
+# LogLevel_sqlalchemy=
+# LogLevel_AuthService=debug
+#LogLevel_krb5DAO=debug
+#LogLevel_Service=debug
+#LogLevel_DAO=debug
+globalLogLevel=
+
+## Type: CSV
+## Default: 
+# CSV List of IP-Adresses just to ignore
+# Useful for complex network topologies.
+ignoreIPList=

@@ -10,7 +10,7 @@ for f in os.listdir(".") :
     if "Test" in f and f[-3:] == ".py" :
         print "Executing test %s" % f
         print "================="
-        CmdList=[f]
+        CmdList=["python",f]
         pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         _output,_outerr=pipo.communicate() 
         _output=map(string.strip,_output.split("\n"))
