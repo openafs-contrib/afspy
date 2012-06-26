@@ -72,12 +72,16 @@ def parseDefaultConfig(myParser=None):
                 if numericLevel == 0 :
                     numericLevel=getNumericLogLevel(afs.defaultConfig.globalLogLevel)
                 _logger.setLevel(numericLevel)
+                _logger.addHandler(LogHandler)
             if afs.defaultConfig.LogLevel_DB_CACHE.upper() != "OFF" :
                 DB_CACHELogger=logging.getLogger("afs.DB_CACHE") 
                 DB_CACHELogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_DB_CACHE))
         if afs.defaultConfig.LogLevel_util.upper() != "OFF" :
             utilLogger=logging.getLogger("afs.util") 
             utilLogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_util))
+        if afs.defaultConfig.LogLevel_Model.upper() != "OFF" :
+            modelLogger=logging.getLogger("afs.model") 
+            modelLogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_Model))
         #
         # setup intermediate level loggers
         #

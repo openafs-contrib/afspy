@@ -1,6 +1,10 @@
-import datetime
+import datetime,logging
 from types import *
 from afs.exceptions.AfsError import AfsError
+import afs
+
+# log-level is set in AfsConfig
+Logger=logging.getLogger("afs.model")
 
 class BaseModel(object):
     """
@@ -10,8 +14,9 @@ class BaseModel(object):
     def setByDict(self,objByDict):      
         """
         fill in object by dict.
-        It is an error to try to create new attributes.with this method
+        It is an error to try to create new attributes with this method
         """
+        Logger.debug("setByDict: got dict=%s" % objByDict)
         for key, value in objByDict.iteritems():
             if not hasattr(self,key) :
                 raise AfsError("Cannot create new attribute '%s' to object '%s'" %(key, self.__class__.__name__))
@@ -43,6 +48,7 @@ class BaseModel(object):
         for attr, value in self.__dict__.iteritems():
             if isinstance(value, str) or isinstance(value, long) or isinstance(value,unicode) or isinstance(value, int) or isinstance(value, datetime.datetime):
                   res[attr] = value
+        Logger.debug("getDict: returning : %s" % res)
         return res
     
     def __repr__(self):
