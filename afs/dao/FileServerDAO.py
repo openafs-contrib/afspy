@@ -159,9 +159,13 @@ class FileServerDAO(BaseDAO) :
                 raise FServError("Error parsing output" , line)
 
             part, free, size=m.groups()
-            used = long(size)-long(free)
+            size=long(size)
+            free=long(free)
+            used = size-free
             if size != 0:
-                perc = (used/long(size))*100
-            perc= 0
+                perc = float(used)/float(size)*100.0
+            else :
+                perc = 0
             partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "usedPerc": perc})
+        self.Logger.debug("getPartList: returning %s" % partitions)
         return partitions
