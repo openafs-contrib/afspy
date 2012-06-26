@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 
 import unittest
-import sys, os, argparse
-from ConfigParser import ConfigParser
+from BaseTest import parseCMDLine, basicTestSetup
+from afs.dao import DNSconfDAO
 
-from afs.util.AfsConfig import parseDefaultConfig
-from afs.dao import DNSconfDAO 
-import afs
-
-class TestDNSconfDAO(unittest.TestCase):
+class TestDNSconfDAO(unittest.TestCase,basicTestSetup):
     """
     Tests DNSconfDAO Methods
     """
-    
+
     def setUp(self):
         """
         setup
         """
+        basicTestSetup.setUp(self)
+
         self.DAO = DNSconfDAO.DNSconfDAO()
-        self.TestCfg=ConfigParser()
-        self.TestCfg.read(options.setup)
-        self.Cell=self.TestCfg.get("general", "Cell").lower()
         self.allDBServs=self.TestCfg.get("general","allDBServs").split(",")
         self.allDBServs.sort()
         return
@@ -29,14 +24,9 @@ class TestDNSconfDAO(unittest.TestCase):
         DBServList=self.DAO.getDBServList(self.Cell)
         DBServList.sort()
         self.assertEqual(DBServList, self.allDBServs)
-        return 
-        
+        return
+
 if __name__ == '__main__' :
-    myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
-    myParser.add_argument("--setup", default="./Test.cfg", help="path to Testconfig")
-    parseDefaultConfig(myParser)
-    if not os.path.exists(options.setup) :
-        sys.stderr.write("Test setup file %s does not exist.\n" % options.setup)
-        sys.exit(2)
+    parseCMDLine()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestDNSconfDAO)
     unittest.TextTestRunner(verbosity=2).run(suite)
