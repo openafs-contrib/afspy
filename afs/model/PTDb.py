@@ -8,12 +8,14 @@ class PTDB(BaseModel) :
         """
         Initializes empty shell
         """
-        ## list of server Objs providing this DB
-        self.DBServers=[]
+        ## CSV-list of servers providing this DB
+        self.DBServers=""
         ## syncsite, master-server
         self.SyncServer=None
         ## ?
         self.numEntries=0
         ## DB-version
         self.DBVersion=-1
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []
         return

@@ -54,19 +54,21 @@ def safeMapping( ModelClass, TableDef):
     for k in ModelAttributes :
         # ignore private sqlalchemy methods
         if k[0] == "_" : continue
+        # a python-only attribute to define which other attributes should not put into the DB
+        if k == "ignAttrList" : continue
         # ignore stuff defined in BaseModel (includes all general private methods of an obj.)
         if k in BaseModelAttributes : continue
         if not k in mappedColumns :
-            raise ORMError("Mapping of model Object '%s' not correct. Attribute '%s' not mapped." % (ModelObj.__class__.__name__,k) )
+          if "%s_js" % k in mappedColumns : continue # ignore fields which are json encoded in DB
+          raise ORMError("Mapping of model Object '%s' not correct. Attribute '%s' not mapped." % (ModelObj.__class__.__name__,k) )
     
     for c in mappedColumns :
         if not c in ModelAttributes :
             raise ORMError("Mapping of model Object '%s' not correct. Mapped attribute '%s' not in Objectmodel." % (ModelObj.__class__.__name__, c))
     
 def setupDbMappers(conf=None):
-    from sqlalchemy     import Table, Column, Integer, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  ForeignKeyConstraint
-    from sqlalchemy     import  PickleType
+    from sqlalchemy     import Table, Column, Integer, BigInteger, String, MetaData, DateTime, Boolean, TEXT, Float
+    from sqlalchemy     import  ForeignKeyConstraint,UniqueConstraint
     
     if conf:
         _CFG = conf
@@ -84,8 +86,8 @@ def setupDbMappers(conf=None):
     tbl_server = Table('tbl_server', metadata,
           Column('id'           , Integer, primary_key=True),
           Column('uuid'         , String(255), index=True),
-          Column('servernames'         , PickleType(mutable=True)),
-          Column('ipaddrs'         , PickleType(mutable=True)),
+          Column('servernames_js', TEXT),
+          Column('ipaddrs_js'    , TEXT),
           Column('fileserver'   , Boolean),
           Column('dbserver'     , Boolean ),
           Column('clonedbserver'     , Boolean ),
@@ -116,7 +118,7 @@ def setupDbMappers(conf=None):
           Column('free'         , Integer ),
           Column('used'         , Integer ),
           Column('usedPerc'         , Float ),
-          Column('projectIDs'      , PickleType),
+          Column('projectIDs_js'      , TEXT),
           Column('status'       , String(2)),
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
@@ -223,7 +225,7 @@ def setupDbMappers(conf=None):
           Column('vid', Integer, primary_key=True ), 
           Column('mincopy'      , Integer),
           Column('owner'        , String(255)),
-          Column('projectID'      , Integer),
+          Column('projectIDs_js'      , TEXT),
           Column('pinnedOnServer'       , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
@@ -233,7 +235,22 @@ def setupDbMappers(conf=None):
     #Mapping Table
     from afs.model.ExtendedVolumeAttributes import ExtVolAttr
     safeMapping(ExtVolAttr,tbl_extvolattr)
-   
+  
+    # Volume Group Table
+    #################################################
+    tbl_volgroup = Table('tbl_volgroup',metadata,
+          Column('id' ,Integer,  primary_key=True ),
+          Column('RW_js' ,TEXT,),
+          Column('RO_js' , TEXT),
+          Column('BK_js' , TEXT),
+          Column('name' , String(255)),
+          UniqueConstraint('name',  name='uix_1'),
+          )
+    #Mapping Table
+    from afs.model.VolumeGroup import VolumeGroup
+    safeMapping(VolumeGroup,tbl_volgroup)
+
+ 
     #  Project Table
     ##################################################
     tbl_project =  Table('tbl_project',metadata,
@@ -241,13 +258,14 @@ def setupDbMappers(conf=None):
           Column('name'        , String(255)),
           Column('contact'        , String(255)),
           Column('owner'        , String(255)),
-          Column('rw_locations',  PickleType), 
-          Column('ro_locations',  PickleType), 
-          Column('rw_serverparts',  PickleType), 
-          Column('ro_serverparts',  PickleType), 
-          Column('volnameRegEx',  PickleType),
-          Column('additionalVolnames',  PickleType), 
-          Column('excludedVolnames',  PickleType), 
+          Column('description'      , String(1023)),
+          Column('rw_locations_js',  TEXT), 
+          Column('ro_locations_js',  TEXT), 
+          Column('rw_serverparts_js',  TEXT), 
+          Column('ro_serverparts_js',  TEXT), 
+          Column('volnameRegEx_js',  TEXT),
+          Column('additionalVolnames_js',  TEXT), 
+          Column('excludedVolnames_js',  TEXT), 
           Column('minSize_kB'         , Integer ), 
           Column('maxSize_kB'         , Integer ), 
           Column('minnum_ro'      , Integer),
@@ -265,13 +283,12 @@ def setupDbMappers(conf=None):
     tbl_cell =  Table('tbl_cell',metadata,
         Column('id'           , Integer, primary_key=True),
         Column('Name'        , String(255), index=True ),
-        Column('DBServers'        , String(512)),
         Column('VLDBSyncSite'        , String(50)),
         Column('PTDBSyncSite'        , String(50)),
         Column('VLDBVersion'        , String(20)),
         Column('PTDBVersion'        , String(20)),
-        Column('FileServers'         , PickleType(mutable=True)),
-        Column('DBServers'         , PickleType(mutable=True)),
+        Column('FileServers_js'         , TEXT),
+        Column('DBServers_js'         , TEXT),
         Column('cdate'        , DateTime),
         Column('udate'        , DateTime),
         )
@@ -283,12 +300,12 @@ def setupDbMappers(conf=None):
     #  Volume OSD Param
     ##################################################
     tbl_extvolattr_osd= Table('tbl_extvolattr_osd', metadata,
-          Column('vid'           , Integer, primary_key=True),
-          Column('fquota'       , Integer),
-          Column('blockfs'      , Integer),
-          Column('block_osd_on' , Integer),
-          Column('block_osd_off', Integer),
-          Column('osdpolicy'    , Integer),
+          Column('vid'          , Integer, primary_key=True),
+          Column('filequota'    , Integer),
+          Column('block_fs'     , BigInteger),
+          Column('block_osd_on' , BigInteger),
+          Column('block_osd_off', BigInteger),
+          Column('osdPolicy'    , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
           Column('sync'         , Integer ), 
@@ -298,6 +315,28 @@ def setupDbMappers(conf=None):
     from afs.model.ExtendedVolumeAttributes_OSD import ExtVolAttr_OSD
     safeMapping(ExtVolAttr_OSD,tbl_extvolattr_osd) 
 
+    #  Location
+    ##################################################
+    tbl_location = Table('tbl_location', metadata,
+          Column('id'           , Integer, primary_key=True),
+          Column('name'        , String(255), index=True ),
+          Column('contact'        , String(255)),
+          Column('description'      , String(1023)),
+          Column('building'        , String(255)),
+          Column('street'        , String(255)),
+          Column('city'        , String(255)),
+          Column('postcode'     , String(20)),
+          Column('state'        , String(255)),
+          Column('country'      , String(255)),
+          Column('GPS'        , String(255)),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          )
+    #Mapping Table
+    from afs.model.Location import Location
+    safeMapping(Location,tbl_location)
+
+   
 
     metadata.create_all(conf.DB_ENGINE) 
     try  :

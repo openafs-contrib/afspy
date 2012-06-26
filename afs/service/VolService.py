@@ -1,3 +1,4 @@
+import string,json
 from afs.model.Volume import Volume
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.VolumeGroup import VolumeGroup
@@ -29,7 +30,9 @@ class VolService (BaseService):
     Retrieve Volume Group
     """
     def getVolGroup(self, id , cached=False):
-    
+        self.Logger.debug("entering with id=%s" % id) 
+        if cached :
+            return self.DBCService.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
         list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
         if len(list) > 0:
@@ -37,20 +40,27 @@ class VolService (BaseService):
             for el in list:
                 volGroup.name = el['volname']
                 if el['type'] == 'RW':
-                    volGroup.RW.append(el)
+                    volGroup.RW=el
                 elif el['type'] == 'RO':
                     volGroup.RO.append(el)
                 else :
-                    volGroup.BK.append(el)
+                    volGroup.BK=el
+        self.Logger.debug("returning : %s" % volGroup)
+        if self._CFG.DB_CACHE :
+            self.DBCService.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
         return volGroup
        
     """
     Retrieve Volume Information by Name or ID
     """
-    def getVolume(self, name, serv, part,  cached=False):
+    def getVolume(self, name_or_id, serv, part,  cached=False):
         if cached :
             serv_uuid=self.FsS.getUUID(serv, cached=cached)
-            vol=self._getFromCache(name, serv_uuid, part)
+            # need function in util name_or_ip and name_or_id?
+            if afsutil.isName(name_or_id) :
+                vol=self.DBCService.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
+            else :
+                vol=self.DBCService.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
             return vol
         vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         vdict["serv_uuid"]=self.FsS.getUUID(serv)
@@ -60,35 +70,19 @@ class VolService (BaseService):
             vol = Volume()
             vol.setByDict(vdict)
             if self._CFG.DB_CACHE :
-                self._setIntoCache(vol)
+                self.DBCService.setIntoCache(Volume,vol,vid = vol.vid)
         return  vol
 
-    def getExtVolAttr(self, vid):
-        """
-        get Extended Volume Attribute Object
-        works only with cache
-        """
-        ext_vol_attr=None
-        if self._CFG.DB_CACHE :
-            ext_vol_attr=self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
-        return ext_vol_attr
-    
-    def setExtVolAttr(self, vid, dict):
-        """
-        set Extended Volume Attributes by dict
-        """
-        thisExtVolAttr=ExtVolAttr(vid=vid)
-        thisExtVolAttr.setByDict(dict)
-        volCache = self.DbSession.query(ExtVolAttr).filter(ExtVolAttr.vid == vid).first()
-        if volCache:
-            volCache.copyObj(thisExtVolAttr)
-            self.DbSession.flush()
-        else:
-            volCache=self.DbSession.merge(thisExtVolAttr)  
-            self.DbSession.flush()
-        self.DbSession.commit()  
-        return thisExtVolAttr
- 
+    def saveExtVolAttr(self, Obj):
+        cachedObj=self.DBCService.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
+        return cachedObj
+
+    def saveExtVolAttrbyDict(self,vid,dict) :
+        cachedObj=ExtVolAttr()
+        cachedObj.setByDict(dict)
+        cachedObj=self.saveExtVolAttr(cachedObj)
+        return cachedObj
+
     ################################################
     # AFS-operations
     ################################################
@@ -96,115 +90,3 @@ class VolService (BaseService):
     def release(self, id) :
         #Check before the call (must be RW)
         pass
- 
-    ################################################
-    #  Cache Query 
-    ################################################
-    def getVolCountByQuery(self,query):
-         if not self._CFG.DB_CACHE:
-            raise VolError('Error, no db Cache defined ',None)
-        
-         query._tbl= "Volume"
-         queryc = query.getQueryCount()
-         count  = eval(queryc)         
-         
-         return count
- 
-    def getVolByQuery(self,query):
-        if not self._CFG.DB_CACHE:
-            raise VolError('Error, no db Cache defined ',None)
-        
-        query._tbl= "Volume"
-        query  = query.getQuery()
-        res    = eval(query)
-        return res
- 
-    def refreshCache(self, serv, part):
-        if not self._CFG.DB_CACHE:
-            raise VolError('Error, no db Cache defined ',None)
-       
-        part = afsutil.canonicalizePartition(part)
-        list = self._fsDAO.getVolList( serv, part, self._CFG.CELL_NAME, self._CFG.Token)
-        #Convert into dictionary
-        idVolDict = {}
-        cUpdate = len(list)
-        for el in list:
-            idVolDict[el['vid']] = el
-        res  = self.DbSession.query(Volume).filter(self.or_(Volume.serv_uuid == serv,Volume.servername == serv )).filter(Volume.part == part)
-        
-        flush = 0
-        for vol in res:
-            flush +=1
-            if idVolDict.has_key(vol.vid):
-                vol.setByDict(idVolDict[vol.vid])
-                del idVolDict[vol.vid]
-            else:     
-                self.DbSession.delete(vol) 
-            
-            if flush > self._CFG.DB_FLUSH:    
-                self.DbSession.flush() 
-        
-        # ADD section 
-        flush = 0
-        for key in idVolDict.keys():
-            flush +=1
-            vol = Volume()
-            vol.setByDict(idVolDict[key])
-            self.DbSession.add(vol)    
-            if flush > self._CFG.DB_FLUSH:    
-                self.DbSession.flush() 
-        self.DbSession.commit()
-        
-        return cUpdate
-    
-    ################################################
-    #  Internal Cache Management 
-    ################################################
-
-
-    def _getFromCache(self,id, serv_uuid, part):
-        #STORE info into  CACHE
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        # Do update
-        vol = self.DbSession.query(Volume).filter(self.or_(Volume.vid == id, Volume.name == id)).filter(Volume.serv_uuid == serv_uuid).filter(Volume.part == part).first()
-        return vol
-        
-    def _setIntoCache(self,vol):
-         #STORE info into  CACHE
-       
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        
-        volCache = self.DbSession.query(Volume).filter(Volume.vid == vol.vid).filter(self.or_(Volume.serv_uuid == vol.serv_uuid,Volume.servername == vol.servername )).filter(Volume.part == vol.part).first()
-        
-        if volCache:
-            volCache.copyObj(vol)
-            self.DbSession.flush()
-        else:
-            volCache=self.DbSession.merge(vol)  
-            self.DbSession.flush()
-        
-        self.DbSession.commit()  
-        return volCache
-    
-    def _delCache(self,vol):
-         #STORE info into  CACHE
-        if not self._CFG.DB_CACHE:
-            return None
-        # Do update
-        self.DbSession.delete(vol)
-            
-        self.DbSession.commit()
-    
-    def bulkUpdate(self, volDictlist):
-        """
-        takes a list of volume-dicts and inserts them into the SQL
-        database directly.
-        check out executemany()
-        """
-        vol=Volume()
-        print dir(vol)
-        print dir(self.DbSession)
-        vol.__table__.insert().execute(volDictlist)
-        return

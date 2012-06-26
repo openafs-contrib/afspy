@@ -9,14 +9,11 @@ class Cell(BaseModel) :
         """
         Initializes empty shell
         """
-        
         ## Database definitions
         ## DB - ID
         self.id = None
         ## Cellname
         self.Name=""
-        ## DB-Server python list of DB-ServerDicts
-        self.DBServers=[]
         ## VLDb-Version
         self.VLDBVersion=-1
         ## VLDb-syncsite, hostname
@@ -25,8 +22,14 @@ class Cell(BaseModel) :
         self.PTDBVersion=-1
         ## PTDb-syncsite, hostname
         self.PTDBSyncSite=""
-        ## FileServer python list of FS-ServerDicts
+        ## list of FileServers,json encoded
         self.FileServers=[]
+        self.FileServers_js="[]"
+        ## list of DB-Servers, json encoded 
+        self.DBServers=[]
+        self.DBServers_js="[]"
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []
         return

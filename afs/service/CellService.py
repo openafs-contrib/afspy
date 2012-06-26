@@ -5,6 +5,7 @@ from afs.model.Cell import Cell
 from afs.service.BaseService import BaseService
 from afs.util import afsutil
 
+
 class CellService(BaseService):
     """
     Provides Service about a Cell global information.
@@ -20,7 +21,8 @@ class CellService(BaseService):
         just return internal cell object
         """
         if cached :
-            return self._getFromCache()
+            if cellname == "" : cellname = self._CFG.CELL_NAME
+            return self.DBCService.getFromCache(Cell,Name = cellname)
         # refresh whole new CellObj
         cell=Cell()
         cell.Name=self._CFG.CELL_NAME
@@ -29,7 +31,7 @@ class CellService(BaseService):
         cell.PTDBSyncSite, cell.PTDBVersion=self._getUbikDBInfo(7002)
         cell.VLDBSyncSite, cell.VLDBVersion=self._getUbikDBInfo(7003)
         if self._CFG.DB_CACHE :
-            self._setIntoCache(cell)
+            self.DBCService.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
         return cell
         
     
@@ -43,7 +45,7 @@ class CellService(BaseService):
         """
         self.Logger.debug("refreshing FileServers from live system")
         FileServers =[]
-        for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token) :
+        for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token,noresolve=True) :
             na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['name_or_ip'])
             na.pop('name_or_ip')
             for ip in na['ipaddrs'] :
@@ -53,7 +55,8 @@ class CellService(BaseService):
                 else :
                     na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
                     FileServers.append(na)
-        return  FileServers
+        self.Logger.debug("returning %s" % FileServers)
+        return FileServers
     
     def _getDBServers(self):
         """
@@ -113,34 +116,3 @@ class CellService(BaseService):
     #Volume offline
     
     #Volume OK
-    
-    
-    ################################################
-    #  Internal Cache Management 
-    ################################################
-
-    def _getFromCache(self, cellname=""):
-        if not self._CFG.DB_CACHE:
-            raise ORMError("DB_CACHE not configured")
-        if cellname == "" :
-            cellname = self._CFG.CELL_NAME
-        self.Logger.debug("loading Cell '%s' from DB_CACHE"  % cellname)
-        cell=self.DbSession.query(Cell).filter(Cell.Name == cellname).first()
-        return cell
-        
-    def _setIntoCache(self,cell):
-         #STORE info into  CACHE
-        if not self._CFG.DB_CACHE:
-            raise ORMError("DB_CACHE not configured")
-        
-        cellCache=self.DbSession.query(Cell).filter(Cell.Name == self._CFG.CELL_NAME).first()
-        
-        if cellCache:
-            cellCache.copyObj(cell)
-            self.DbSession.flush()
-        else:
-            cellCache=self.DbSession.merge(cell)  
-            self.DbSession.flush()
-        
-        self.DbSession.commit()  
-        return cellCache
