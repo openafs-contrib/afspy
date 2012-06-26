@@ -3,7 +3,8 @@
 import unittest
 from BaseTest import parseCMDLine, basicTestSetup
 
-from afs.dao import FileServerDAO 
+import afs
+from afs.dao import FileServerDAO
 
 class TestFileServerDAOMethods(unittest.TestCase, basicTestSetup):
     """
@@ -18,7 +19,6 @@ class TestFileServerDAOMethods(unittest.TestCase, basicTestSetup):
         self.FS=self.TestCfg.get("FileServerDAO","FS")
         self.Part=self.TestCfg.get("FileServerDAO","Part")
         self.allParts=self.TestCfg.get("FileServerDAO","allParts")
-        
         self.DAO = FileServerDAO.FileServerDAO()
         return
     
