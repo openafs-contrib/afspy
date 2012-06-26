@@ -34,10 +34,21 @@ def parseDefaultConfig(myParser=None):
             afs.defaultConfig=loadAfsConfig(afs.defaultConfig,"%s/.config/afspy.cfg")
     if os.path.exists(BASE_CFG_FILE) :
         afs.defaultConfig=loadAfsConfig(afs.defaultConfig, BASE_CFG_FILE)
+
     # we need to deal with that one later
     afs.defaultConfig.Token=None
 
-    # cast  DB_CACHE  to Boolean
+    # parse hosts and ignore_IP
+    afs.defaultConfig.hosts={}
+    for h in afs.defaultConfig.hostmap :
+       hostname,ips=h.split("=")
+       ips=ips.split(",")
+       afs.defaultConfig.hosts[hostname]=ips
+    afs.defaultConfig.ignoreIPList=[]
+    for h in afs.defaultConfig.ignoreIP :
+        afs.defaultConfig.ignoreIPList.append(h)
+
+    # cast DB_CACHE to Boolean
     if afs.defaultConfig.DB_CACHE.upper() == "TRUE" :  
         afs.defaultConfig.DB_CACHE = True
     else :

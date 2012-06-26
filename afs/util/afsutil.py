@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-import re,types, socket, logging
+import re,types, socket, logging,string
+import afs
 
 useRXOSD=True
+# log-level is set in AfsConfig
 Logger=logging.getLogger("afs.util")
 
 
@@ -53,16 +55,22 @@ def canonicalizeVolume(volname):
         return volname[0:len(volname)-6]
 
 def getDNSInfo(name_or_ip):
-        """ 
-        get DNS-info about server
-        """
-        hostname=socket.getfqdn(name_or_ip)
-        DNSInfo=socket.gethostbyname_ex(hostname)
-        servernames=[DNSInfo[0]]+DNSInfo[1]
-        ipaddrs=DNSInfo[2]
-        Logger.debug("%s resolves to (%s,%s)\n" % (name_or_ip, servernames, ipaddrs))
-        if "nxdomain" in servernames[0] : raise utilError("cannot resolve DNS")
-        return servernames, ipaddrs
+    """ 
+    get DNS-info about server
+    """
+    if name_or_ip in afs.defaultConfig.hosts.keys() :
+        Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [name_or_ip,], afs.defaultConfig.hosts[name_or_ip]))
+        return [name_or_ip,],afs.defaultConfig.hosts[name_or_ip]
+    for hn in afs.defaultConfig.hosts :
+        if name_or_ip in afs.defaultConfig.hosts[hn] :
+            Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [hn,],afs.defaultConfig.hosts[hn]))
+            return [hn,],afs.defaultConfig.hosts[hn]            
+    DNSInfo=socket.gethostbyaddr(name_or_ip)
+    servernames=[DNSInfo[0]]+DNSInfo[1]
+    ipaddrs=DNSInfo[2]
+    Logger.debug("%s resolves to (%s,%s)" % (name_or_ip, servernames, ipaddrs))
+    if "nxdomain" in servernames[0] : raise utilError("cannot resolve DNS")
+    return servernames, ipaddrs
 
 def isName(ambiguous) :
     """
@@ -72,7 +80,7 @@ def isName(ambiguous) :
     if len(ambiguous) == 0 :
         raise utilError("isName called with empty string!")
     Logger.debug("isName: got '%s'" % ambiguous)
-    if ambiguous[0] in string.digits :
+    if ambiguous[0] in string.digits : 
         return False
     else :
         return True
