@@ -43,12 +43,18 @@ class BaseService(object):
                 elif dao == "vol" :
                     from afs.dao.VolumeDAO import VolumeDAO 
                     self._volDAO = VolumeDAO()
+                elif dao == "osdvol" :
+                    from afs.dao.OSDVolumeDAO import OSDVolumeDAO 
+                    self._osdvolDAO = OSDVolumeDAO()
                 elif dao == "bnode" :
                     from afs.dao.BNodeDAO import BNodeDAO
                     self._bnodeDAO = BNodeDAO()
                 elif dao == "fs" :
                     from afs.dao.FileServerDAO import FileServerDAO
                     self._fsDAO = FileServerDAO()
+                elif dao == "osdfs" :
+                    from afs.dao.OSDFileServerDAO import OSDFileServerDAO 
+                    self._osdfsDAO = OSDFileServerDAO()
                 elif dao == "pag" :
                     from afs.dao import PAGDAO
                     self._pagDAO=PAGDAO.PAGDAO()

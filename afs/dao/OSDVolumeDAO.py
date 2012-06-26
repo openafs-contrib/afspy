@@ -1,96 +1,33 @@
-import re,sys
+import re,sys,types,string
 import afs.dao.bin
 
 from datetime import datetime
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
-from afs.dao.BaseDAO import BaseDAO
+from afs.dao.VolumeDAO import VolumeDAO
 
-class VolumeDAO(BaseDAO) :
+class OSDVolumeDAO(VolumeDAO) :
     """
     Provides Methods to query and modify live AFS-Volumes
+    Overlay to VolumesDAO adding OSD-functionality
     """
     
     def __init__(self) :
-        BaseDAO.__init__(self)
+        VolumeDAO.__init__(self)
         return
 
-    def move(self,ID, DstServer,DstPartition, cellname, token) :
-        """
-        moves this volume to a new Destination. In case of a RO, do 
-        an remove/addsite/release
-        """
-        CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        # use output for logging.
-        if rc:
-            raise VolError("Error", outerr)
-
-    def release(self,ID, cellname, token) :
-        """
-        release this volume
-        """
-        CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise VolError("Error", outerr)
-    
-    def setBlockQuota(self,ID, BlockQuota, cellname, token) :
-        """
-        sets Blockquota
-        """
-        CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise VolError("Error", outerr)
-        
-    def dump(self,ID, DumpFile,cellname, token) :
-        """
-        Dumps a volume into a file
-        """
-        CmdList=["vos", "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-             raise VolError("Error", outerr)
-
-    def restore(self,VolName,Server,Partition,DumpFile,cellname, token) :
-        """
-        Restores this (abstract) volume from a file.
-        """
-        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-             raise VolError("Error", outerr)
-    
-    def convert(self,VolName,Server,Partition,cellname, token) :
-        """
-        converts this RO-Volume to a RW
-        """
-        CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-             raise VolError("Error", outerr)
-
-    def create(self,VolName,Server,Partition,MaxQuota, cellname, token) :
+    def create(self,VolName,Server,Partition, MaxQuota, MaxFiles,osdpolicy, cellname, token) :
         """
         create a Volume
         """
         id = 0
-        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, 
+                 "-filequota", "%s" % MaxFiles ,"-osdpolicy" ,osdpolicy, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
         
         return id
-    
-    def remove(self,VolName,Server, Partition, cellname, token) :
-        """
-        remove this Volume from the Server
-        """
-        CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList) 
-        if rc:
-             raise VolError("Error", outerr)
     
     
     def getVolGroupList(self, vid, cellname, token) :
@@ -129,15 +66,9 @@ class VolumeDAO(BaseDAO) :
                 # id Volume by type
                 vid = {}
                 vid['RW'] = splits[1]
-                if len(splits) > 3 :
-                    vid['RO'] = splits[3]
-                else :
-                    sys.stderr.write("XXX: %s\n" % output[i])
-                    vid['RO'] = -1
-                if len(splits) > 5 :
-                    vid['BK'] = splits[5] 
-                else :
-                    vid['BK'] = -1
+                vid['RO'] = splits[3]
+                if len(splits) > 4 :
+                  vid['BK'] = splits[5] 
                   
                 # Number of Sites
                 i += 1
@@ -150,14 +81,12 @@ class VolumeDAO(BaseDAO) :
                     volGroup.append({"id":vid[type], 'volname': volname, "type":type,"serv":splits[1],"part":afsutil.canonicalizePartition(splits[3])})
           
                 break
-        
         return volGroup
        
 
     def getVolume(self, name_or_id, serv, part,   cellname, token) :
         """
         Volume entry via vos examine from vol-server. 
-        If Name is given, it takes precedence over ID
         """
         if part :
             part = afsutil.canonicalizePartition(part)
@@ -234,17 +163,15 @@ class VolumeDAO(BaseDAO) :
                     splits = output[i+19].split()
                     vol['maxquota']      = int(splits[1])
                     splits = output[i+20].split()
-                    vol['minquota']      = int(splits[1])
-                    splits = output[i+21].split()
                     vol['filecount']     = int(splits[1])
-                    splits = output[i+22].split()
+                    splits = output[i+21].split()
                     vol['dayUse']        = int(splits[1])
-                    splits = output[i+23].split()
+                    splits = output[i+22].split()
                     vol['weekUse']       = int(splits[1])
+                    splits = output[i+23].split()
+                    vol['osdPolicy']        = splits[1]
                     splits = output[i+24].split()
-                    vol['spare2']        = splits[1]
-                    splits = output[i+25].split()
-                    vol['spare3']        = splits[1]
+                    vol['filequota']        = splits[1]
                     break
                 else:
                     i = i+25
@@ -254,51 +181,81 @@ class VolumeDAO(BaseDAO) :
             vol = None
                     
         return vol
-    
-    
-    def getVolStat(self, vid, serv, part, cellname, token):
-        """
-        Volume stats via vos examine extended from vol-server. 
-        If Name is given, it takes precedence over ID
-        """
-        """
-        CmdList = [afs.dao.bin.VOSBIN,"examine",  "%s"  % vid ,"-extended","-cell", "%s" % cellname]
+   
+    def traverse(self,Servers, name_or_id, cellname, token) :
+        Converter={"B" : 1, "KB" : 1024, "MB" : 1024*1024, "GB" : 1024*1024*1024, "TB" : 1024*1024*1024*1024}
+        histogram={}
+        if type(Servers) == types.ListType :
+            Servers = string.join(Servers," ")
+        CmdList=[afs.dao.bin.VOSBIN, "traverse","-server", "%s" % Servers,"-id", "%s" % name_or_id,"-cell", "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc :
             raise VolError("Error", outerr)
-        
-        line_no = 0
-        line = output[line_no]
-        vol = None
-       
-        if re.search("Could not fetch the entry",line) or line == "VLDB: no such entry"  or re.search("Unknown volume ID or name",line) \
-            or re.search("does not exist in VLDB",line) :
-            return vol
-       
-        # first line gives Name, ID, Type, Used and Status 
-        find = False    
-
-        for i in range(0, len(output)):
-            splits = output[i].split()
-            #Beginnig block
-            if splits[0] == "name":
-                line1 = output[i].split()
-                line2 = output[i+1].split()
-                line3 = output[i+2].split()
-                line4 = output[i+3].split()
-                if ((line1[1] == str(vid) or\
-                     line2[1] == str(vid) ) and \
-                     (line3[1] == serv or\
-                      line3[2] == serv) and\
-                      (afsutil.canonicalizePartition(line4[1]) == part)):
-
-                    find = True
-                    splits = output[i].split()
-                    vol['name']     = splits[1]
-                    splits = output[i+1].split()
-                    vol['vid']      = int(splits[1])
-                    splits = output[i+2].split()
-                    vol['serv']     = splits[1]
-        """
-    
-    
+        # jump to logical histogram
+        histogram["logical"]=[]
+        i=0
+        while 1 :
+            if "File Size Range" in output[i] : break
+            i += 1
+        i+=2
+        while 1 :
+            if "---------" in output[i] : break
+            lowerSize,lowerUnit,dummy,upperSize,upperUnit,numFiles,FilesPerc,runFilesPerc,data,dataUnit,DataPrc,runDataPerc= output[i].split()
+            histogram["logical"].append({"lowerSize" : int(lowerSize)*Converter[lowerUnit], "upperSize" : int(upperSize)*Converter[upperUnit],
+                                         "numFiles" : int(numFiles),"binData" : round(float(data)*Converter[dataUnit])})
+            i += 1
+        i += 1
+        splits=output[i].split()
+        self.Logger.debug("splits=%s"% splits) 
+        histogram["totals"]={"logical": {"numFiles" : int(splits[1]),"Data" : round(float(splits[3])*Converter[splits[4]])}}
+        # "storage usage"
+        i+=3
+        splits=output[i].split()
+        # localdisk
+        self.Logger.debug("splits=%s"% splits) 
+        histogram["storageUsage"]={"fileserver" : {"numFiles" : int(splits[2]),"Data" :  round(float(splits[4])*Converter[splits[5]])}}
+        histogram["storageUsage"]["online"] = {"numFiles" : 0, "Data" : 0}
+        histogram["storageUsage"]["archival"] = {"numFiles" : 0, "Data" : 0} 
+        histogram["storageUsage"]["detailed"] = []
+        i+=1
+        while 1 :
+            if "---------" in output[i] : break
+            splits=output[i].split()
+            if splits[0] == "arch." :
+                histogram["storageUsage"]["archival"]["numFiles"] += int(splits[4])
+                histogram["storageUsage"]["archival"]["Data"] += round(float(splits[6])*Converter[splits[7]])
+                histogram["storageUsage"]["detailed"].append({"isArchival" : 1,"osdid": int(splits[2]),"numFiles": int(splits[4]),"Data" : round(float(splits[6])*Converter[splits[7]])})
+            else :
+                histogram["storageUsage"]["online"]["numFiles"] += int(splits[3])
+                histogram["storageUsage"]["online"]["Data"] += round(float(splits[5])*Converter[splits[6]])
+                histogram["storageUsage"]["detailed"].append({"isArchival" : 0,"osdid": int(splits[1]),"numFiles": int(splits[3]),"Data" : round(float(splits[5])*Converter[splits[6]])})
+            i += 1
+        i += 1
+        splits=output[i].split()
+        histogram["totals"]["storageUsage"]={"numFiles" : int(splits[1]),"Data" : round(float(splits[3])*Converter[splits[4]])}
+        # data without a copy
+        i+=3 
+        # localdisk
+        splits=output[i].split()
+        histogram["withoutCopy"]={"fileserver":{"numFiles" : int(splits[4]),"Data" :  round(float(splits[6])*Converter[splits[7]])}}
+        histogram["withoutCopy"]["online"] = {"numFiles" : 0, "Data" : 0}
+        histogram["withoutCopy"]["archival"] = {"numFiles" : 0, "Data" : 0}
+        histogram["withoutCopy"]["detailed"] = []
+        i+=1 
+        while 1 :
+            if "---------" in output[i] : break
+            splits=output[i].split()
+            if splits[0] == "arch." :
+                histogram["withoutCopy"]["archival"]["numFiles"] += int(splits[4])
+                histogram["withoutCopy"]["archival"]["Data"] += round(float(splits[6])*Converter[splits[7]])
+                histogram["withoutCopy"]["detailed"].append({"isArchival" : 1,"osdid": int(splits[2]),"numFiles": int(splits[4]),"Data" : round(float(splits[6])*Converter[splits[7]])})
+            else :
+                histogram["withoutCopy"]["online"]["numFiles"] += int(splits[3])
+                histogram["withoutCopy"]["online"]["Data"] += round(float(splits[5])*Converter[splits[6]])
+                histogram["withoutCopy"]["detailed"].append({"isArchival" : 0,"osdid": int(splits[1]),"numFiles": int(splits[3]),"Data" : round(float(splits[5])*Converter[splits[6]])})
+            i += 1
+        i += 1
+        splits=output[i].split()
+        histogram["totals"]["withoutCopy"]={"numFiles" : int(splits[1]),"Data" : round(float(splits[3])*Converter[splits[4]])}
+        self.Logger.debug("returning : %s" % histogram) 
+        return histogram
