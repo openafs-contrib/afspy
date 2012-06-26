@@ -64,6 +64,19 @@ def getDNSInfo(name_or_ip):
         if "nxdomain" in servernames[0] : raise utilError("cannot resolve DNS")
         return servernames, ipaddrs
 
+def isName(ambiguous) :
+    """
+    checks if name_or_ip or name_or_id is acutally the name
+    """
+    ambiguous=ambiguous.strip()
+    if len(ambiguous) == 0 :
+        raise utilError("isName called with empty string!")
+    Logger.debug("isName: got '%s'" % ambiguous)
+    if ambiguous[0] in string.digits :
+        return False
+    else :
+        return True
+
 if __name__ == "__main__"  :
    print "Some basic methods used for afspy"
    print humanReadableSize(32768*29+2342)
