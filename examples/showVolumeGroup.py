@@ -1,14 +1,16 @@
 #!/usr/bin/env python
-
-import sys
-sys.path.append("..")
-from afs.util.AfsConfig import setupDefaultConfig
-
+import argparse
+from afs.util.AfsConfig import parseDefaultConfig
 from afs.service.VolService import VolService
 import afs
 
-setupDefaultConfig()
+
+# setup Config
+myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
+parseDefaultConfig(myParser)
+
 afs.defaultConfig.CELL_NAME="ipp-garching.mpg.de"
+
 volMng = VolService()
 VolName="root.cell"
 VolG=volMng.getVolGroup(VolName)
