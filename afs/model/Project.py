@@ -20,12 +20,15 @@ class Project(BaseModel):
         self.id = None
         ## name
         self.name   = ""
-        ## python list of regexes
-        self.volnameRegEx=[]
-        ## python list of additional Volumenames
-        self.additionalVolnames=[]
-        ## python list of excluded Volumenames
-        self.excludedVolnames=[]
+        ## list of regexes, json encoded
+        self.volnameRegEx_js="[]"
+        self.volnameRegEx=None
+        ## list of additional Volumenames, json encoded
+        self.additionalVolnames_js="[]"
+        self.additionalVolnames=None
+        ## list of excluded Volumenames , json encoded
+        self.excludedVolnames_js="[]"
+        self.excludedVolnames=None
         ## minimum Size for a Volume
         self.minSize_kB=-1
         ## maximum Size for a volume
@@ -34,19 +37,27 @@ class Project(BaseModel):
         self.contact = ""
         ## owner 
         self.owner = ""
-        ## python list of locations for RW-Volumes
-        self.rw_locations=[]
-        ## python list of locations for RO-Volumes
-        self.ro_locations=[]
-        ## python list of server/partition pairs for RW-Volumes
-        self.rw_serverparts=[]
-        ## python list of server/partition pairs for RO-Volumes
-        self.ro_serverparts=[]
+        ## list of locationIDs for RW-Volumes, json encoded
+        self.rw_locations_js="[]"
+        self.rw_locations=None
+        ## list of locationIDs for RO-Volumes, json encoded
+        self.ro_locations_js="[]"
+        self.ro_locations=None
+        ## list of "server-uuid,partition" pairs for RW-Volumes, json encoded
+        self.rw_serverparts_js="[[]]"
+        self.rw_serverparts=None
+        ## list of "server-uuid,partition" pairs for RO-Volumes, json encoded
+        self.ro_serverparts_js="[[]]"
+        self.ro_serverparts=None
+        ## free form description
+        self.description=""
         ## minimum number of RO-replicas
-        self.minnum_ro=-1
+        self.minnum_ro=2
         ## creation date in database
         self.cdate   = datetime.now()
         ## update date in database
         self.udate   = datetime.now()
         ## ???
         self.sync    = 0
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []

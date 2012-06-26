@@ -9,8 +9,8 @@ class VLDB(BaseModel) :
         """
         Initializes empty shell
         """
-        ## list of server Objs providing this DB
-        self.DBServers=[]
+        ## CSV-list of servernames providing this DB
+        self.DBServers=""
         ## syncsite, master-server
         self.SyncServer=None
         ## ?
@@ -21,4 +21,6 @@ class VLDB(BaseModel) :
         self.cdate   = datetime.now()
         ## update
         self.udate   = datetime.now()
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []
         return

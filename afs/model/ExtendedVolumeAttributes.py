@@ -9,7 +9,7 @@ class ExtVolAttr(BaseModel):
     IN DB_CACHE, this is stored in an own table
     """
     
-    def __init__(self, vid=-1, mincopy=0, owner='', projectID=-1):
+    def __init__(self, vid=-1, mincopy=0, owner='', projectIDs=""):
         """
         initialize an empty object
         """
@@ -20,8 +20,9 @@ class ExtVolAttr(BaseModel):
         self.mincopy       = mincopy
         ## Owner of the volume (string)
         self.owner         = owner
-        ## projectID this Volume belongs to
-        self.projectID       = projectID
+        ## json-encodedlist of projectIDs this Volume belongs to
+        self.projectIDs_js       = '[]'
+        self.projectIDs       = None
         ## if volume should stay on the present server.
         self.pinnedOnServer = 0
         ## creation date of this object
@@ -30,3 +31,5 @@ class ExtVolAttr(BaseModel):
         self.udate         = datetime.now()
         ##  flag if this object is in sync with reality
         self.sync          = 0
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []

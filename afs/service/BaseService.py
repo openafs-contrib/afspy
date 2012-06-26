@@ -1,6 +1,7 @@
 import logging
 
 from afs.exceptions.AfsError import AfsError
+from DBCacheService import DBCacheService
 
 import afs
 
@@ -26,9 +27,12 @@ class BaseService(object):
         
         # DB INIT 
         if self._CFG.DB_CACHE :
-            from sqlalchemy import or_
-            self.DbSession = afs.DbSessionFactory()
-            self.or_ = or_
+            self.DBCService=DBCacheService()
+        else : # this is a simple object raising an error if called.
+            class NODBCacheService :
+                def __init__(self) :
+                    raise AfsError("No DBcache defined.")
+            self.DBCService=NODBCacheService()
         
         # DAO INIT 
         if self._CFG.DAOImplementation == "childprocs" :
@@ -61,19 +65,3 @@ class BaseService(object):
                     raise AfsError("internal Error. invalid DAO '%s' requested" % dao)
         else :
             raise AfsError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)
-    
-    def execQuery(self, query):
-        conn = self._CFG.DB_ENGINE.connect()
-        res = conn.execute(query)
-        conn.close()
-        return res
-    
-    def execOrmQuery(self,orm):
-        session = self.DbSession()
-        
-        res = eval(orm)
-            
-        session.commit()
-        session.close()
-        
-        return res

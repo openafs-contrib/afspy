@@ -5,6 +5,7 @@ from afs.exceptions.AfsError import AfsError
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.Volume import Volume
 from afs.model.Partition import Partition
+from afs.model.Project import Project
 from afs.util  import afsutil
 
 
@@ -49,7 +50,7 @@ class FsService (BaseService):
         if partname:    
             vols = self._fsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, self._CFG.Token)
         else:
-            parts = self.getPartitions(servername,self._CFG.CELL_NAME, cached=cached)
+            parts = self.getPartitions(servername,cached=cached)
             for part in parts:
                 vols += self._fsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, self._CFG.Token)
         return vols
@@ -67,9 +68,11 @@ class FsService (BaseService):
             return None
         
         if cached :
-            uuid=self.getUUID(name_or_ip,   cached)
-            FileServer=self._getServerFromCache(uuid)
-            FileServer.parts = self.getPartitions(name_or_ip, cached)
+            uuid=self.getUUID(name_or_ip, cached)
+            FileServer=self.DBCService.getFromCache(Server,uuid=uuid)
+            FileServer.parts = {}
+            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=uuid) :
+                FileServer.parts[p.name] = p.getDict()
             return FileServer
 
         FileServer =Server()
@@ -80,17 +83,16 @@ class FsService (BaseService):
         # Partitions
         FileServer.parts = self.getPartitions(name_or_ip,cached)
         if self._CFG.DB_CACHE :
-            self._setServerIntoCache(FileServer)
+            self.DBCService.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
             for p in FileServer.parts  :
                 part=Partition()
+                self.Logger.debug("Setting part to %s" % FileServer.parts[p])
                 part.setByDict(FileServer.parts[p])
-                self._setPartIntoCache(part, FileServer.uuid)
+                self.DBCService.setIntoCache(Partition,part,serv_uuid=FileServer.uuid,name=p)
         # Projects
         # these we get directly from the DB_Cache
-        if cached :
-            FileServer.projects = self._getProjectsFromCache( FileServer.uuid)
-        else :
-            FileServer.projects = []
+        
+        FileServer.projects = []
         return FileServer
 
     #
@@ -105,7 +107,7 @@ class FsService (BaseService):
         servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
         uuid=""
         if cached :
-            return self._getUUIDFromCache(servernames)
+            return self._getUUIDFromCache(name_or_ip)
         else :
             FileServer=Server()
             uuid=self._vlDAO.getFsUUID(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
@@ -113,34 +115,37 @@ class FsService (BaseService):
             FileServer.servernames=servernames
             FileServer.ipaddrs=ipaddrs
             if  self._CFG.DB_CACHE:
-                self._setServerIntoCache(FileServer)
+                self.DBCService.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
+
         return FileServer.uuid
 
-    def getProjects(self, name_or_ip):
+    def getProjectsonPartitions(self, name_or_ip):
         """
         return a dict ["partition-name"]["projectname"]["VolumeType"]=numVolumes
         """
+        raise AfsError("Not implemented yet.")
         if not self._CFG.DB_CACHE:
             raise AfsError("DB_CACHE not configured")
-        serv_uuid=self.getUUID(name_or_ip)
-        print  self.DbSession.query(Volume).join((ExtVolAttr, Volume.vid==ExtVolAttr.vid)).filter(Volume.serv_uuid==serv_uuid)
+        serv_uuid=self.getUUID(name_or_ip,cached=True)
         projDict={}
+        for p in self.DBCService.getFromJoinwithFilter(Volume,ExtVolAttr, Volume.vid,ExtVolAttr.vid,serv_uuid = serv_uuid) :
+           projDict["a"]=None
         return projDict
         
     def getPartitions(self, name_or_ip, cached=False):
         """
-        return dict ["partname"]={"numROVolumes", "numRWVolumes","usage","free","total" }
+        return dict ["partname"]={"numROVolumes", "numRWVolumes","usage","free","total","serv_uuid" }
         """
+        serv_uuid=self.getUUID(name_or_ip, cached)
         if cached :
-            serv_uuid=self.getUUID(name_or_ip, cached)
             partDict={}
-            for p in  self._getPartsFromCache(serv_uuid) :
+            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
             return partDict
-
         partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
         partDict={}
         for p in partList :
+            p["serv_uuid"]=serv_uuid
             partDict[p["name"]]=p
         return partDict
 
@@ -161,83 +166,21 @@ class FsService (BaseService):
         """
         if not self._CFG.DB_CACHE:
             raise AfsError("DB_CACHE not configured")
-        
-        serv=self.DbSession.query(Server).filter(self.or_(Server.servernames.like(name_or_ip), Server.ipaddrs.like(name_or_ip) )).first()
-        self.Logger.debug("%s gives %s" % (name_or_ip, serv))
-        if serv :
-            return serv.uuid
+        self.Logger.debug("%s isName: %s" % (name_or_ip,afsutil.isName(name_or_ip)))
+        if afsutil.isName(name_or_ip) :
+            list=self.DBCService.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
         else :
+            list=self.DBCService.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
+        self.Logger.debug("%s gives %s" % (name_or_ip, list))
+        uuidlist=[] 
+        for l in list :
+            uuidlist.append(l.uuid)
+        if len(uuidlist) == 0:
             return None
+        elif len(uuidlist) == 1 :
+            return uuidlist[0]
+        else :
+            self.Logger.info("%s gives more than one uuid :%s" % (name_or_ip, uuidlist))
+            return uuidlist
 
-    def _getServerFromCache(self, uuid):
-        """
-        get data from Cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        serv= self.DbSession.query(Server).filter(Server.uuid == uuid).first()
-        self.Logger.debug("%s gives %s" % (uuid, serv))
-        return serv
-        
-    def _getPartsFromCache(self, serv_uuid):
-        """
-        get data from Cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        parts=self.DbSession.query(Partition).filter(Partition.serv_uuid == serv_uuid).all()
-        self.Logger.debug("%s gives %s" % (serv_uuid, parts))
-        return parts
-        
-    def _setServerIntoCache(self,serv):
-        """
-        update DB cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        servCache = self.DbSession.query(Server).filter(Server.uuid == serv.uuid).first()
-        if servCache:
-            servCache.copyObj(serv)
-            self.DbSession.flush()
-        else:
-            servCache=self.DbSession.merge(serv)  
-            self.DbSession.flush()
-        return servCache    
-        
-    def _setPartIntoCache(self, part, serv_uuid):
-        """
-        update DB cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        part.serv_uuid=serv_uuid
-        self.Logger.debug("setting into cache: %s" % part)
-        partCache = self.DbSession.query(Partition).filter(Partition.serv_uuid == serv_uuid).filter(Partition.name == part.name).first()
-        if partCache:
-            partCache.copyObj(part)
-            self.DbSession.flush()
-        else:
-            partCache=self.DbSession.merge(part)  
-            self.DbSession.flush()
-        self.DbSession.commit()  
-        return partCache
     
-    def _delServerFromCache(self,serv):
-        """
-        remove object from cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        # Do update
-        self.DbSession.delete(serv)
-        self.DbSession.commit()
-        
-    def _delPartsFromCache(self,parts):
-        """
-        remove object from cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        # Do update
-        self.DbSession.delete(parts)
-        self.DbSession.commit()

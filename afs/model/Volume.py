@@ -51,6 +51,8 @@ class Volume(BaseModel) :
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0    
+        ## list of attributes not to put into the DB
+        self.ignAttrList= ['ExtAttr','OsdAttr']
     
     #@property
     #  create property for timestamp

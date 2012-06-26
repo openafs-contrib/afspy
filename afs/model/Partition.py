@@ -19,15 +19,27 @@ class Partition(BaseModel):
         self.name   = name
         ## device-file
         self.device = ''
-        ## list of projects-id having volumes on that partition
-        self.projectIDs=[]
+        ## CSV-list of projects-id 
+        ## json-encodedlist of projectIDs having volumes on that partition
+        self.projectIDs_js       = '[]'
+        self.projectIDs=None
+        ## free size in bytes
         self.free   = free
+        ## total size in bytes
         self.size   = size
+        ## used size in bytes
         self.used   = used
+        ## used perc in bytes
         self.usedPerc   = usedPerc
+        ## ?
         self.status = ''
+        ## ?
         self.description = ''
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
+        ## ??
         self.sync    = 0
+        ## ??
         self.isComplete = False
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []

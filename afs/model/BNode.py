@@ -16,7 +16,7 @@ class BNode(BaseModel):
         self.bos_id = bos_id
         self.BNodeType=BNodeType
         # FIXME : what to do with procs of type cron ? Need to check, man pages dont say much
-        self.Commands= []       
+        self.Commands= ''      
         self.status = ''
         self.startdate = ''
         self.startcount = ''
@@ -32,5 +32,5 @@ class BNode(BaseModel):
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
         self.sync    = 0
-  
-  
+        ## list of attributes not to put into the DB
+        self.ignAttrList= []

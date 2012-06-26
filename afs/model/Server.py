@@ -18,9 +18,11 @@ class Server(BaseModel):
         ## AFS Server UUID
         self.uuid = ""
         ## list of DNS-hostnames
-        self.servernames = []
+        self.servernames = None
+        self.servernames_js = ""
         ## list of ipaddrs
-        self.ipaddrs = []
+        self.ipaddrs = None 
+        self.ipaddrs_js = ""
         ## flag if this server is a fileserver
         self.fileserver = 0
         ## flag if this server is a databaseserver
@@ -47,3 +49,5 @@ class Server(BaseModel):
         self.sync    = 0
         ## flag if this object is not fully filled yet
         self.isComplete = False
+        ## list of attributes not to put into the DB
+        self.ignAttrList= ['parts']
