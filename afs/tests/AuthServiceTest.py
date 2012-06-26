@@ -7,6 +7,10 @@ from afs.service import AuthService
 import afs
 
 
+global Krb5Principal,Krb5Keytab
+Krb5Principal=""
+Krb5Keytab=""
+
 class TestAuthServiceMethods(unittest.TestCase, basicTestSetup):
     """
     Tests AuthService Methods
@@ -18,6 +22,8 @@ class TestAuthServiceMethods(unittest.TestCase, basicTestSetup):
         """
         basicTestSetup.setUp(self)
         self.AuthService = AuthService.AuthService()
+        Krb5Keytab=self.TestCfg.get("AuthService", "Krb5Keytab")
+        Krb5Principal=self.TestCfg.get("AuthService", "Krb5Principal")
         return
     
     def test_getTokenFromPAG(self) :
@@ -32,14 +38,17 @@ class TestAuthServiceMethods(unittest.TestCase, basicTestSetup):
         self.assertEqual(123,token.AFS_ID)
         return
         
+    @unittest.skipIf(len(Krb5Principal) == 0, "no Krb5 Principal given.")
     def test_getTokenFromPassword(self):
         afs.defaultConfig.CRED_TYPE="krb5_password"
+        afs.defaultConfig.KRB5_PRINC=Krb5Principal
         token=self.AuthService.getToken()
         self.assertEqual(self.Cell, token.CELL_NAME)
         return
     
+    @unittest.skipIf(len(Krb5Keytab) == 0, "no Krb5 Keytab given.")
     def test_getTokenFromKeytab(self):
-        afs.defaultConfig.CRED_TYPE="krb5_keytab:/home/hanke/private/keytab"
+        afs.defaultConfig.CRED_TYPE="krb5_keytab:%s" % self.Keytab
         token=self.AuthService.getToken()
         self.assertEqual(self.Cell, token.CELL_NAME)
         return

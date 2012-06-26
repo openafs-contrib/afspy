@@ -45,7 +45,7 @@ class TestFsServiceSetMethods(unittest.TestCase, SetupTest):
     def test_getRestartTimes(self):
         TimesDict = self.FsMng.getRestartTimes(self.FsName)
         self.assertEqual("never",TimesDict["general"])
-        self.assertEqual("5:00 am",TimesDict["binary"])
+        self.assertEqual("never",TimesDict["binary"])
         return
         
     def test_getServerObj(self) :

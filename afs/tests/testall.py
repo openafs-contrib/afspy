@@ -2,15 +2,20 @@
 
 import os,subprocess,string,sys
 
+ConfigFile="/usr/local/lib/python2.7/site-packages/afs/etc/Test.cfg"
 numFailed=0
 exit_on_fail=True
-
-for f in os.listdir(".") :
+useOSD=False
+Tests=os.listdir(".")
+Tests.sort()
+for f in Tests :
     if f in ["testall.py","BaseTest.py"] : continue
+    if not useOSD and "OSD" in f : continue
+    if useOSD and "OSD%s" % f in Tests : continue
     if "Test" in f and f[-3:] == ".py" :
         print "Executing test %s" % f
         print "================="
-        CmdList=["python",f]
+        CmdList=["python",f,"--setup",ConfigFile]
         pipo=subprocess.Popen(CmdList,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         _output,_outerr=pipo.communicate() 
         _output=map(string.strip,_output.split("\n"))
