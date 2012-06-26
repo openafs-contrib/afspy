@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
-import sys, string, time
-sys.path.append("..")
+import sys, string, time,argparse
 
-from afs.util.AfsConfig import  setupDefaultConfig
-from afs.service.CellService import CellService
 import afs
+from afs.util.AfsConfig import parseDefaultConfig
+from afs.service.CellService import CellService
 
 
 # setup Config
-setupDefaultConfig()
+myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
+parseDefaultConfig(myParser)
+
 afs.defaultConfig.CELL_NAME="ipp-garching.mpg.de"
 
 # init services
@@ -38,7 +39,7 @@ def printServerList(CellInfo):
 
 startTime=time.mktime(time.localtime())
 
-CellInfo=CS.getCellInfo()
+CellInfo=CS.getCellInfo(cached=False)
 endTime=time.mktime(time.localtime())
 
 printServerList(CellInfo)
