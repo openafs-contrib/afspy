@@ -1,7 +1,6 @@
 import os, atexit, string
 import types
 import logging
-import sqlalchemy
 import tempfile
 from afs.exceptions.AfsError import AfsError
 import afs
@@ -119,6 +118,7 @@ def parseDefaultConfig(myParser=None):
     
     # setup DB_CACHE
     if afs.defaultConfig.DB_CACHE :
+        import sqlalchemy
         afs.defaultConfig.DB_ENGINE=afs.orm.DbMapper.createDbEngine(afs.defaultConfig)
         afs.orm.DbMapper.setupDbMappers(afs.defaultConfig)
         afs.DbSessionFactory=sqlalchemy.orm.sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
