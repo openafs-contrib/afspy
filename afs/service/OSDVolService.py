@@ -23,6 +23,31 @@ class OSDVolService (VolService):
         BaseService.__init__(self, conf, DAOList=["osdvol","fs"])
         self.CS=CellService()
         self.FsS=FsService()
+
+    """
+    Retrieve Volume Group
+    """
+    def getVolGroup(self, id , cached=False):
+        self.Logger.debug("entering with id=%s" % id) 
+        if cached :
+            return self.DBCService.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
+        list = self._osdvolDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
+        volGroup = None
+        if len(list) > 0:
+            volGroup =  VolumeGroup()
+            for el in list:
+                volGroup.name = el['volname']
+                if el['type'] == 'RW':
+                    volGroup.RW=el
+                elif el['type'] == 'RO':
+                    volGroup.RO.append(el)
+                else :
+                    volGroup.BK=el
+        self.Logger.debug("returning : %s" % volGroup)
+        if self._CFG.DB_CACHE :
+            self.DBCService.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
+        return volGroup
+
     
 
     """

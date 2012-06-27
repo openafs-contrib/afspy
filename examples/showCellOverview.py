@@ -5,6 +5,7 @@ import sys, string, time,argparse
 import afs
 from afs.util.AfsConfig import parseDefaultConfig
 from afs.service.CellService import CellService
+from afs.exceptions.AfsError import AfsError
 
 
 # setup Config
@@ -48,9 +49,11 @@ print "Time required to get information : %d secs" % (endTime-startTime)
 
 # get a light-weight list of all fileservers and dbservers querying the Cell
 
-startTime=time.mktime(time.localtime())
-CellInfo=CS.getCellInfo(cached=True)
-endTime=time.mktime(time.localtime())
-
-printServerList(CellInfo)
-print "Time required to get information : %d secs" % (endTime-startTime)
+try :
+    startTime=time.mktime(time.localtime())
+    CellInfo=CS.getCellInfo(cached=True)
+    endTime=time.mktime(time.localtime())
+    printServerList(CellInfo)
+    print "Time required to get information : %d secs" % (endTime-startTime)
+except AfsError:
+    print "No DB-Cache defined."
