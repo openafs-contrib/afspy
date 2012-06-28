@@ -20,17 +20,18 @@ class VolumeDAO(BaseDAO) :
         moves this volume to a new Destination. In case of a RO, do 
         an remove/addsite/release
         """
-        CmdList=["vos", "move","%s" % ID, "-cell",  "%s" % cellname ]
+        CmdList=[afs.dao.bin.VOSBIN, "move","%s" % ID, "-cell",  "%s" % cellname ]
         rc,output,outerr=self.execute(CmdList)
         # use output for logging.
         if rc:
             raise VolError("Error", outerr)
+        return True
 
     def release(self,ID, cellname, token) :
         """
         release this volume
         """
-        CmdList=["vos", "release","%s" % ID, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "release","%s" % ID, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
@@ -39,7 +40,7 @@ class VolumeDAO(BaseDAO) :
         """
         sets Blockquota
         """
-        CmdList=["vos", "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
             raise VolError("Error", outerr)
@@ -48,7 +49,7 @@ class VolumeDAO(BaseDAO) :
         """
         Dumps a volume into a file
         """
-        CmdList=["vos", "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -57,7 +58,7 @@ class VolumeDAO(BaseDAO) :
         """
         Restores this (abstract) volume from a file.
         """
-        CmdList=["vos", "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -66,7 +67,7 @@ class VolumeDAO(BaseDAO) :
         """
         converts this RO-Volume to a RW
         """
-        CmdList=["vos", "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -76,7 +77,7 @@ class VolumeDAO(BaseDAO) :
         create a Volume
         """
         id = 0
-        CmdList=["vos", "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % cellname]
+        CmdList=[afs.dao.bin.VOSBIN, "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
         if rc:
              raise VolError("Error", outerr)
@@ -87,7 +88,7 @@ class VolumeDAO(BaseDAO) :
         """
         remove this Volume from the Server
         """
-        CmdList=["vos", "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
+        CmdList=[afs.dao.bin.VOSBIN, "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=self.execute(CmdList) 
         if rc:
              raise VolError("Error", outerr)
