@@ -23,18 +23,18 @@ class FsService (BaseService):
     # BNode Section
     ##############################################
 
-    def getRestartTimes(self,name):
+    def getRestartTimes(self,name_or_ip):
             """
             return Dict about the restart times of the afs-server
             """
-            TimesDict=self._bnodeDAO.getRestartTimes(name, self._CFG.CELL_NAME, self._CFG.Token)
+            TimesDict=self._bnodeDAO.getRestartTimes(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
             return TimesDict
             
-    def setRestartTimes(self,name,time, restarttype):
+    def setRestartTimes(self,name_or_ip,time, restarttype):
             """
             Ask Bosserver about the restart times of the fileserver
             """
-            self._bnodeDAO.setRestartTimes(name,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
+            self._bnodeDAO.setRestartTimes(name_or_ip,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
             return
 
     ###############################################
@@ -99,25 +99,27 @@ class FsService (BaseService):
     # convenience functions  
     #
 
-    def getUUID(self, name_or_ip="",cached=False):
+    def getHostnameByUUID(self,uuid,cached=False) :
+        """
+        returns hostname of a fileserver by uuid
+        """
+        for fs in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token) :
+            if fs['uuid'] == uuid :
+               return fs['name_or_ip']
+        return None
+        
+    def getUUID(self, name_or_ip,cached=False):
         """
         returns UUID of a fileserver, which is used as key for server-entries
-        in other tables
+        in other tables. This does not silently update the Cache
         """
         servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
         uuid=""
         if cached :
             return self._getUUIDFromCache(name_or_ip)
         else :
-            FileServer=Server()
             uuid=self._vlDAO.getFsUUID(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
-            FileServer.uuid=uuid
-            FileServer.servernames=servernames
-            FileServer.ipaddrs=ipaddrs
-            if  self._CFG.DB_CACHE:
-                self.DBCService.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
-
-        return FileServer.uuid
+        return uuid
 
     def getProjectsonPartitions(self, name_or_ip):
         """
