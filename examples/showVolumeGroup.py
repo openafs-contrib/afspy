@@ -2,6 +2,7 @@
 import argparse
 from afs.util.AfsConfig import parseDefaultConfig
 from afs.service.VolService import VolService
+from afs.service.OSDVolService import OSDVolService
 import afs
 
 
@@ -11,7 +12,8 @@ parseDefaultConfig(myParser)
 
 afs.defaultConfig.CELL_NAME="ipp-garching.mpg.de"
 
-volMng = VolService()
+# XXX we should have some util-function to check if we use OSD-bianries or not !?
+volMng = OSDVolService()
 VolName="root.cell"
 VolG=volMng.getVolGroup(VolName)
 print "Volume Group: %s " %VolG

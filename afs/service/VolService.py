@@ -60,7 +60,7 @@ class VolService (BaseService):
             else :
                 vol=self.DBCService.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
             return vol
-        vdict = self._volDAO.getVolume(name, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
+        vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         vdict["serv_uuid"]=self.FsS.getUUID(serv)
         vdict.pop("serv")
         vol = None

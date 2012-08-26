@@ -1,7 +1,6 @@
 import logging
 
 from afs.exceptions.AfsError import AfsError
-from DBCacheService import DBCacheService
 
 import afs
 
@@ -27,11 +26,10 @@ class BaseService(object):
         
         # DB INIT 
         if self._CFG.DB_CACHE :
+            from DBCacheService import DBCacheService
             self.DBCService=DBCacheService()
         else : # this is a simple object raising an error if called.
-            class NODBCacheService :
-                def __init__(self) :
-                    raise AfsError("No DBcache defined.")
+            from NODBCacheService import NODBCacheService    
             self.DBCService=NODBCacheService()
         
         # DAO INIT 
