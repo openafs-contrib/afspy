@@ -3,7 +3,6 @@ from afs.model.Volume import Volume
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
-from afs.service.CellService import CellService
 from afs.service.FsService import FsService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
@@ -19,7 +18,6 @@ class VolService (BaseService):
     
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["vol","fs"])
-        self.CS=CellService()
         self.FsS=FsService()
        
     ###############################################

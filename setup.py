@@ -5,8 +5,8 @@ from distutils.core import setup
 if len(sys.argv) == 2 :
    if sys.argv[1] == "install" :
       print "Configuration of afspy-module..."
-      doModify=raw_input("Do you want to modify the config file afs/etc/afspy.cfg ? [Y/n]")
-      if doModify == "" or doModify.lower() == "y" :
+      doModify=raw_input("Do you want to modify the config file afs/etc/afspy.cfg ? [y/N]")
+      if doModify.lower() == "y" :
             configFilenname="afs/etc/afspy.cfg"
             templateFilename="{0}.template".format(configFilenname)
             # read in template file
