@@ -1,4 +1,3 @@
-
 from afs.service.BaseService import BaseService
 from afs.model.Server import Server
 from afs.exceptions.AfsError import AfsError
@@ -43,7 +42,8 @@ class FsService (BaseService):
     
     def getVolList(self,servername, partname=None, cached=False):
         """
-        Retrieve Volume List
+        Retrieve Volume List.
+        Update attribute 'booked' in the DBCache 
         """
         vols = []
             
@@ -61,25 +61,39 @@ class FsService (BaseService):
     
     def getFileServer(self,name_or_ip,cached=False):
         """
-        Retrieve Server 
+        Retrieve Fileserver Object by hostname or IP and update DBCache, if enabled 
         """
         self.Logger.debug("Entering getFileServer")
+
         if name_or_ip in self._CFG.ignoreIPList :
             return None
         
+        uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
+        return self.getFileServerByUUID(uuid,cached=False)
+
+    def getFileServerByUUID(self,uuid,name_or_ip="",cached=False):
+        """
+        Retrieve Fileserver Object by UUID and update DBCache, if enabled.
+        """
+        self.Logger.debug("Entering getFileServerByUUID with uuid=%s" % uuid)
+
         if cached :
-            uuid=self.getUUID(name_or_ip, cached)
             FileServer=self.DBCService.getFromCache(Server,uuid=uuid)
             FileServer.parts = {}
             for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=uuid) :
                 FileServer.parts[p.name] = p.getDict()
             return FileServer
 
-        FileServer =Server()
+        # avoid uuid->hostname lookup if we already have that info
+        if name_or_ip == "" :
+            name_or_ip=afsutil.getHostnameByFSUUID(uuid,self._CFG,cached)
+
+        FileServer = Server()
         # get DNS-info about server
         FileServer.servernames, FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
         # UUID
-        FileServer.uuid=self.getUUID(name_or_ip,  cached)
+        FileServer.uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG, cached)
+
         # Partitions
         FileServer.parts = self.getPartitions(name_or_ip,cached)
         if self._CFG.DB_CACHE :
@@ -88,38 +102,14 @@ class FsService (BaseService):
                 part=Partition()
                 self.Logger.debug("Setting part to %s" % FileServer.parts[p])
                 part.setByDict(FileServer.parts[p])
+                part.serv_uuid=FileServer.uuid
                 self.DBCService.setIntoCache(Partition,part,serv_uuid=FileServer.uuid,name=p)
+
         # Projects
         # these we get directly from the DB_Cache
         
         FileServer.projects = []
         return FileServer
-
-    #
-    # convenience functions  
-    #
-
-    def getHostnameByUUID(self,uuid,cached=False) :
-        """
-        returns hostname of a fileserver by uuid
-        """
-        for fs in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token) :
-            if fs['uuid'] == uuid :
-               return fs['name_or_ip']
-        return None
-        
-    def getUUID(self, name_or_ip,cached=False):
-        """
-        returns UUID of a fileserver, which is used as key for server-entries
-        in other tables. This does not silently update the Cache
-        """
-        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
-        uuid=""
-        if cached :
-            return self._getUUIDFromCache(name_or_ip)
-        else :
-            uuid=self._vlDAO.getFsUUID(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
-        return uuid
 
     def getProjectsonPartitions(self, name_or_ip):
         """
@@ -128,7 +118,7 @@ class FsService (BaseService):
         raise AfsError("Not implemented yet.")
         if not self._CFG.DB_CACHE:
             raise AfsError("DB_CACHE not configured")
-        serv_uuid=self.getUUID(name_or_ip,cached=True)
+        serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(name_or_ip,self._CFG)
         projDict={}
         for p in self.DBCService.getFromJoinwithFilter(Volume,ExtVolAttr, Volume.vid,ExtVolAttr.vid,serv_uuid = serv_uuid) :
            projDict["a"]=None
@@ -138,7 +128,7 @@ class FsService (BaseService):
         """
         return dict ["partname"]={"numROVolumes", "numRWVolumes","usage","free","total","serv_uuid" }
         """
-        serv_uuid=self.getUUID(name_or_ip, cached)
+        serv_uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG,cached)
         if cached :
             partDict={}
             for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
@@ -162,27 +152,3 @@ class FsService (BaseService):
     #  Internal Cache Management 
     ################################################
 
-    def _getUUIDFromCache(self, name_or_ip):
-        """
-        get data from Cache
-        """
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        self.Logger.debug("%s isName: %s" % (name_or_ip,afsutil.isName(name_or_ip)))
-        if afsutil.isName(name_or_ip) :
-            list=self.DBCService.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
-        else :
-            list=self.DBCService.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
-        self.Logger.debug("%s gives %s" % (name_or_ip, list))
-        uuidlist=[] 
-        for l in list :
-            uuidlist.append(l.uuid)
-        if len(uuidlist) == 0:
-            return None
-        elif len(uuidlist) == 1 :
-            return uuidlist[0]
-        else :
-            self.Logger.info("%s gives more than one uuid :%s" % (name_or_ip, uuidlist))
-            return uuidlist
-
-    

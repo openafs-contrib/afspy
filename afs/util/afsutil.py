@@ -3,10 +3,10 @@
 import re,types, socket, logging,string
 import afs
 
+
 useRXOSD=True
 # log-level is set in AfsConfig
 Logger=logging.getLogger("afs.util")
-
 
 SizeUnit=['kB','MB','GB','TB','PB']
 PartRX=re.compile("/?(?:vicep)?([a-z][a-z]?)")
@@ -84,6 +84,74 @@ def isName(ambiguous) :
         return False
     else :
         return True
+
+
+#
+# FSUUID - translations
+#
+# In AFS all fileservers have a uuid. This is used in the database
+# to identify a fileserver
+# 
+
+def getFSUUIDByName_IP(name_or_ip,CFG,cached=False):
+    """
+    returns UUID of a fileserver, which is used as key for server-entries
+    in other tables. This does not silently update the Cache
+    """
+    if cached :
+        return getFSUUIDByName_IP_FromCache(name_or_ip,CFG)
+    from afs.dao.VLDbDAO import VLDbDAO
+    Logger.debug("getFSUUID: called with %s" % name_or_ip)
+    servernames, ipaddrs=getDNSInfo(name_or_ip)
+    uuid=""
+    _vlDAO=VLDbDAO()
+    uuid=_vlDAO.getFsUUID(name_or_ip,CFG.CELL_NAME,None)
+    return uuid
+
+def getFSUUIDByName_IP_FromCache(name_or_ip,CFG):
+    """
+    get data from Cache
+    """
+    from afs.service.DBCacheService import DBCacheService
+    from afs.model.Server import Server
+    if not CFG.DB_CACHE:
+        raise AfsError("DB_CACHE not configured")
+    DBCService=DBCacheService(CFG)
+    Logger.debug("getFSUUIDFromCache: called with %s" % name_or_ip)
+    if isName(name_or_ip) :
+        list=DBCService.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
+    else :
+        list=DBCService.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
+    uuidlist=[] 
+    for l in list :
+        uuidlist.append(l.uuid)
+    if len(uuidlist) == 0:
+        return None
+    elif len(uuidlist) == 1 :
+        return uuidlist[0]
+    else :
+        return uuidlist
+
+def getHostnameByFSUUID(uuid,CFG,cached=False) :
+    """
+    returns hostname of a fileserver by uuid
+    """
+    from afs.dao.VLDbDAO import VLDbDAO
+    _vlDAO=VLDbDAO()
+    for fs in _vlDAO.getFsServList(CFG.CELL_NAME,None ) :
+        if fs['uuid'] == uuid :
+           return fs['name_or_ip']
+    return None
+
+def getHostnameByFSUUIDFromCache(uuid,CFG,cached=False) :
+    from afs.service.DBCacheService import DBCacheService
+    from afs.model.Server import Server
+    if not CFG.DB_CACHE:
+        raise AfsError("DB_CACHE not configured")
+    raise utilError("notimplemented yet.")
+    return hostname
+    
+
 
 if __name__ == "__main__"  :
    print "Some basic methods used for afspy"

@@ -21,8 +21,6 @@ class OSDVolService (VolService):
     
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["osdvol","fs"])
-        self.CS=CellService()
-        self.FsS=FsService()
 
     """
     Retrieve Volume Group
@@ -55,8 +53,9 @@ class OSDVolService (VolService):
     Overridden from VolService.
     """
     def getVolume(self, name_or_id, serv, part,  cached=False):
+        self.Logger.debug("Entering with name_or_id=%s, serv=%s, part=%s,cached=%s",name_or_id, serv, part,  cached) 
         if cached :
-            serv_uuid=self.FsS.getUUID(serv, cached=cached)
+            serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
             vol=self.DBCService.getFromCache(name_or_id, serv_uuid, part)
             vol.OsdAttr=self.DBCService.getFromCache(OsdVolAttr,vid=vid)
             return vol
@@ -69,7 +68,7 @@ class OSDVolService (VolService):
         vdict["block_osd_on"]=StorageUsage["storageUsage"]["online"]["Data"]
         vdict["block_osd_off"]=StorageUsage["storageUsage"]["archival"]["Data"]
         vdict["block_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
-        vdict["serv_uuid"]=self.FsS.getUUID(serv)
+        vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
         vdict.pop("serv")
         for k in vdict.keys() :
             if k in odict.keys() : 

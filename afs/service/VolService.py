@@ -3,7 +3,6 @@ from afs.model.Volume import Volume
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
-from afs.service.FsService import FsService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
 from afs.util import afsutil
@@ -18,7 +17,6 @@ class VolService (BaseService):
     
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["vol","fs"])
-        self.FsS=FsService()
        
     ###############################################
     # Volume Section
@@ -53,7 +51,7 @@ class VolService (BaseService):
     """
     def getVolume(self, name_or_id, serv, part,  cached=False):
         if cached :
-            serv_uuid=self.FsS.getUUID(serv, cached=cached)
+            serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
             # need function in util name_or_ip and name_or_id?
             if afsutil.isName(name_or_id) :
                 vol=self.DBCService.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
@@ -61,7 +59,9 @@ class VolService (BaseService):
                 vol=self.DBCService.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
             return vol
         vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
-        vdict["serv_uuid"]=self.FsS.getUUID(serv)
+        if vdict == None :
+            return None
+        vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
         vdict.pop("serv")
         vol = None
         if vdict:
@@ -70,6 +70,10 @@ class VolService (BaseService):
             if self._CFG.DB_CACHE :
                 self.DBCService.setIntoCache(Volume,vol,vid = vol.vid)
         return  vol
+
+    def getExtVolAttr(self,vid) :
+        cachedObj=ExtVolAttr()
+        return cachedObj
 
     def saveExtVolAttr(self, Obj):
         cachedObj=self.DBCService.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)

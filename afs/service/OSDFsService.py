@@ -40,49 +40,14 @@ class OSDFsService (FsService):
     # File Server Section
     ###############################################
     
-    def getFileServer(self,name_or_ip,cached=False):
-        """
-        Retrieve Server 
-        """
-        self.Logger.debug("Entering getFileServer")
-        if name_or_ip in self._CFG.ignoreIPList :
-            return None
-        
-        if cached :
-            uuid=self.getUUID(name_or_ip,   cached)
-            FileServer=self._getServerFromCache(uuid)
-            FileServer.parts = self.getPartitions(name_or_ip, cached)
-            return FileServer
-
-        FileServer =Server()
-        # get DNS-info about server
-        FileServer.servernames, FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
-        # UUID
-        FileServer.uuid=self.getUUID(name_or_ip,  cached)
-        # Partitions
-        FileServer.parts = self.getPartitions(name_or_ip,cached)
-        if self._CFG.DB_CACHE :
-            self._setServerIntoCache(FileServer)
-            for p in FileServer.parts  :
-                part=Partition()
-                part.setByDict(FileServer.parts[p])
-                self._setPartIntoCache(part, FileServer.uuid)
-        # Projects
-        # these we get directly from the DB_Cache
-        if cached :
-            FileServer.projects = self._getProjectsFromCache( FileServer.uuid)
-        else :
-            FileServer.projects = []
-        return FileServer
-
     def getPartitions(self, name_or_ip, cached=False):
         """
         return dict ["partname"]={"numROVolumes", "numRWVolumes","usage","free","total" }
         """
+        serv_uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG,cached)
         if cached :
-            serv_uuid=self.getUUID(name_or_ip, cached)
             partDict={}
-            for p in  self._getPartsFromCache(serv_uuid) :
+            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
             return partDict
 
