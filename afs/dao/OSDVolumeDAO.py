@@ -66,7 +66,8 @@ class OSDVolumeDAO(VolumeDAO) :
                 # id Volume by type
                 vid = {}
                 vid['RW'] = splits[1]
-                vid['RO'] = splits[3]
+                if len(splits) > 2:
+                  vid['RO'] = splits[3]
                 if len(splits) > 4 :
                   vid['BK'] = splits[5] 
                   
@@ -183,14 +184,15 @@ class OSDVolumeDAO(VolumeDAO) :
         return vol
    
     def traverse(self,Servers, name_or_id, cellname, token) :
+        self.Logger.debug("Entering traverse with Servers=%s, name_or_id=%s, cellname=%s, token=%s" % (Servers, name_or_id, cellname, token) )
         Converter={"B" : 1, "KB" : 1024, "MB" : 1024*1024, "GB" : 1024*1024*1024, "TB" : 1024*1024*1024*1024}
         histogram={}
         if type(Servers) == types.ListType :
             Servers = string.join(Servers," ")
         CmdList=[afs.dao.bin.VOSBIN, "traverse","-server", "%s" % Servers,"-id", "%s" % name_or_id,"-cell", "%s" % cellname]
         rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise VolError("Error", outerr)
+        if rc or "AFSVolTraverse failed" in string.join(outerr) :
+            raise VolError("Cannot traverse volume: %s" % outerr)
         # jump to logical histogram
         histogram["logical"]=[]
         i=0

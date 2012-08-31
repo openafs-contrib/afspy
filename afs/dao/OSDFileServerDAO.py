@@ -125,7 +125,7 @@ class OSDFileServerDAO(BaseDAO) :
                         splits = output[i+23].split()
                         vol['weekUse']       = int(splits[1])
                         splits = output[i+24].split()
-                        vol['osdPolicy']        = splits[1]
+                        vol['osdPolicy']        = int(splits[1])
                         splits = output[i+25].split()
                         vol['filequota']        = splits[1]
                         i = i+26

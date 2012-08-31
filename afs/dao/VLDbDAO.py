@@ -13,7 +13,7 @@ class VLDbDAO(BaseDAO) :
     
     def getFsServList(self,cellname, token, noresolve=False):
         """
-        get list of all fileservers registered in the VLDB
+        get list of dicts of all fileservers registered in the VLDB
         """
         if noresolve:
             CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname, "-noresolve" ]
@@ -34,7 +34,7 @@ class VLDbDAO(BaseDAO) :
                 servers.append(server)
         return servers
 
-    def  getFsUUID(self, name_or_ip, cellname, token) :
+    def getFsUUID(self, name_or_ip, cellname, token) :
         CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % cellname ]
         rc,output,outerr=self.execute(CmdList)
         if rc :
