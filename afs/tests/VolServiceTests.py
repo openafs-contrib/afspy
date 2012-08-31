@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import unittest
+import unittest,sys
 
 import afs
 from afs.service.VolService import VolService
