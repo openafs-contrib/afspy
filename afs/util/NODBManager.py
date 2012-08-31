@@ -1,8 +1,7 @@
 # XXX: this should be generated while installing
 from afs.exceptions.AfsError import AfsError
 
-# from DBCachService
-class NODBCacheService :
+class NODBManager :
       def __init__(self) :
           pass
       def getFromCache(Class, mustBeunique=True,**where) :

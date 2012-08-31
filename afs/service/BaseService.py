@@ -26,11 +26,11 @@ class BaseService(object):
         
         # DB INIT 
         if self._CFG.DB_CACHE :
-            from DBCacheService import DBCacheService
-            self.DBCService=DBCacheService()
+            from afs.util.DBManager import DBManager
+            self.DBManager=DBManager()
         else : # this is a simple object raising an error if called.
-            from NODBCacheService import NODBCacheService    
-            self.DBCService=NODBCacheService()
+            from afs.util.NODBManager import NODBManager    
+            self.DBManager=NODBManager()
         
         # DAO INIT 
         if self._CFG.DAOImplementation == "childprocs" :

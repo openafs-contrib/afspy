@@ -22,7 +22,7 @@ class CellService(BaseService):
         """
         if cached :
             if cellname == "" : cellname = self._CFG.CELL_NAME
-            return self.DBCService.getFromCache(Cell,Name = cellname)
+            return self.DBManager.getFromCache(Cell,Name = cellname)
         # refresh whole new CellObj
         cell=Cell()
         cell.Name=self._CFG.CELL_NAME
@@ -31,7 +31,7 @@ class CellService(BaseService):
         cell.PTDBSyncSite, cell.PTDBVersion=self._getUbikDBInfo(7002)
         cell.VLDBSyncSite, cell.VLDBVersion=self._getUbikDBInfo(7003)
         if self._CFG.DB_CACHE :
-            self.DBCService.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
+            self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
         return cell
         
     

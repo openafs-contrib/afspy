@@ -5,7 +5,7 @@ import os,subprocess,string,sys
 ConfigFile="/usr/local/lib/python2.7/site-packages/afs/etc/Test.cfg"
 numFailed=0
 exit_on_fail=True
-useOSD=False
+useOSD=True
 Tests=os.listdir(".")
 Tests.sort()
 for f in Tests :
