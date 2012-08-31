@@ -37,16 +37,16 @@ class ProjectService(BaseService):
                 if re.compile(rx).match(volname) :
                      list.append(p)
         return list
-    
-    def getProjectsOnSP(self,Fileserver,Paritions=None) :
-        """
-        not implemented yet
-        """
-        return []
 
+    def getAssignedServers(self,prjname) :
+        """
+        return dict[VolType]["fs-name"]=[parts] 
+        """
+        return dict
+ 
     def getProjectSpread(self,prjname):
         """
-        return dict["fs-name"]["part-name"] = numVolumes
+        return dict["fs-name"]["part-name"] = [numRWVolumes,numROVolumes]
         """
         dict={}
         return dict
@@ -65,5 +65,17 @@ class ProjectService(BaseService):
         return projList
 
     def saveProject(self,prjObj):
+        """
+        store object into DBCache
+        """
         cachedObj=self.DBCService.setIntoCache(Project,prjObj,name=prjObj.name)
         return cachedObj
+
+
+    def createVolume(self,prjObj,name,blkquota=-1,osdpolicy=False) :
+        """
+        create a new volume for this project. 
+        For now, only choose on size, but we should also take the number of accessed Volumes 
+        into account !?
+        """
+        return True
