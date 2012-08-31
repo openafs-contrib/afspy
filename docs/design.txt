@@ -12,6 +12,8 @@ Policies
 
 * Partitions are used canonicalized only
 
+* Internally, Servers are adressed by UUID, externally by first hostname
+
 * Id are integer. DAO has to convert it.  Same for quota,  number of files access
 
 * Timestamps are datetime.
