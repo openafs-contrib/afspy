@@ -30,7 +30,7 @@ class BaseModel(object):
                     setattr(self,attr,value)
         return True
 
-    def updateComplexAttrs(self) :
+    def updateAppRepr(self) :
         """
         update Complex attributes from their json encoded counterparts
         """
@@ -42,12 +42,12 @@ class BaseModel(object):
             setattr(self,attr,value)
         return
 
-    def updateJSONReps(self) :
+    def updateDBRepr(self) :
         """
         update the all attributes holding json represenations of complex attributes
         """
         jsonReps={}
-        Logger.debug("in updateJSONReps" )
+        Logger.debug("in updateDBRepr" )
         for attr, value in self.__dict__.iteritems() :
             if attr[0] == "_" : continue
             if not type(value) in [StringType,IntType,LongType,FloatType,BooleanType,datetime.datetime] :

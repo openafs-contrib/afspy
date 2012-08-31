@@ -36,7 +36,7 @@ class DBManager :
         self.Logger.debug("getFromCache, statement is : %s" % query.cte())
         cachedObjList = query.all()
         for c in cachedObjList :
-            c.updateComplexAttrs()
+            c.updateAppRepr()
         if mustBeunique :
             if len(cachedObjList) > 1 :
                 raise AfsError("Constraints %s return no unique Object from DB" % unique)
@@ -60,7 +60,7 @@ class DBManager :
         self.Logger.debug("getFromCacheByListElement, regex is : %s" % (RegEx))
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
-            r.updateComplexAttrs()
+            r.updateAppRepr()
         return resObjs
 
     def getFromCacheByDictKey(self,Class,Attr,Elem) :
@@ -71,7 +71,7 @@ class DBManager :
         RegEx="\{.*\"{0}\"\s+:.*\}".format(Elem)
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
-            r.updateComplexAttrs()
+            r.updateAppRepr()
         return resObjs
 
     def getFromCacheByDictValue(self,Class,Attr,Elem) :
@@ -82,7 +82,7 @@ class DBManager :
         RegEx="\{.*:\s+\"{0}\".*\}".format(Elem)
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
-            r.updateComplexAttrs()
+            r.updateAppRepr()
         return resObjs
 
     def getFromJoinwithFilter(self,ClassA,AttrA,ClassB,AttrB,**where) :
@@ -102,8 +102,8 @@ class DBManager :
         cachedObj = self.getFromCache(Class,**unique)
         # copy over used Attributes
         cachedObj.copyObj(Obj) # copyObj is defined in BaseClass 
-        # update json representations
-        cachedObj.updateJSONReps()
+        # update database (json) representations
+        cachedObj.updateDBRepr()
         # push it to the DB.
         cachedObj=self.DbSession.merge(cachedObj)  
         self.DbSession.commit()  
