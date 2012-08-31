@@ -47,7 +47,7 @@ class OSDFsService (FsService):
         serv_uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG,cached)
         if cached :
             partDict={}
-            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
+            for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
             return partDict
 

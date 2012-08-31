@@ -28,7 +28,7 @@ class VolService (BaseService):
     def getVolGroup(self, id , cached=False):
         self.Logger.debug("entering with id=%s" % id) 
         if cached :
-            return self.DBCService.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
+            return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
         list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
         if len(list) > 0:
@@ -43,7 +43,7 @@ class VolService (BaseService):
                     volGroup.BK=el
         self.Logger.debug("returning : %s" % volGroup)
         if self._CFG.DB_CACHE :
-            self.DBCService.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
+            self.DBManager.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
         return volGroup
        
     """
@@ -54,9 +54,9 @@ class VolService (BaseService):
             serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
             # need function in util name_or_ip and name_or_id?
             if afsutil.isName(name_or_id) :
-                vol=self.DBCService.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
+                vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
             else :
-                vol=self.DBCService.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
+                vol=self.DBManager.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
             return vol
         vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         if vdict == None :
@@ -68,7 +68,7 @@ class VolService (BaseService):
             vol = Volume()
             vol.setByDict(vdict)
             if self._CFG.DB_CACHE :
-                self.DBCService.setIntoCache(Volume,vol,vid = vol.vid)
+                self.DBManager.setIntoCache(Volume,vol,vid = vol.vid)
         return  vol
 
     def getExtVolAttr(self,vid) :
@@ -76,7 +76,7 @@ class VolService (BaseService):
         return cachedObj
 
     def saveExtVolAttr(self, Obj):
-        cachedObj=self.DBCService.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
+        cachedObj=self.DBManager.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
         return cachedObj
 
     def saveExtVolAttrbyDict(self,vid,dict) :

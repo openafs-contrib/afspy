@@ -78,9 +78,9 @@ class FsService (BaseService):
         self.Logger.debug("Entering getFileServerByUUID with uuid=%s" % uuid)
 
         if cached :
-            FileServer=self.DBCService.getFromCache(Server,uuid=uuid)
+            FileServer=self.DBManager.getFromCache(Server,uuid=uuid)
             FileServer.parts = {}
-            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=uuid) :
+            for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=uuid) :
                 FileServer.parts[p.name] = p.getDict()
             return FileServer
 
@@ -97,13 +97,13 @@ class FsService (BaseService):
         # Partitions
         FileServer.parts = self.getPartitions(name_or_ip,cached)
         if self._CFG.DB_CACHE :
-            self.DBCService.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
+            self.DBManager.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
             for p in FileServer.parts  :
                 part=Partition()
                 self.Logger.debug("Setting part to %s" % FileServer.parts[p])
                 part.setByDict(FileServer.parts[p])
                 part.serv_uuid=FileServer.uuid
-                self.DBCService.setIntoCache(Partition,part,serv_uuid=FileServer.uuid,name=p)
+                self.DBManager.setIntoCache(Partition,part,serv_uuid=FileServer.uuid,name=p)
 
         # Projects
         # these we get directly from the DB_Cache
@@ -120,7 +120,7 @@ class FsService (BaseService):
             raise AfsError("DB_CACHE not configured")
         serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(name_or_ip,self._CFG)
         projDict={}
-        for p in self.DBCService.getFromJoinwithFilter(Volume,ExtVolAttr, Volume.vid,ExtVolAttr.vid,serv_uuid = serv_uuid) :
+        for p in self.DBManager.getFromJoinwithFilter(Volume,ExtVolAttr, Volume.vid,ExtVolAttr.vid,serv_uuid = serv_uuid) :
            projDict["a"]=None
         return projDict
         
@@ -131,7 +131,7 @@ class FsService (BaseService):
         serv_uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG,cached)
         if cached :
             partDict={}
-            for p in self.DBCService.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
+            for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
             return partDict
         partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)

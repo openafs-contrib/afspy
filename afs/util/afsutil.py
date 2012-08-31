@@ -112,16 +112,16 @@ def getFSUUIDByName_IP_FromCache(name_or_ip,CFG):
     """
     get data from Cache
     """
-    from afs.service.DBCacheService import DBCacheService
+    from DBManager import DBManager
     from afs.model.Server import Server
     if not CFG.DB_CACHE:
         raise AfsError("DB_CACHE not configured")
-    DBCService=DBCacheService(CFG)
+    DBManager=DBManager(CFG)
     Logger.debug("getFSUUIDFromCache: called with %s" % name_or_ip)
     if isName(name_or_ip) :
-        list=DBCService.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
+        list=DBManager.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
     else :
-        list=DBCService.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
+        list=DBManager.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
     uuidlist=[] 
     for l in list :
         uuidlist.append(l.uuid)
@@ -144,12 +144,18 @@ def getHostnameByFSUUID(uuid,CFG,cached=False) :
     return None
 
 def getHostnameByFSUUIDFromCache(uuid,CFG,cached=False) :
-    from afs.service.DBCacheService import DBCacheService
+    """
+    return first hostname for given uuid 
+    """
+    from DBManager import DBManager
     from afs.model.Server import Server
     if not CFG.DB_CACHE:
         raise AfsError("DB_CACHE not configured")
-    raise utilError("notimplemented yet.")
-    return hostname
+    list=DBManager.getFromCacheByListElement(Server,Server.uuid,uuid)         
+    if len(list) > 0 :
+        return list[0]
+    else :
+        return None
     
 
 

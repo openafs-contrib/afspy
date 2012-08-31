@@ -5,7 +5,7 @@ import sqlalchemy.orm.session
 import afs
 from types import ListType,DictType,StringType,IntType
 
-class DBCacheService :
+class DBManager :
 
     def __init__(self,conf=None) :
 

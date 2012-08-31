@@ -28,7 +28,7 @@ class OSDVolService (VolService):
     def getVolGroup(self, id , cached=False):
         self.Logger.debug("entering with id=%s" % id) 
         if cached :
-            return self.DBCService.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
+            return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
         list = self._osdvolDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
         volGroup = None
         if len(list) > 0:
@@ -43,7 +43,7 @@ class OSDVolService (VolService):
                     volGroup.BK=el
         self.Logger.debug("returning : %s" % volGroup)
         if self._CFG.DB_CACHE :
-            self.DBCService.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
+            self.DBManager.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
         return volGroup
 
     
@@ -56,8 +56,8 @@ class OSDVolService (VolService):
         self.Logger.debug("Entering with name_or_id=%s, serv=%s, part=%s,cached=%s",name_or_id, serv, part,  cached) 
         if cached :
             serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
-            vol=self.DBCService.getFromCache(name_or_id, serv_uuid, part)
-            vol.OsdAttr=self.DBCService.getFromCache(OsdVolAttr,vid=vid)
+            vol=self.DBManager.getFromCache(name_or_id, serv_uuid, part)
+            vol.OsdAttr=self.DBManager.getFromCache(OsdVolAttr,vid=vid)
             return vol
         osdExtAttr=ExtVolAttr_OSD()
         odict=osdExtAttr.getDict()
@@ -81,12 +81,12 @@ class OSDVolService (VolService):
         vol.setByDict(vdict)
         osdExtAttr.setByDict(odict)
         if self._CFG.DB_CACHE :
-            self.DBCService.setIntoCache(Volume,vol,vid=vol.vid) 
-            self.DBCService.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
+            self.DBManager.setIntoCache(Volume,vol,vid=vol.vid) 
+            self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
         return vol
 
     def saveOsdVolAttr(self,Obj):
-        cachedObj=self.DBCService.setIntoCache(ExtVolAttr_OSD,Obj,vid=Obj.vid)
+        cachedObj=self.DBManager.setIntoCache(ExtVolAttr_OSD,Obj,vid=Obj.vid)
         return cachedObj
 
     def getStorageUsage(self,servers,vid,oldStorageUsage=None,cached=False) :
@@ -102,7 +102,7 @@ class OSDVolService (VolService):
 
         # store OsdVolAttr in DB_CACHE 
         if cached :
-            cachedObj=self.DBCService.getFromCache(OsdVolAttr,vid=vid)
+            cachedObj=self.DBManager.getFromCache(OsdVolAttr,vid=vid)
             return cachedObj
 
         if oldStorageUsage == None : return StorageUsage
@@ -161,5 +161,5 @@ class OSDVolService (VolService):
             OsdVolAttr['block_osd_off']=int(StorageUsage["storageUsage"]["archival"]["Data"])
             thisObj=ExtVolAttr_OSD()
             thisObj.setByDict(OsdVolAttr)
-            self.DBCService.setIntoCache(ExtVolAttr_OSD,thisObj,vid=thisObj.vid)
+            self.DBManager.setIntoCache(ExtVolAttr_OSD,thisObj,vid=thisObj.vid)
         return StorageUsage

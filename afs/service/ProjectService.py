@@ -23,7 +23,7 @@ class ProjectService(BaseService):
         """
         return ProjectObj from Projectname
         """
-        thisProject=self.DBCService.getFromCache(Project,name=name)
+        thisProject=self.DBManager.getFromCache(Project,name=name)
         return thisProject
         
     def getProjectsByVolumeName(self, volname):
@@ -31,7 +31,7 @@ class ProjectService(BaseService):
         return List of Projects Objs from VolumeName
         """
         list=[]
-        for p in self.DBCService.getFromCache(Project,mustBeunique=False) :
+        for p in self.DBManager.getFromCache(Project,mustBeunique=False) :
             pDict=p.getDict()
             for rx in pDict["volnameRegEx"] :
                 if re.compile(rx).match(volname) :
@@ -54,21 +54,21 @@ class ProjectService(BaseService):
     def getProjectVolumes(self,prjname) :
         thisProject=self.getProjectByName(prjname)
         if not thisProject : return []
-        list = self.DBCService.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id)
+        list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id)
         return list
         
     def getProjectList(self) :
         """
         return list of ProjectDicts
         """
-        projList=self.DBCService.getFromCache(Project,mustBeunique=False) 
+        projList=self.DBManager.getFromCache(Project,mustBeunique=False) 
         return projList
 
     def saveProject(self,prjObj):
         """
         store object into DBCache
         """
-        cachedObj=self.DBCService.setIntoCache(Project,prjObj,name=prjObj.name)
+        cachedObj=self.DBManager.setIntoCache(Project,prjObj,name=prjObj.name)
         return cachedObj
 
 
