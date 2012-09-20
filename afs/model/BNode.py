@@ -31,6 +31,5 @@ class BNode(BaseModel):
         self.errorexitcode = ''
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
-        self.sync    = 0
         ## list of attributes not to put into the DB
         self.ignAttrList= []

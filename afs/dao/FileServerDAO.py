@@ -28,9 +28,14 @@ class FileServerDAO(BaseDAO) :
         # first line gives Name, ID, Type, Used and Status 
         volList = [] 
         dateT=datetime.datetime(1970, 1, 1)
-        for i in range(0, len(output)):
-            splits = output[i].split()
+        i = 0
+        while i < len(output):
+            while output[i] != "BEGIN_OF_ENTRY":
+                 i = i+1  
+                 if i >= len(output): break
+            if i >= len(output): break
             #Beginnig block
+            splits = output[i].split()
             if splits[0] == "BEGIN_OF_ENTRY":
                     vol = {}
                     splits = output[i+1].split()
@@ -57,13 +62,20 @@ class FileServerDAO(BaseDAO) :
                             
                     # Valid volume                           
                     else:  
-                        #vol['valid'] = True 
-                        vol['name']     = splits[1]
-                        splits = output[i+2].split()
-                        
-                        vol['vid']      = int(splits[1])
-                        splits = output[i+3].split()
-                        #vol['serv']     = splits[1]
+                        vol['vid'] = "UNSET"
+                        try: 
+                          vol['name']     = splits[1]
+                          splits = output[i+2].split()
+                          vol['vid']      = int(splits[1])
+                          splits = output[i+3].split()
+                        except :
+                            # XXX Here we need a flag to show that parsing was not complete
+                            # or a list of Volumes which need to be reparsed.
+                            # this will be in the return-code
+                            while output[i] != "END_OF_ENTRY":
+                                i = i+1
+                            self.Logger.error("Cannot parse name of volume with id=%s! Skipping." % vol['vid'])
+                            continue
                         
                         if len(splits) > 2:
                            vol['servername']     = splits[2]
@@ -74,6 +86,10 @@ class FileServerDAO(BaseDAO) :
                         vol['part']     = afsutil.canonicalizePartition(splits[1])
                         splits = output[i+5].split()
                         vol['status']     = splits[1]
+                        if vol['status'] != "OK" : 
+                            while output[i] != "END_OF_ENTRY":
+                                i = i+1
+                            continue
                         splits = output[i+6].split()
                         vol['backupID'] = int(splits[1])
                         splits = output[i+7].split()
@@ -162,10 +178,6 @@ class FileServerDAO(BaseDAO) :
             size=long(size)
             free=long(free)
             used = size-free
-            if size != 0:
-                perc = float(used)/float(size)*100.0
-            else :
-                perc = 0
-            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "usedPerc": perc})
+            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : size,  "used" : used,  "free" : free})
         self.Logger.debug("getPartList: returning %s" % partitions)
         return partitions

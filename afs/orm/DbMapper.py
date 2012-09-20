@@ -68,7 +68,7 @@ def safeMapping( ModelClass, TableDef):
     
 def setupDbMappers(conf=None):
     from sqlalchemy     import Table, Column, Integer, BigInteger, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  ForeignKeyConstraint,UniqueConstraint
+    from sqlalchemy     import  ForeignKeyConstraint
     
     if conf:
         _CFG = conf
@@ -99,9 +99,6 @@ def setupDbMappers(conf=None):
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ),
-          Column('isComplete'   , Boolean ),
-          sqlite_autoincrement=True
           )
     #Mapping Table
     from afs.model.Server import Server
@@ -115,24 +112,32 @@ def setupDbMappers(conf=None):
           Column('name'         , String(2)),
           Column('device'       , String(255)),
           Column('size'         , BigInteger ),
-          Column('allocated'    , BigInteger ),
-          Column('allocated_stale', BigInteger ),
           Column('free'         , BigInteger ),
           Column('used'         , BigInteger ),
-          Column('usedPerc'     , Float ),
-          Column('unLimitedVolumes' , Integer ),
-          Column('projectIDs_js'      , TEXT),
-          Column('status'       , String(2)),
-          Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ),
-          Column('isComplete'   , Boolean ),
-          sqlite_autoincrement=True
           ) 
     #Mapping Table
     from afs.model.Partition import Partition
     safeMapping(Partition,tbl_partition)
+
+    tbl_extpartattr = Table('tbl_extpartattr', metadata,
+          Column('id'           , Integer, primary_key=True),
+          Column('serv_uuid',     String(255)), 
+          Column('name'         , String(2)),
+          Column('projectIDs_js'      , TEXT),
+          Column('allocated'    , BigInteger ),
+          Column('allocated_stale', BigInteger ),
+          Column('owner'        , String(255)),
+          Column('unLimitedVolumes' , Integer ),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          ForeignKeyConstraint(['serv_uuid','name'], ['tbl_partition.serv_uuid','tbl_partition.name']),
+         )
+
+    #Mapping Table
+    from afs.model.ExtendedPartitionAttributes import ExtPartAttr
+    safeMapping(ExtPartAttr,tbl_extpartattr)
   
   
     #  BOS
@@ -144,8 +149,6 @@ def setupDbMappers(conf=None):
           Column('binaryRestartTime'  , DateTime),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ),
-          sqlite_autoincrement=True
           ) 
     #Mapping Table
     from afs.model.Bos import Bos
@@ -172,8 +175,6 @@ def setupDbMappers(conf=None):
           Column('errorexitcode' , String(255) ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ),
-          sqlite_autoincrement=True
           ) 
     #Mapping Table
     from afs.model.BNode import BNode
@@ -212,10 +213,6 @@ def setupDbMappers(conf=None):
           Column('spare3'       , Integer ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ),
-          # old installation
-          #UniqueConstraint('vid', 'servername', 'part','name',  name='uix_1'),
-          sqlite_autoincrement=True
           )
              
     #Mapping Table
@@ -232,7 +229,6 @@ def setupDbMappers(conf=None):
           Column('pinnedOnServer'       , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ), 
           ForeignKeyConstraint(['vid'], ['tbl_volume.vid'])
           ) 
     #Mapping Table
@@ -247,7 +243,6 @@ def setupDbMappers(conf=None):
           Column('RO_js' , TEXT),
           Column('BK_js' , TEXT),
           Column('name' , String(255)),
-          UniqueConstraint('name',  name='uix_1'),
           )
     #Mapping Table
     from afs.model.VolumeGroup import VolumeGroup
@@ -274,7 +269,6 @@ def setupDbMappers(conf=None):
           Column('minnum_ro'      , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer )
           )
 
     #Map Table to object
@@ -311,7 +305,6 @@ def setupDbMappers(conf=None):
           Column('osdPolicy'    , Integer),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          Column('sync'         , Integer ), 
           ForeignKeyConstraint(['vid'], ['tbl_volume.vid'])
           )   
     #Mapping Table
