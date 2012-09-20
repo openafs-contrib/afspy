@@ -27,7 +27,5 @@ class ExtVolAttr_OSD(BaseModel):
         self.cdate         = datetime.now()
         ## last update of this object
         self.udate         = datetime.now()
-        ## ?? to be removed
-        self.sync          = 0
         ## list of attributes not to put into the DB
         self.ignAttrList= []

@@ -1,4 +1,4 @@
-import re, datetime,sys
+import re, datetime
 import afs.dao.bin
 from afs.util import afsutil
 from afs.exceptions.FServError import FServError
@@ -30,7 +30,6 @@ class OSDFileServerDAO(BaseDAO) :
         dateT=datetime.datetime(1970, 1, 1)
         i = 0
         while i < len(output):
-            self.Logger.debug("parsing line %s" %output[i])
             while output[i] != "BEGIN_OF_ENTRY":
                  i = i+1  
                  if i >= len(output): break
@@ -38,7 +37,6 @@ class OSDFileServerDAO(BaseDAO) :
             #Beginnig block
             splits = output[i].split()
             if splits[0] == "BEGIN_OF_ENTRY":
-                    self.Logger.debug("parsing line %s" %output[i+1])
                     vol = {}
                     splits = output[i+1].split()
                     # Invalid volume, something wrong
@@ -64,16 +62,20 @@ class OSDFileServerDAO(BaseDAO) :
                             
                     # Valid volume                           
                     else:  
-                        #vol['valid'] = True 
+                        vol['vid'] = "UNSET"
                         try: 
                           vol['name']     = splits[1]
                           splits = output[i+2].split()
+                          vol['vid']      = int(splits[1])
+                          splits = output[i+3].split()
                         except :
-                           sys.stderr.write("splits: %s" % splits)  
-                           sys.exit(0)
-                        vol['vid']      = int(splits[1])
-                        splits = output[i+3].split()
-                        #vol['serv']     = splits[1]
+                            # XXX Here we need a flag to show that parsing was not complete
+                            # or a list of Volumes which need to be reparsed.
+                            # this will be in the return-code
+                            while output[i] != "END_OF_ENTRY":
+                                i = i+1
+                            self.Logger.error("Cannot parse name of volume with id=%s! Skipping." % vol['vid'])
+                            continue
                         
                         if len(splits) > 2:
                            vol['servername']     = splits[2]
@@ -85,9 +87,9 @@ class OSDFileServerDAO(BaseDAO) :
                         splits = output[i+5].split()
                         vol['status']     = splits[1]
                         if vol['status'] != "OK" : 
-                          while output[i] != "END_OF_ENTRY":
-                            i = i+1
-                          continue
+                            while output[i] != "END_OF_ENTRY":
+                                i = i+1
+                            continue
                         splits = output[i+6].split()
                         vol['backupID'] = int(splits[1])
                         splits = output[i+7].split()
@@ -171,9 +173,9 @@ class OSDFileServerDAO(BaseDAO) :
                 raise FServError("Error parsing output" , line)
 
             part, free, size=m.groups()
-            used = long(size)-long(free)
-            if size != 0:
-                perc = (used/long(size))*100
-            perc= 0
-            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : long(size),  "used" : long(used),  "free" : long(free), "usedPerc": perc})
+            size=long(size)
+            free=long(free)
+            used = size-free
+            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : size,  "used" : used,  "free" : free})
+        self.Logger.debug("getPartList: returning %s" % partitions)
         return partitions

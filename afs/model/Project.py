@@ -57,7 +57,5 @@ class Project(BaseModel):
         self.cdate   = datetime.now()
         ## update date in database
         self.udate   = datetime.now()
-        ## ???
-        self.sync    = 0
         ## list of attributes not to put into the DB
         self.ignAttrList= []

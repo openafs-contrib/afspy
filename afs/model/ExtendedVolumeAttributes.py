@@ -29,7 +29,5 @@ class ExtVolAttr(BaseModel):
         self.cdate         = datetime.now()
         ## update date of this object
         self.udate         = datetime.now()
-        ##  flag if this object is in sync with reality
-        self.sync          = 0
         ## list of attributes not to put into the DB
         self.ignAttrList= []

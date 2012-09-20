@@ -45,9 +45,5 @@ class Server(BaseModel):
         self.cdate   = datetime.now()
         ## Date of last object update
         self.udate   = datetime.now()
-        ## flag if this object is synced with reality.
-        self.sync    = 0
-        ## flag if this object is not fully filled yet
-        self.isComplete = False
         ## list of attributes not to put into the DB
         self.ignAttrList= ['parts']

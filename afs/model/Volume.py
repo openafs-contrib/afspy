@@ -50,7 +50,6 @@ class Volume(BaseModel) :
         self.spare3  = 0
         self.cdate   = datetime.now()
         self.udate   = datetime.now()
-        self.sync    = 0    
         ## list of attributes not to put into the DB
         self.ignAttrList= ['ExtAttr','OsdAttr']
     
