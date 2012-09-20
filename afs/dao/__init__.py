@@ -1,5 +1,5 @@
 # Init 
-__all__=["BNodeDAO","CacheManagerDAO","FileServerDAO","FileSystemDAO","krb5DAO","OsdDbDAO","PAGDAO","PTDbDAO","RxDAO","RxOsdDAO","RXPeerDAO","UbikPeerDAO","VLDbDAO","VolumeDAO","OSDVolumeDAO","OSDFileServerDAO"]
+__all__=["BNodeDAO","CacheManagerDAO","FileServerDAO","FileSystemDAO","OsdDbDAO","PTDbDAO","RxDAO","RxOsdDAO","RXPeerDAO","UbikPeerDAO","VLDbDAO","VolumeDAO","OSDVolumeDAO","OSDFileServerDAO"]
 
 def setupOptions():   
         import argparse

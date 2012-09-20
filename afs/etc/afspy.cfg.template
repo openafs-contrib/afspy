@@ -11,12 +11,6 @@
 # The name of the cell to use by default
 CELL_NAME=
 
-## Type: string
-## Default: 
-## Mandatory: true
-# The name of the Kerberos Realm to use by default 
-KRB5_REALM=
-
 ## Type:        string
 ## Default:     false
 ## Allowed: true,false
@@ -63,7 +57,6 @@ DB_USER=
 # e.g.:
 # LogLevel_sqlalchemy=
 # LogLevel_AuthService=debug
-#LogLevel_krb5DAO=debug
 #LogLevel_Service=debug
 #LogLevel_DAO=debug
 globalLogLevel=

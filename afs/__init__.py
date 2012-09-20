@@ -25,8 +25,6 @@ argParser.add_argument("--DAOImplementation", default="", help="Implementation o
 argParser.add_argument("--DAO_SPOOL_PARENTDIR", default="", help="If using 'childprocs'-DAO,  use spool dir under this path")
 argParser.add_argument("--globalLogLevel", default="", help="global python Loglevel")
 argParser.add_argument("--CELL_NAME", default="", help="Default Cell")
-argParser.add_argument("--KRB5_PRINC",  default="", help="Kerberos5 Principal to use")
-argParser.add_argument("--KRB5_REALM",  default="", help="Kerberos5 REALM to use")
 argParser.add_argument("--ignoreIP",  default=[],action="append",  help="IP to ignore for active polling. May be used more than once. Useful for multi-homed servers and complex network-topologies")
 argParser.add_argument("--hostmap",  default=[],action="append",  help="hostname,IP-pairs to override complex DNS-setups with aliases.")
 
