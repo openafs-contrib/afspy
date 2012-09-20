@@ -8,6 +8,8 @@ class Cell(BaseModel) :
     def __init__(self):
         """
         Initializes empty shell
+        The ignored attributes 'DBServers','FSServers' are lists of Server objects
+        for convenience. Same for Projects
         """
         ## Database definitions
         ## DB - ID
@@ -22,14 +24,18 @@ class Cell(BaseModel) :
         self.PTDBVersion=-1
         ## PTDb-syncsite, hostname
         self.PTDBSyncSite=""
-        ## list of FileServers,json encoded
-        self.FileServers=[]
-        self.FileServers_js="[]"
-        ## list of DB-Servers, json encoded 
-        self.DBServers=[]
-        self.DBServers_js="[]"
-        self.cdate   = datetime.now()
-        self.udate   = datetime.now()
+        ## Total number of volumes
+        self.numRW = -1
+        self.numRO = -1
+        self.numBK = -1
+        ## Total Size, etc
+        self.size=-1
+        self.allocated=-1
+        self.allocated_stale=-1
+        ## Creation date 
+        self.cdate = datetime.now()
+        ## update date 
+        self.udate = datetime.now()
         ## list of attributes not to put into the DB
-        self.ignAttrList= []
+        self.ignAttrList= ['DBServers','FSServers','Projects']
         return

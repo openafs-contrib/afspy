@@ -4,7 +4,7 @@ from afs.model.BaseModel import BaseModel
 
 class Partition(BaseModel):
     """
-    Model object of  a Partition
+    Model object of the live-data of a partition
     """
        
     def __init__(self, id='', serv_uuid='', name='', free=-1, size=-1, used=-1 ):

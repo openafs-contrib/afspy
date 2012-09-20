@@ -11,7 +11,7 @@ class Server(BaseModel):
         """
         initialize an empty object.
         Partitions are not in the same Table in DB_CACHE as 
-        Server, so the attribute Parts will be inserted by VolumeService
+        Server, so the attribute 'parts' will be inserted by the FsService
         """
         ## for db index
         self.id = None
@@ -29,16 +29,12 @@ class Server(BaseModel):
         self.dbserver  = False
         ## flag if this server is a databaseserver-Cloneonly
         self.clonedbserver = False
-        ## flag if this ??
-        self.confserver = 0
-        ## flag if this ??
-        self.distserver = 0
         ## rxdebug version string
         self.version = ""
-        ## ??
-        self.status   = ''
-        ## Id for table location where this server is placed physically
-        self.id_location = 0
+        ## physical Location of the server (string)
+        self.location = ""
+        ## Owner of the server (string)
+        self.owner = ""
         ## custom description about HW etc.
         self.description = ''
         ## Date of object creation
