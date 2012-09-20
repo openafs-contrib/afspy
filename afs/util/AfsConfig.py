@@ -135,6 +135,7 @@ def loadAfsConfig(NameSpaceObj,  conf_file):
         line = f.readline()
         if not line : break
         line=line.strip()
+        if not line : continue
         if line[0] == "#" : continue
         key=line.split("=")[0]
         value=string.join(line.split("=")[1:], "=")
