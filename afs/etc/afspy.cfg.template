@@ -73,3 +73,11 @@ globalLogLevel=
 # CSV List of IP-Adresses just to ignore
 # Useful for complex network topologies.
 ignoreIPList=
+
+
+## Type: string
+## Default:
+# hostname - ip adress mapping
+# useful for dealing with hostaliases
+# one line for each mapping.
+# syntax: hostmap=hostname=ip-address
