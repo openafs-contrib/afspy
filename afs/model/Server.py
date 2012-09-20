@@ -24,11 +24,9 @@ class Server(BaseModel):
         self.ipaddrs = None 
         self.ipaddrs_js = ""
         ## flag if this server is a fileserver
-        self.fileserver = 0
+        self.fileserver = False
         ## flag if this server is a databaseserver
         self.dbserver  = False
-        ## flag if this server is a databaseserver-Cloneonly
-        self.clonedbserver = False
         ## rxdebug version string
         self.version = ""
         ## physical Location of the server (string)

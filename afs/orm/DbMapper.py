@@ -90,12 +90,9 @@ def setupDbMappers(conf=None):
           Column('ipaddrs_js'    , TEXT),
           Column('fileserver'   , Boolean),
           Column('dbserver'     , Boolean ),
-          Column('clonedbserver'     , Boolean ),
-          Column('confserver'   , Integer ),
-          Column('distserver'   , Integer ),
           Column('version'      , String(32) ),
-          Column('status'       , String(2)),
-          Column('id_location'  , Integer ),
+          Column('location'      , String(32) ),
+          Column('owner'      , String(32) ),
           Column('description'  , TEXT ),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
@@ -138,7 +135,6 @@ def setupDbMappers(conf=None):
     #Mapping Table
     from afs.model.ExtendedPartitionAttributes import ExtPartAttr
     safeMapping(ExtPartAttr,tbl_extpartattr)
-  
   
     #  BOS
     ##################################################
@@ -286,6 +282,15 @@ def setupDbMappers(conf=None):
         Column('PTDBVersion'        , String(20)),
         Column('FileServers_js'         , TEXT),
         Column('DBServers_js'         , TEXT),
+        Column('Projects_js'         , TEXT),
+        Column('size'     , BigInteger),
+        Column('allocated'     , BigInteger),
+        Column('allocated_stale'     , BigInteger),
+        Column('numRW'         ,Integer),
+        Column('numRO'         ,Integer),
+        Column('numBK'         ,Integer),
+        Column('numUsers'         ,Integer),
+        Column('numGroups'         ,Integer),
         Column('cdate'        , DateTime),
         Column('udate'        , DateTime),
         )
@@ -294,11 +299,45 @@ def setupDbMappers(conf=None):
     from afs.model.Cell import Cell
     safeMapping(Cell,tbl_cell)
 
+    # Cell OSD
+    ##################################################
+    tbl_cell_osd =  Table('tbl_cell_osd',metadata,
+        Column('id'           , Integer, primary_key=True),
+        Column('Name'        , String(255), index=True ),
+        Column('OSDDBSyncSite'        , String(50)),
+        Column('OSDDBVersion'        , String(20)),
+        Column('RXOSDServers_js'         , TEXT),
+        Column('StorageUsage_js'         , TEXT),
+        Column('numRW'         ,Integer),
+        Column('numRO'         ,Integer),
+        Column('numBK'         ,Integer),
+        Column('numRW_OSD'         ,Integer),
+        Column('numRO_OSD'         ,Integer),
+        Column('numBK_OSD'         ,Integer),
+        Column('size'     , BigInteger),
+        Column('allocated'     , BigInteger),
+        Column('allocated_stale'     , BigInteger),
+        Column('size_OSD'     , BigInteger),
+        Column('allocated_OSD'     , BigInteger),
+        Column('allocated_stale_OSD'     , BigInteger),
+        Column('block_fs'     , BigInteger),
+        Column('block_osd_on' , BigInteger),
+        Column('block_osd_off', BigInteger),
+        Column('cdate'        , DateTime),
+        Column('udate'        , DateTime),
+        )
+        
+    #Map Table to object
+    from afs.model.Cell_OSD import Cell_OSD
+    safeMapping(Cell_OSD,tbl_cell_osd)
+
     #  Volume OSD Param
     ##################################################
     tbl_extvolattr_osd= Table('tbl_extvolattr_osd', metadata,
           Column('vid'          , Integer, primary_key=True),
           Column('filequota'    , Integer),
+          Column('files_fs'    , Integer),
+          Column('files_osd'    , Integer),
           Column('block_fs'     , BigInteger),
           Column('block_osd_on' , BigInteger),
           Column('block_osd_off', BigInteger),
@@ -310,29 +349,6 @@ def setupDbMappers(conf=None):
     #Mapping Table
     from afs.model.ExtendedVolumeAttributes_OSD import ExtVolAttr_OSD
     safeMapping(ExtVolAttr_OSD,tbl_extvolattr_osd) 
-
-    #  Location
-    ##################################################
-    tbl_location = Table('tbl_location', metadata,
-          Column('id'           , Integer, primary_key=True),
-          Column('name'        , String(255), index=True ),
-          Column('contact'        , String(255)),
-          Column('description'      , String(1023)),
-          Column('building'        , String(255)),
-          Column('street'        , String(255)),
-          Column('city'        , String(255)),
-          Column('postcode'     , String(20)),
-          Column('state'        , String(255)),
-          Column('country'      , String(255)),
-          Column('GPS'        , String(255)),
-          Column('cdate'        , DateTime),
-          Column('udate'        , DateTime),
-          )
-    #Mapping Table
-    from afs.model.Location import Location
-    safeMapping(Location,tbl_location)
-
-   
 
     metadata.create_all(conf.DB_ENGINE) 
     try  :

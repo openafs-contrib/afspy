@@ -1,7 +1,7 @@
 from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
-class Cell(BaseModel) : 
+class Cell_OSD(BaseModel) : 
     """
     empty Model for Cell
     """
@@ -20,6 +20,9 @@ class Cell(BaseModel) :
         self.OSDDBVersion=-1
         ## OSDDD-syncsite, hostname
         self.OSDDBSyncSite=""
+        ## list of RXOSD-Servers (hostnames only)
+        self.RXOSDServers=[]
+        self.RXOSDServers_js=""
         ## Total number of volumes,
         ## distinguished by OSD and normal
         self.numRW = -1
@@ -29,15 +32,19 @@ class Cell(BaseModel) :
         self.numBK = -1
         self.numBK_OSD = -1
         ## Total Size, etc
+        ## distinguished by OSD and normal
         self.size=-1
         self.allocated=-1
         self.allocated_stale=-1
+        self.size_OSD=-1
+        self.allocated_OSD=-1
+        self.allocated_stale_OSD=-1
         ## number of blocks stored on Fileserver directly
-        self.block_fs       = block_fs
+        self.block_fs       = -1
         ## number of blocks which are on-line
-        self.block_osd_on  = block_osd_on
+        self.block_osd_on  = -1
         ## number of off-line blocks
-        self.block_osd_off = block_osd_off
+        self.block_osd_off = -1
         ## storage histogram
         ## "vos traverse"
         self.StorageUsage=None
