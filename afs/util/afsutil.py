@@ -58,16 +58,26 @@ def getDNSInfo(name_or_ip):
     """ 
     get DNS-info about server
     """
+    if not isName : # check for matching ipaddress
+        for hn in afs.defaultConfig.hosts :
+            if name_or_ip in afs.defaultConfig.hosts[hn] :
+                Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [hn,],afs.defaultConfig.hosts[hn]))
+                return [hn,],afs.defaultConfig.hosts[hn]            
+
+     # is a name
     if name_or_ip in afs.defaultConfig.hosts.keys() :
         Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [name_or_ip,], afs.defaultConfig.hosts[name_or_ip]))
         return [name_or_ip,],afs.defaultConfig.hosts[name_or_ip]
-    for hn in afs.defaultConfig.hosts :
-        if name_or_ip in afs.defaultConfig.hosts[hn] :
-            Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [hn,],afs.defaultConfig.hosts[hn]))
-            return [hn,],afs.defaultConfig.hosts[hn]            
+   
     DNSInfo=socket.gethostbyaddr(name_or_ip)
     servernames=[DNSInfo[0]]+DNSInfo[1]
     ipaddrs=DNSInfo[2]
+
+    # check if resolved ip-address matches (if hostalias was used)
+    for hn in afs.defaultConfig.hosts :
+        if ipaddrs in afs.defaultConfig.hosts[hn] :
+            Logger.debug("%s is hard-mapped to (%s,%s)" % (ipaddrs, [hn,],afs.defaultConfig.hosts[hn]))
+            return [hn,],afs.defaultConfig.hosts[hn] 
     Logger.debug("%s resolves to (%s,%s)" % (name_or_ip, servernames, ipaddrs))
     if "nxdomain" in servernames[0] : raise utilError("cannot resolve DNS")
     return servernames, ipaddrs
@@ -105,7 +115,7 @@ def getFSUUIDByName_IP(name_or_ip,CFG,cached=False):
     servernames, ipaddrs=getDNSInfo(name_or_ip)
     uuid=""
     _vlDAO=VLDbDAO()
-    uuid=_vlDAO.getFsUUID(name_or_ip,CFG.CELL_NAME,None)
+    uuid=_vlDAO.getFsUUID(servernames[0],CFG.CELL_NAME,None)
     return uuid
 
 def getFSUUIDByName_IP_FromCache(name_or_ip,CFG):
@@ -118,10 +128,8 @@ def getFSUUIDByName_IP_FromCache(name_or_ip,CFG):
         raise AfsError("DB_CACHE not configured")
     DBManager=DBManager(CFG)
     Logger.debug("getFSUUIDFromCache: called with %s" % name_or_ip)
-    if isName(name_or_ip) :
-        list=DBManager.getFromCacheByListElement(Server,Server.servernames_js,name_or_ip)         
-    else :
-        list=DBManager.getFromCacheByListElement(Server,Server.ipaddrs_js,name_or_ip)         
+    servernames, ipaddrs=getDNSInfo(name_or_ip)
+    list=DBManager.getFromCacheByListElement(Server,Server.servernames_js,servernames[0])         
     uuidlist=[] 
     for l in list :
         uuidlist.append(l.uuid)
@@ -132,23 +140,27 @@ def getFSUUIDByName_IP_FromCache(name_or_ip,CFG):
     else :
         return uuidlist
 
-def getHostnameByFSUUID(uuid,CFG,cached=False) :
+def getHostnameByFSUUID(uuid,CFG=None,cached=False) :
     """
     returns hostname of a fileserver by uuid
     """
     from afs.dao.VLDbDAO import VLDbDAO
+    if not CFG :
+        CFG=afs.defaultConfig
     _vlDAO=VLDbDAO()
     for fs in _vlDAO.getFsServList(CFG.CELL_NAME,None ) :
         if fs['uuid'] == uuid :
            return fs['name_or_ip']
     return None
 
-def getHostnameByFSUUIDFromCache(uuid,CFG,cached=False) :
+def getHostnameByFSUUIDFromCache(uuid,CFG=None,cached=False) :
     """
     return first hostname for given uuid 
     """
     from DBManager import DBManager
     from afs.model.Server import Server
+    if not CFG :
+        CFG=afs.defaultConfig
     if not CFG.DB_CACHE:
         raise AfsError("DB_CACHE not configured")
     list=DBManager.getFromCacheByListElement(Server,Server.uuid,uuid)         
