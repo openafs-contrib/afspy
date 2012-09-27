@@ -18,10 +18,14 @@ class Cell(BaseModel) :
         self.VLDBVersion=-1
         ## VLDb-syncsite, hostname
         self.VLDBSyncSite=""
+        ## VLDB-State (aka "Recovery state")
+        self.VLDBState=""
         ## PTDB-Version
         self.PTDBVersion=-1
         ## PTDB-syncsite, hostname
         self.PTDBSyncSite=""
+        ## PTDB-State (aka "Recovery state")
+        self.PTDBState=""
         ## Number of users in PTDB
         self.numUsers=-1
         ## Number of groups in PTDB
@@ -30,6 +34,7 @@ class Cell(BaseModel) :
         self.numRW = -1
         self.numRO = -1
         self.numBK = -1
+        self.numOffline = -1
         ## List of DBServers (hostnames only)
         self.DBServers=[]
         self.DBServers_js=""
@@ -41,6 +46,8 @@ class Cell(BaseModel) :
         self.Projects_js=""
         ## Total Size, etc
         self.size=-1
+        self.used=-1
+        self.free=-1
         self.allocated=-1
         self.allocated_stale=-1
         ## Creation date 

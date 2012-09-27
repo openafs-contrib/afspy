@@ -1,4 +1,4 @@
-import datetime,json,logging,sys
+import datetime,json,logging,sys,decimal
 from types import *
 from afs.exceptions.AfsError import AfsError
 import afs
@@ -49,10 +49,20 @@ class BaseModel(object):
         jsonReps={}
         Logger.debug("in updateDBRepr" )
         for attr, value in self.__dict__.iteritems() :
+            ignore=False
             if attr[0] == "_" : continue
-            if not type(value) in [StringType,IntType,LongType,FloatType,BooleanType,datetime.datetime] :
+            if isinstance(value, datetime.datetime) :
+                ignore = True
+            elif isinstance(value,decimal.Decimal) :
+                ignore = True
+            elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,NoneType] :
+                ignore=True
+
+            if not ignore :
                 Logger.debug("attr=%s type(value)=%s" % (attr,type(value)))
                 jsonReps["%s_js" % attr] = json.dumps(value)
+            else :
+                Logger.debug("Ignoring attr=%s type(value)=%s" % (attr,type(value)))
         for attr,value in jsonReps.iteritems() :
             Logger.debug("setting json rep %s to '%s'" % (attr,value) )
             setattr(self,attr,value)
@@ -90,6 +100,8 @@ class BaseModel(object):
             if attr[-3:]=="_js" : continue
             if isinstance(value, datetime.datetime):
                 res[attr] = value.isoformat('-')
+            elif isinstance(value,decimal.Decimal) :
+                res[attr] = long(value)
             elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,UnicodeType,DictType,ListType,NoneType] :
                 res[attr] = value
             else : # ignore anything else
