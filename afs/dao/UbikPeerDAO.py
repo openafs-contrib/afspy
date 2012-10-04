@@ -93,7 +93,6 @@ class UbikPeerDAO(BaseDAO):
             # "I am currently managing write trans 1348069670.115422006"
             if "I am currently managing" in output[idx] : idx += 1 
             # "Sync site's db version is 1348069670.41445"
-            self.Logger.critical("line=%s" % output[idx])
             resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
         else :
             if "I am not sync site" == output[idx] :
@@ -109,13 +108,11 @@ class UbikPeerDAO(BaseDAO):
             resDict["lowestHost"] = output[idx].split()[2]
             idx += 1
             # "Sync host 130.183.14.14 was set 5 secs ago"
-            self.Logger.critical("line=%s" % output[idx])
             resDict["SyncSite"] = output[idx].split()[2]
             idx += 1
             # "Sync site's db version is 1348069670.41454"
             resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
             idx += 1
-            self.Logger.critical("line=%s" % output[idx])
             # "0 locked pages, 0 of them for write"
             # XXX ignore the rest
         return resDict
@@ -197,7 +194,7 @@ class UbikPeerDAO(BaseDAO):
                 peerDict["lastBeaconSend"]=self.Vote2ndLine.match(line).groups()[0]
                 peerDict["lastVote"]=self.Vote2ndLine.match(line).groups()[2]
                 d["Peers"][IP]= peerDict
-                self.Logger.critical("%s: %s" % (IP,peerDict))
+                self.Logger.debug("%s: %s" % (IP,peerDict))
                 continue
             M=self.HostTimeRX.match(line)
             if M :
