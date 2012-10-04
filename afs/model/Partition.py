@@ -17,15 +17,15 @@ class Partition(BaseModel):
         self.serv_uuid = serv_uuid
         ## canonicalized partition name e.g "ad" for "/vicepad"
         self.name = name
-        ## device-file
-        self.device = ''
         ## free size in Kbytes
         self.free   = free
         ## total size in Kbytes
         self.size   = size
         ## used size in Kbytes
         self.used = used
-        self.cdate   = datetime.now()
-        self.udate   = datetime.now()
+        ## creation date of this object
+        self.cdate         = datetime.now()
+        ## update date of this object
+        self.udate         = datetime.now()
         ## list of attributes not to put into the DB
-        self.ignAttrList= ['ExtAttr']
+        self.ignAttrList= ["ExtAttr"]

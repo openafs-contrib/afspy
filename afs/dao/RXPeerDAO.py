@@ -15,7 +15,7 @@ class RXPeerDAO(BaseDAO):
         return
         
     def getVersionandBuildDate(self, servername, port):
-        CmdList=[afs.dao.bin.RXDebugBIN,"-server", "%s"  % servername, "-port", "%s" % port, "-version"]
+        CmdList=[afs.dao.bin.RXDEBUGBIN,"-server", "%s"  % servername, "-port", "%s" % port, "-version"]
         rc,output,outerr=self.execute(CmdList)
         if rc :
             return ""
@@ -29,7 +29,7 @@ class RXPeerDAO(BaseDAO):
                 builddate=""
             else :
                 version=M.groups()[0].strip()
-                builddate=M.groups()[0].strip()
+                builddate=M.groups()[1].strip()
         return version, builddate
 
 

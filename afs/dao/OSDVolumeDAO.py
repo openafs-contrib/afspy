@@ -170,9 +170,9 @@ class OSDVolumeDAO(VolumeDAO) :
                     splits = output[i+22].split()
                     vol['weekUse']       = int(splits[1])
                     splits = output[i+23].split()
-                    vol['osdPolicy']        = splits[1]
+                    vol['osdPolicy']        = int(splits[1])
                     splits = output[i+24].split()
-                    vol['filequota']        = splits[1]
+                    vol['filequota']        = int(splits[1])
                     break
                 else:
                     i = i+25

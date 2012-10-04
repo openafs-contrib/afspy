@@ -1,8 +1,11 @@
-import socket
+import socket,sys
 
-from afs.exceptions.ORMError import  ORMError
+from afs.exceptions.AfsError import AfsError
 from afs.model.Cell import Cell
+from afs.model.Volume import Volume
 from afs.service.BaseService import BaseService
+from afs.service.FsService import FsService
+from afs.service.ProjectService import ProjectService
 from afs.util import afsutil
 
 
@@ -13,60 +16,108 @@ class CellService(BaseService):
     Thus one instance works only for cell.
     """
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs",  "bnode","vl", "vol", "ubik", "dns"])
+        BaseService.__init__(self, conf, DAOList=["fs", "bnode","vl", "vol", "rx", "ubik", "dns"])
+        self.FS=FsService()
+        self.PS=ProjectService()
 
 
-    def getCellInfo(self, cellname="", cached=False):
+    def getCellInfo(self, cellname="", cached=False) :
         """
-        just return internal cell object
+        return full Cellobject.
         """
+        if cellname == "" : cellname = self._CFG.CELL_NAME
+        self.Logger.debug("Using cellname : %s " % cellname)
         if cached :
-            if cellname == "" : cellname = self._CFG.CELL_NAME
-            return self.DBManager.getFromCache(Cell,Name = cellname)
+            cell=self.DBManager.getFromCache(Cell,Name = cellname)
+            self.Logger.debug("Cell.udate=%s" % cell.udate)
+            # update Sums etc. from DB_CACHE
+            cell.Name=cellname
+            cell.FileServers=self.getFileServers(cached=True)
+            cell.DBServers=self.getDBServers(cached=True)
+            cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
+            for f in cell.FileServers :
+                numRW,numRO,numBK,numOffline = self.FS.getNumVolumes(name_or_ip=f,cached=True)
+                cell.numRW += numRW
+                cell.numRO += numRO
+                cell.numBK += numBK
+                cell.numOffline += numOffline
+            cell.numUsers,cell.numGroups = self.getPTInfo(cached=True)
+            cell.allocated,cell.allocated_stale = self.getAllocated()
+            cell.size,cell.used,cell.free=self.getUsage(cached=True)
+            cell.Projects=[] # Projects are in DB_CACHE only
+            for p in self.PS.getProjectList() :
+                cell.Projects.append(p.name)
+            self.Logger.debug("Cell=%s" % cell)
+            self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
+            self.Logger.debug("Cell=%s" % cell)
+            return cell
+
         # refresh whole new CellObj
         cell=Cell()
-        cell.Name=self._CFG.CELL_NAME
-        cell.FileServers=self._getFileServers()
-        cell.DBServers=self._getDBServers()
-        cell.PTDBSyncSite, cell.PTDBVersion=self._getUbikDBInfo(7002)
-        cell.VLDBSyncSite, cell.VLDBVersion=self._getUbikDBInfo(7003)
+        cell.Name=cellname
+        cell.FileServers=self.getFileServers()
+        cell.DBServers=self.getDBServers()
+        cell.PTDBSyncSite, cell.PTDBVersion,cell.PTDBState=self.getUbikDBInfo(cell.DBServers[0],7002)
+        cell.VLDBSyncSite, cell.VLDBVersion,cell.VLDBState=self.getUbikDBInfo(cell.DBServers[0],7003)
+        cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
+        for f in cell.FileServers :
+            numRW,numRO,numBK,numOffline = self.FS.getNumVolumes(name_or_ip=f,cached=True)
+            cell.numRW += numRW
+            cell.numRO += numRO
+            cell.numBK += numBK
+            cell.numOffline += numOffline
+        cell.numUsers,cell.numGroups = self.getPTInfo()
+        cell.size,cell.used,cell.free=self.getUsage()
+        # some information are only available if DB_CACHE is used.
+        cell.allocated,cell.allocated_stale = -1,-1
+        cell.Projects=[] # Projects are in DB_CACHE only
+
         if self._CFG.DB_CACHE :
+            for p in self.PS.getProjectList() :
+                cell.Projects.append(p.name)
+            cell.allocated,cell.allocated_stale = self.getAllocated()
+            self.Logger.debug("Cell=%s" % Cell)
             self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
         return cell
-        
-    
+
+    def refreshLiveData(self, cellname="") : 
+        """
+        update livedata for the cell :
+        partition free and used space, DBVersions, list of Servers
+        """
+        if cellname == "" : cellname = self._CFG.CELL_NAME
+        cell=Cell()
+        cell.FileServers=self.getFileServers()
+        cell.DBServers=self.getDBServers()
+        cell.PTDBSyncSite, cell.PTDBVersion,cell.PTDBState=self.getUbikDBInfo(cell.DBServers[0],7002)
+        cell.VLDBSyncSite, cell.VLDBVersion,cell.VLDBState=self.getUbikDBInfo(cell.DBServers[0],7003)
+        cell.size,cell.used,cell.free=self.getUsage()
+        return True 
+
+  
     ###############################################
     # Internal helper Section
     ###############################################    
    
-    def _getFileServers(self):
+    def getFileServers(self,cached=False):
         """
-        Return FileServers as a list of uuid and hostname pair as dict for each fileserver
+        Return FileServers as a list of hostnames for each fileserver
         """
         self.Logger.debug("refreshing FileServers from live system")
-        FileServers =[]
+        FileServers = []
         for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token,noresolve=True) :
             na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['name_or_ip'])
-            na.pop('name_or_ip')
-            for ip in na['ipaddrs'] :
-                if ip in self._CFG.ignoreIPList :
-                    self.Logger.debug("ignoring IP=%s" %ip)
-                    continue
-                else :
-                    na['partitions']=self._fsDAO.getPartList(na['ipaddrs'][0], self._CFG.CELL_NAME, self._CFG.Token)
-                    FileServers.append(na)
+            FileServers.append(na['hostnames'][0])
         self.Logger.debug("returning %s" % FileServers)
         return FileServers
     
-    def _getDBServers(self):
+    def getDBServers(self,cached=False):
         """
-        return a light-weight DB-Server list
+        return a DB-Server-hostname list
         """
-        DBServList=[]
-
         # we need to bootstrap ourselves now from nothing but the Cellname
         # just list of simple dicts hostnames
-        DBServers=[]
+        DBServList=[]
 
         # try DNS _SRV Records from afsdb
         try :
@@ -80,39 +131,41 @@ class CellService(BaseService):
                 if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
             DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], self._CFG.CELL_NAME) 
         
+        # canonicalize DBServList 
+        DBServers=[]
         for na in DBServList :
-            d={'dbserver' : 1, 'clonedbserver' : na['isClone'] }
-            DNSInfo= socket.gethostbyname_ex(na['hostname'])
-            d['ipaddrs'] =DNSInfo[2] 
-            d['hostnames'] = [DNSInfo[0]]+DNSInfo[1]
-            DBServers.append(d)
+            na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['hostname'])
+            DBServers.append(na['hostnames'][0])
         return DBServers
-    
-    def _getUbikDBInfo(self, Port):
+
+    def getUbikDBInfo(self, name_or_ip, Port):
         """
-        return (SyncSite,DBVersion) pair for DataBase accessible from Port
+        return (SyncSite,DBVersion,DBState) tuple for DataBase accessible from Port
         """
-        DBServIP=self._getDBServers()[0]["ipaddrs"][0]
-        DBVersion=self._ubikDAO.getDBVersion(DBServIP, Port)
-        DBSyncSite=self._ubikDAO.getSyncSite(DBServIP, Port)
-        return (DBSyncSite, DBVersion)
-    
-    ################################################
-    # Statistcis DB BASE
-    ################################################
-    
-    #TODO Number of users 
-    
-    #getTotalVolume()
-    
-    #Number of Volumes
-    
-    #Number of partitions
-    
-    #Total Space
-    
-    #Number of Servers
-    
-    #Volume offline
-    
-    #Volume OK
+        shortInfo = self._ubikDAO.getShortInfo(name_or_ip, Port,self._CFG.CELL_NAME,self._CFG.Token)
+        # we get DBState only from SyncSite  
+        if not shortInfo["isSyncSite"] : 
+             shortInfo = self._ubikDAO.getShortInfo(shortInfo["SyncSite"], Port,self._CFG.CELL_NAME,self._CFG.Token)
+        return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])
+
+    def getUsage(self,cached=False) :
+        """
+        Get Partition info of all Fileservers
+        """
+        size = used = free = 0 
+        return size,used,free
+
+    def getAllocated(self) :
+        """
+        Get sum of all given quotas of all Volumes
+        DBCache only.
+        """
+        allocated = allocated_stale= 0 
+        return allocated,allocated_stale
+
+    def getPTInfo(self,cached=False) :
+         """
+         Get all sum of all users and groups defined in PTDB
+         """
+         numUsers = numGroups = 0
+         return numUsers,numGroups

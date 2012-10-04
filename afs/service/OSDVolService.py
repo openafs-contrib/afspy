@@ -62,6 +62,7 @@ class OSDVolService (VolService):
         osdExtAttr=ExtVolAttr_OSD()
         odict=osdExtAttr.getDict()
         vdict = self._osdvolDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
+        self.Logger.debug("getVolume: vdict=%s" % vdict)
         if not vdict :
             return None
         StorageUsage=self.getStorageUsage([serv,],vdict["vid"])
@@ -70,19 +71,24 @@ class OSDVolService (VolService):
         vdict["block_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
         vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
         vdict.pop("serv")
+        self.Logger.debug("getVolume: vdict=%s" % vdict)
+        # move stuff to OSD-dict
         for k in vdict.keys() :
             if k in odict.keys() : 
                 odict[k] = vdict[k] 
+                if k == "vid" : continue
                 vdict.pop(k)
         vol = Volume()
         # XXX: we need this to ignore the OsdAttr and ExtAttr in the copy-operation.
         vdict["ignAttrList"]=vol.ignAttrList
-        vol.OsdAttr=odict
         vol.setByDict(vdict)
-        osdExtAttr.setByDict(odict)
+        if odict['osdPolicy'] != 0 : 
+            vol.OsdAttr=odict
+            osdExtAttr.setByDict(odict)
         if self._CFG.DB_CACHE :
             self.DBManager.setIntoCache(Volume,vol,vid=vol.vid) 
-            self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
+            if odict['osdPolicy'] != 0 : 
+                self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
         return vol
 
     def saveOsdVolAttr(self,Obj):

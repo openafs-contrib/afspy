@@ -2,6 +2,7 @@ import re
 import afs.dao.bin
 from afs.exceptions.UbikError import UbikError
 from afs.dao.BaseDAO import BaseDAO
+from afs.util import afsutil
 
 class UbikPeerDAO(BaseDAO):
     
@@ -15,6 +16,8 @@ class UbikPeerDAO(BaseDAO):
     
     SyncRX=re.compile("Sync host (.*) was set (\d+) secs ago")
     SyncRX2=re.compile("I am sync site until (\d+) secs from now \(at (.*)\) \((\d+) servers\)")
+    LocalCloneRX=re.compile("I am a clone and never can become sync site")
+    NotSyncRX=re.compile("I am not sync site")
     thisHostAddrRX=re.compile("Host's addresses are: (.*)")
     syncDBVerRX=re.compile("Sync site's db version is (.*)")
     localDBVerRX=re.compile("Local db version is (.*)")
@@ -22,43 +25,111 @@ class UbikPeerDAO(BaseDAO):
     DBStateRX=re.compile("Recovery state (\S+)")
     Vote1stLine=re.compile("last vote rcvd (\d+) secs ago \(at (.*)\),")
     Vote2ndLine=re.compile("last beacon sent (\d+) secs ago \((.*)\), last vote was (\S+)")
+    HostTimeRX=re.compile("Host's (.*) time is (.*)")
+    LocalTimeRX=re.compile("Local time is (.*) \(time differential (\d+) secs\)")
+    LastYesVoteRX=re.compile("Last yes vote for (.*) was (.*) secs ago \(sync site\);")
     
-    
-    def getSyncSite(self, servername, port):
+   
+    def getLongInfo(self,name_or_ip,port,cellnanme,token) : 
         """
-        return one IP of the SyncSite
+        return dict containing all info from a udebug -long
         """
-        return self.exec_and_parse(servername, port)["SyncSite"]
-        
-    def getAllPeers(self, servername, port):
+        CmdList=[afs.dao.bin.UDEBUGBIN,"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
+        rc,output,outerr=self.execute(CmdList) 
+        if rc :
+            raise UbikError(rc)
+        return self.parseLongOutput(rc,output,outerr)
+ 
+    def getShortInfo(self,name_or_ip,port,cellname,token) :
         """
-        In an ubik-database, there are sites which can get master
-        and sites which cannot Clones, return those 
-        types separately
+        return dict containing all info from a simple udebug
+        """   
+        CmdList=[afs.dao.bin.UDEBUGBIN,"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
+        rc,output,outerr=self.execute(CmdList) 
+        if rc :
+            raise UbikError(rc)
+        return self.parseShortOutput(rc,output,outerr)
+
+    def parseShortOutput(self, rc,output,outerr) :
         """
-        return self.exec_and_parse(servername, port)["Peers"]
-        
-    def getDBVersion(self, servername, port):
-        return self.exec_and_parse(servername, port)["syncDBVersion"]
-    
-    def getDBState(self, servername, port):
+        parse output of udebug
         """
-        return "Recoverystate". 
-        raise an error if not run on SyncSite..
-        """
-        d=self.exec_and_parse(servername, port)
-        if d["DBState"] == "" :
-            raise UbikError("%s: not  SyncSite" % servername)
-        return d["DBState"]
-    
-    def exec_and_parse(self, servername, port):
+        resDict={}
+        idx=0 
+        # "Host's addresses are: 130.183.14.14"
+        resDict["HostAddrs"] = output[idx].split(":")[1].strip()
+        idx += 1
+        # "Host's 130.183.14.14 time is Thu Sep 27 08:19:51 2012"
+        resDict["HostTime"] = output[idx].split("time is")[1].strip()
+        idx += 1
+        # "Local time is Thu Sep 27 08:19:51 2012 (time differential 0 secs)"
+        splits = output[idx].split("time is")[1].split("(")
+        resDict["localTime"] = splits[0]
+        resDict["TimeDiff"] = int(splits[1].split()[2])
+        idx += 1
+        # "Last yes vote for 14.14.183.130 was 6 secs ago (sync site);"
+        resDict["lastYesVoteTime"] = int(output[idx].split()[6])
+        idx += 1
+        # "Last vote started 6 secs ago (at Thu Sep 27 08:19:45 2012)"
+        resDict["lastVoteStart"] = int(output[idx].split()[3])
+        idx += 1
+        # "Local db version is 1348069670.41454"
+        resDict["localDBVersion"] = float(output[idx].split()[4])
+        idx += 1
+        # now we need to distinguish between sync site and others
+        if "I am sync site" in output[idx] :
+            # "I am sync site until 54 secs from now (at Thu Sep 27 08:20:45 2012) (3 servers)"
+            resDict["isSyncSite"] = True
+            resDict["isClone"] = False
+            # XXX this can fail
+            resDict["SyncSite"] = resDict["HostAddrs"]
+            idx += 1
+            # "Recovery state 1f"
+            if output[idx].split()[2] == "1f" :
+                resDict["DBState"] = "OK"
+            else :
+                resDict["DBState"] = "NOTOK"
+            idx += 1
+            # "I am currently managing write trans 1348069670.115422006"
+            if "I am currently managing" in output[idx] : idx += 1 
+            # "Sync site's db version is 1348069670.41445"
+            resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
+        else :
+            if "I am not sync site" == output[idx] :
+                resDict["isClone"] = False
+            elif "I am a clone and never can become sync site" :
+                resDict["isClone"] = True
+            else :
+                raise UbikError("Cannot get Sync/clone info from %s" % output[idx])
+            # "I am not sync site"
+            resDict["isSyncSite"] = False
+            idx += 1
+            # "Lowest host 130.183.9.5 was set 5 secs ago"
+            resDict["lowestHost"] = output[idx].split()[2]
+            idx += 1
+            # "Sync host 130.183.14.14 was set 5 secs ago"
+            resDict["SyncSite"] = output[idx].split()[2]
+            idx += 1
+            # "Sync site's db version is 1348069670.41454"
+            resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
+            idx += 1
+            # "0 locked pages, 0 of them for write"
+            # XXX ignore the rest
+        return resDict
+            
+         
+
+ 
+    def parseLongOutput(self, name_or_ip, port) :
         """
         Parsing is always the same, so do it here.
         """
-        CmdList=[afs.dao.bin.UDEBUGBIN,"-server", "%s"  % servername, "-port", "%s" % port,  "-long"]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise UbikError(rc)
+        if not afsutil.isName(name_or_ip) :
+            servernames,ipaddrs=afsutil.getDNSInfo(name_or_ip)
+            this_ipaddr=ipaddrs[0]    
+        else :
+            this_ipaddr = name_or_ip
+
         d= { "SyncSite" : "", 
             "DBState" : "", 
             "syncDBVersion" :-1, 
@@ -67,9 +138,9 @@ class UbikPeerDAO(BaseDAO):
             "thisHostIPs" : [], 
         }
         line_no=-1
+        thisPeerDict={"lastVoteRcvd" : -1,  "lastVote" : "NA",  "lastBeaconSend" : -1,  "DBVersion": -1, "isClone" : None}
         while line_no < len(output)-1  :
             line_no += 1
-            #sys.stderr.write("line_no = %s\n" % line_no)
             line=output[line_no]
             M=self.thisHostAddrRX.match(line) 
             if M :
@@ -82,6 +153,13 @@ class UbikPeerDAO(BaseDAO):
             M=self.SyncRX2.match(line) 
             if M :
                 d["SyncSite"]=d["thisHostIPs"][0]
+                thisPeerDict["isClone"] = True
+            M=self.LocalCloneRX.match(line)
+            if M :
+                thisPeerDict["isClone"] = False
+            M=self.NotSyncRX.match(line) 
+            if M :
+                thisPeerDict["isClone"] = False
             M=self.syncDBVerRX.match(line)
             if M :
                 d["syncDBVersion"] = M.groups()[0]
@@ -103,8 +181,8 @@ class UbikPeerDAO(BaseDAO):
             M=self.PeerRX.match(line)
             if M :
                 IP, DbVer, isClone=M.groups()
-                peerDict={"lastVoteRcvd" : -1,  "lastVote" : "NA",  "lastBeaconSend" : -1,  "DBVersion": DbVer}
-                if isClone :
+                peerDict={"lastVoteRcvd" : -1,  "lastVote" : "NA",  "lastBeaconSend" : -1,  "DBVersion": DbVer, "isClone" : None}
+                if isClone != None :
                     peerDict["isClone"] = True
                 else:
                     peerDict["isClone"] = False
@@ -116,5 +194,26 @@ class UbikPeerDAO(BaseDAO):
                 peerDict["lastBeaconSend"]=self.Vote2ndLine.match(line).groups()[0]
                 peerDict["lastVote"]=self.Vote2ndLine.match(line).groups()[2]
                 d["Peers"][IP]= peerDict
+                self.Logger.debug("%s: %s" % (IP,peerDict))
                 continue
+            M=self.HostTimeRX.match(line)
+            if M :
+                Host,Time=M.groups()
+                self.Logger.debug("Got host=%s time=%s" % (Host,Time) )
+                continue
+            M=self.LocalTimeRX.match(line)
+            if M :
+                localTime,diffTime=M.groups()
+                self.Logger.debug("Got localtime=%s differential=%s" % (localTime,diffTime) )
+                continue
+
+            M=self.LastYesVoteRX.match(line)
+            if M :
+                Host,ago=M.groups()
+                self.Logger.debug("Got localtime=%s ago=%s" % (Host,ago) )
+                continue
+
+            #raise UbikError("Error Parsing line: %s" % output[line_no])
+        d["Peers"][this_ipaddr]=thisPeerDict
+        self.Logger.debug("returning d=%s" % d)
         return d

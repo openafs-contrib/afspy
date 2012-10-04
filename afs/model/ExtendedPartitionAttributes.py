@@ -30,6 +30,11 @@ class ExtPartAttr(BaseModel):
         self.allocated_stale = allocated_stale
         ## number of volumes with unlimited quota
         self.unLimitedVolumes = unLimitedVolumes
+        ## Total number of volumes
+        self.numRW = -1
+        self.numRO = -1
+        self.numBK = -1
+        self.numOffline = -1
         ## creation date of this object
         self.cdate         = datetime.now()
         ## update date of this object

@@ -1,4 +1,4 @@
-import datetime,json,logging,sys
+import datetime,json,logging,sys,decimal
 from types import *
 from afs.exceptions.AfsError import AfsError
 import afs
@@ -19,7 +19,7 @@ class BaseModel(object):
         """
         Logger.debug("setByDict: got dict=%s" % objByDict)
         # inject ignAttrList is not present, happens in hand-craftet dicts..
-        if not objByDict.has_key("ignAttrList") : objByDict["ignAttrList"]=[]
+        if not objByDict.has_key("ignAttrList") : objByDict["ignAttrList"]=self.getDict()["ignAttrList"]
         for attr, value in objByDict.iteritems():
             if not hasattr(self,attr) and not attr in objByDict["ignAttrList"] + ["ignAttrList"]  :
                 raise AfsError("Cannot create new attribute '%s' to object '%s'" %(attr, self.__class__.__name__))
@@ -27,6 +27,7 @@ class BaseModel(object):
                 raise AfsError("Cannot set json representational attributes here.")
             else :# do not alter DB internal id and creation date
                 if attr != "id" and attr != "cdate":
+                    Logger.debug("setByDict: setting %s to %s" % (attr,value) )
                     setattr(self,attr,value)
         return True
 
@@ -49,10 +50,20 @@ class BaseModel(object):
         jsonReps={}
         Logger.debug("in updateDBRepr" )
         for attr, value in self.__dict__.iteritems() :
+            ignore=False
             if attr[0] == "_" : continue
-            if not type(value) in [StringType,IntType,LongType,FloatType,BooleanType,datetime.datetime] :
+            if isinstance(value, datetime.datetime) :
+                ignore = True
+            elif isinstance(value,decimal.Decimal) :
+                ignore = True
+            elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,NoneType] :
+                ignore=True
+
+            if not ignore :
                 Logger.debug("attr=%s type(value)=%s" % (attr,type(value)))
                 jsonReps["%s_js" % attr] = json.dumps(value)
+            else :
+                Logger.debug("Ignoring attr=%s type(value)=%s" % (attr,type(value)))
         for attr,value in jsonReps.iteritems() :
             Logger.debug("setting json rep %s to '%s'" % (attr,value) )
             setattr(self,attr,value)
@@ -61,7 +72,6 @@ class BaseModel(object):
     def copyObj(self, obj):
         """
         copies one object onto another.
-        complex attributes are synced with their _js counterparts.
         """
         dict=obj.getDict()
         self.setByDict(dict)
@@ -90,6 +100,8 @@ class BaseModel(object):
             if attr[-3:]=="_js" : continue
             if isinstance(value, datetime.datetime):
                 res[attr] = value.isoformat('-')
+            elif isinstance(value,decimal.Decimal) :
+                res[attr] = long(value)
             elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,UnicodeType,DictType,ListType,NoneType] :
                 res[attr] = value
             else : # ignore anything else

@@ -1,6 +1,6 @@
 import string,json,logging
 from afs.exceptions.AfsError import AfsError
-from sqlalchemy import or_
+from sqlalchemy import or_,func
 import sqlalchemy.orm.session
 import afs
 from types import ListType,DictType,StringType,IntType
@@ -21,7 +21,7 @@ class DBManager :
         # LOG INIT
         classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
         numericLogLevel = getattr(logging,classLogLevel, 0)
-        self.Logger=logging.getLogger("afs.service.%s" % self.__class__.__name__)
+        self.Logger=logging.getLogger("afs.util.%s" % self.__class__.__name__)
         self.Logger.setLevel(numericLogLevel)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, conf))
         self.DbSession=afs.DbSessionFactory()
@@ -33,17 +33,19 @@ class DBManager :
         unique is used the same way as in setIntoCache
         """
         query=self.DbSession.query(Class).filter_by(**where)
-        self.Logger.debug("getFromCache, statement is : %s" % query.cte())
         cachedObjList = query.all()
+        emptyObj=Class()
         for c in cachedObjList :
             c.updateAppRepr()
+            # the ignAttrList is not stored in DB, thus add it here explictly.
+            c.ignAttrList=emptyObj.ignAttrList
         if mustBeunique :
             if len(cachedObjList) > 1 :
                 raise AfsError("Constraints %s return no unique Object from DB" % unique)
             elif len(cachedObjList) == 1 :
                 return cachedObjList[0]
             else :
-                return Class()
+                return None
         else :
             return cachedObjList
 
@@ -57,10 +59,13 @@ class DBManager :
         else :
             RegEx="\[({0}|.*,{0}|{0},.*|.*,{0},.*)\]".format(Elem)
         
+        emptyObj=Class()
         self.Logger.debug("getFromCacheByListElement, regex is : %s" % (RegEx))
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
             r.updateAppRepr()
+            # the ignAttrList is not stored in DB, thus add it here explictly.
+            r.ignAttrList=emptyObj.ignAttrList
         return resObjs
 
     def getFromCacheByDictKey(self,Class,Attr,Elem) :
@@ -69,9 +74,12 @@ class DBManager :
         in a json-encoded dict.
         """
         RegEx="\{.*\"{0}\"\s+:.*\}".format(Elem)
+        emptyObj=Class()
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
             r.updateAppRepr()
+            # the ignAttrList is not stored in DB, thus add it here explictly.
+            r.ignAttrList=emptyObj.ignAttrList
         return resObjs
 
     def getFromCacheByDictValue(self,Class,Attr,Elem) :
@@ -80,36 +88,58 @@ class DBManager :
         in a json-encoded dict.
         """
         RegEx="\{.*:\s+\"{0}\".*\}".format(Elem)
+        emptyObj=Class()
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         for r in resObjs :
             r.updateAppRepr()
+            # the ignAttrList is not stored in DB, thus add it here explictly.
+            r.ignAttrList=emptyObj.ignAttrList
         return resObjs
 
-    def getFromJoinwithFilter(self,ClassA,AttrA,ClassB,AttrB,**where) :
-        query=self.DbSession.query(ClassA).join((ClassB, AttrA==AttrB)).filter_by(**where).all()
-        return
-
-    def setIntoCache(self,Class,Obj,**unique) :
+    def setIntoCache(self,Class,Obj,uniqType="",**unique) :
         """ 
         Store an object into the cache.
         unique is a list of (Attribute-Name = value)-pairs which identifies 
         the object within the DB using filter_by() if Attribute is directly mapped.
         A complex Attribute which is json encoded has to be dealt with differently.
-        See getFromCacheByDictKey,getFromCacheByDictValue and getFromCacheByListElement for this.
-        up to now, we cannot store an object uniquified by an complex(json-encoded) attribute.
+        See setIntoCacheByDictKey,setIntoCacheByDictValue and setIntoCacheByListElement for this.
         """ 
+        self.Logger.debug("setInto Cache: called with class=%s, Obj=%s, **unique=%s " % (Class,Obj,unique))
         # get a mapped object
-        cachedObj = self.getFromCache(Class,**unique)
+        mappedObj = self.getFromCache(Class,**unique)
+        if mappedObj == None :
+            mappedObj=Class()
+        self.Logger.debug("got %s" % mappedObj)
+        return self.do_setIntoCache(Obj,mappedObj)
+
+    def setFromCacheByDictValue(self,Class,Obj,Attr,Elem) :
+        # get a mapped object
+        mappedObj = getFromCacheByDictValue(Class,Attr,Elem)
+        self.Logger.debug("got %s" % mappedObj)
+        return self.do_setIntoCache(Obj,mappedObj)
+
+    def setIntoCacheByListElement(self,Class, Obj, Attr, Elem) :
+        # get a mapped object
+        mappedObj = getFromCacheByDictValue(Class,Attr,Elem)
+        self.Logger.debug("got %s" % mappedObj)
+        return self.do_setIntoCache(Obj,mappedObj)
+
+    def do_setIntoCache(self,Obj,mappedObj) : 
         # copy over used Attributes
-        cachedObj.copyObj(Obj) # copyObj is defined in BaseClass 
+        self.Logger.debug("got obj=%s" % Obj)
+        mappedObj.copyObj(Obj) # copyObj is defined in BaseClass 
+        self.Logger.debug("copied to mapped-Obj=%s" % mappedObj)
         # update database (json) representations
-        cachedObj.updateDBRepr()
+        mappedObj.updateDBRepr()
+        self.Logger.debug("got %s" % mappedObj)
         # push it to the DB.
-        cachedObj=self.DbSession.merge(cachedObj)  
+        self.DbSession.merge(mappedObj)  
         self.DbSession.commit()  
+        self.Logger.debug("got %s" % mappedObj)
         # remove DB-association of Object ???
-        cachedObj=sqlalchemy.orm.session.make_transient(cachedObj)
-        return cachedObj
+        sqlalchemy.orm.session.make_transient(mappedObj)
+        self.Logger.debug("returning=%s" % mappedObj)
+        return mappedObj
     
     def deleteFromCache(self,Class,**unique):
         """
@@ -124,3 +154,12 @@ class DBManager :
         else :
             return False
 
+    def count(self,Attr,**where) :
+        self.Logger.debug("count: Entering with Attr=%s, where=%s" % (Attr,where))
+        res = self.DbSession.query(func.count(Attr)).filter_by(**where).scalar()
+        self.Logger.debug("count: returning %s" % res)
+        return res
+
+    def sum(self,Attr,**where) :
+        res = self.DbSession.query(func.sum(Attr)).filter_by(**where).scalar()
+        return res

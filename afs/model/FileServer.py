@@ -2,7 +2,7 @@ from afs.model.BaseModel import BaseModel
 from datetime import datetime
 
 
-class Server(BaseModel):
+class FileServer(BaseModel):
     """
     Model object of a server of any type
     """
@@ -23,23 +23,12 @@ class Server(BaseModel):
         ## list of ipaddrs
         self.ipaddrs = None 
         self.ipaddrs_js = ""
-        ## flag if this server is a fileserver
-        self.fileserver = 0
-        ## flag if this server is a databaseserver
-        self.dbserver  = False
-        ## flag if this server is a databaseserver-Cloneonly
-        self.clonedbserver = False
-        ## rxdebug version string
+        ## rxdebug version string and builddate
         self.version = ""
-        ## physical Location of the server (string)
-        self.location = ""
-        ## Owner of the server (string)
-        self.owner = ""
-        ## custom description about HW etc.
-        self.description = ''
+        self.builddate = ""
         ## Date of object creation
         self.cdate   = datetime.now()
         ## Date of last object update
         self.udate   = datetime.now()
         ## list of attributes not to put into the DB
-        self.ignAttrList= ['parts']
+        self.ignAttrList= ['BNode','parts','ExtServAttr']
