@@ -53,15 +53,9 @@ class BaseService(object):
                 elif dao == "osdfs" :
                     from afs.dao.OSDFileServerDAO import OSDFileServerDAO 
                     self._osdfsDAO = OSDFileServerDAO()
-                elif dao == "pag" :
-                    from afs.dao import PAGDAO
-                    self._pagDAO=PAGDAO.PAGDAO()
-                elif dao == "krb5" :
-                    from afs.dao import krb5DAO
-                    self._krb5DAO=krb5DAO.krb5DAO()
                 elif dao == "rx" :
-                    from afs.dao import RxDAO
-                    self._rxDAO=RxDAO.RxDAO()
+                    from afs.dao import RXPeerDAO
+                    self._rxDAO=RXPeerDAO.RXPeerDAO()
                 elif dao == "ubik" :
                     from afs.dao import UbikPeerDAO
                     self._ubikDAO=UbikPeerDAO.UbikPeerDAO()

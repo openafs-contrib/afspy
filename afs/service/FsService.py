@@ -1,7 +1,8 @@
 from afs.service.BaseService import BaseService
-from afs.model.Server import Server
+from afs.model.FileServer import FileServer
 from afs.exceptions.AfsError import AfsError
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
+from afs.model.ExtendedPartitionAttributes import ExtPartAttr
 from afs.model.Volume import Volume
 from afs.model.Partition import Partition
 from afs.model.Project import Project
@@ -16,25 +17,7 @@ class FsService (BaseService):
     _CFG    = None
     
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl"])
-
-    ###############################################
-    # BNode Section
-    ##############################################
-
-    def getRestartTimes(self,name_or_ip):
-            """
-            return Dict about the restart times of the afs-server
-            """
-            TimesDict=self._bnodeDAO.getRestartTimes(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
-            return TimesDict
-            
-    def setRestartTimes(self,name_or_ip,time, restarttype):
-            """
-            Ask Bosserver about the restart times of the fileserver
-            """
-            self._bnodeDAO.setRestartTimes(name_or_ip,time, restarttype,  self._CFG.CELL_NAME, self._CFG.Token)
-            return
+        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl","rx"])
 
     ###############################################
     # Volume Section
@@ -43,7 +26,6 @@ class FsService (BaseService):
     def getVolList(self,servername, partname=None, cached=False):
         """
         Retrieve Volume List.
-        Update attribute 'booked' in the DBCache 
         """
         vols = []
             
@@ -59,96 +41,118 @@ class FsService (BaseService):
     # File Server Section
     ###############################################
     
-    def getFileServer(self,name_or_ip,cached=False):
+    def getFileServer(self,name_or_ip,**kw):
         """
-        Retrieve Fileserver Object by hostname or IP and update DBCache, if enabled 
+        Retrieve Fileserver Object by hostname or IP  or uuid and update DBCache, if enabled 
         """
-        self.Logger.debug("Entering getFileServer")
+        self.Logger.debug("Entering getFileServer with kw=%s" % kw)
+        uuid=kw.get("uuid","")
+        cached=kw.get("cached","")
 
-        if name_or_ip in self._CFG.ignoreIPList :
+        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        if ipaddrs[0] in self._CFG.ignoreIPList :
             return None
-        
-        uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
-        return self.getFileServerByUUID(uuid,cached=False)
-
-    def getFileServerByUUID(self,uuid,name_or_ip="",cached=False):
-        """
-        Retrieve Fileserver Object by UUID and update DBCache, if enabled.
-        """
-        self.Logger.debug("Entering getFileServerByUUID with uuid=%s" % uuid)
-
+        if uuid != "" :
+            if uuid != afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached) :
+                uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
+        else :
+            uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
+ 
         if cached :
-            FileServer=self.DBManager.getFromCache(Server,uuid=uuid)
-            FileServer.parts = {}
-            for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=uuid) :
-                FileServer.parts[p.name] = p.getDict()
-            return FileServer
+            this_FileServer=self.DBManager.getFromCache(FileServer,uuid=uuid)
+            if this_FileServer == None : # it's not in the cache. Log it and get it from live-system
+                self.Logger.warn("getFileServer: FS with uuid=%s not in DB." % uuid)
+            else :
+                this_FileServer.parts = self.getPartitionsByUUID(uuid,name_or_ip=this_FileServer.servernames[0],cached=cached)
+                return this_FileServer
 
-        # avoid uuid->hostname lookup if we already have that info
-        if name_or_ip == "" :
-            name_or_ip=afsutil.getHostnameByFSUUID(uuid,self._CFG,cached)
-
-        FileServer = Server()
+        this_FileServer = FileServer()
         # get DNS-info about server
-        FileServer.servernames, FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        this_FileServer.servernames, this_FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
         # UUID
-        FileServer.uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG, cached)
-
+        this_FileServer.uuid=uuid
+        this_FileServer.version,this_FileServer.builddate=self._rxDAO.getVersionandBuildDate(this_FileServer.servernames[0], 7000)
         # Partitions
-        FileServer.parts = self.getPartitions(name_or_ip,cached)
+        this_FileServer.parts = self.getPartitions(name_or_ip,cached=cached)
         if self._CFG.DB_CACHE :
-            self.DBManager.setIntoCache(Server,FileServer,uuid=FileServer.uuid)
-            for p in FileServer.parts  :
+            self.DBManager.setIntoCache(FileServer,this_FileServer,uuid=this_FileServer.uuid)
+            for p in this_FileServer.parts  :
                 part=Partition()
-                self.Logger.debug("Setting part to %s" % FileServer.parts[p])
-                part.setByDict(FileServer.parts[p])
-                part.serv_uuid=FileServer.uuid
-                self.DBManager.setIntoCache(Partition,part,serv_uuid=FileServer.uuid,name=p)
+                self.Logger.debug("Setting part to %s" % this_FileServer.parts[p])
+                part.setByDict(this_FileServer.parts[p])
+                part.serv_uuid=this_FileServer.uuid
+                self.DBManager.setIntoCache(Partition,part,serv_uuid=this_FileServer.uuid,name=p)
 
         # Projects
         # these we get directly from the DB_Cache
         
-        FileServer.projects = []
-        return FileServer
+        this_FileServer.projects = []
+        self.Logger.debug("getFileServerByUUID: returning: %s" % this_FileServer)
+        return this_FileServer
 
-    def getProjectsonPartitions(self, name_or_ip):
+    def getPartitions(self,name_or_ip,cached=False) : 
+        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        serv_uuid=afsutil.getFSUUIDByName_IP(servernames[0], self._CFG, cached)
+        return self.getPartitionsByUUID(serv_uuid,name_or_ip=servernames[0],cached=cached)
+
+    def getPartitionsByUUID(self,serv_uuid, **kw):
         """
-        return a dict ["partition-name"]["projectname"]["VolumeType"]=numVolumes
+        return dict ["partname"]={"numRW", "numRO","numBK","usage","free","total","serv_uuid"}
+        if DB_CACHE is used, then also return "ExtAttr" ={}
         """
-        raise AfsError("Not implemented yet.")
-        if not self._CFG.DB_CACHE:
-            raise AfsError("DB_CACHE not configured")
-        serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(name_or_ip,self._CFG)
-        projDict={}
-        for p in self.DBManager.getFromJoinwithFilter(Volume,ExtVolAttr, Volume.vid,ExtVolAttr.vid,serv_uuid = serv_uuid) :
-           projDict["a"]=None
-        return projDict
-        
-    def getPartitions(self, name_or_ip, cached=False):
-        """
-        return dict ["partname"]={"numROVolumes", "numRWVolumes","usage","free","total","serv_uuid" }
-        """
-        serv_uuid=afsutil.getFSUUIDByName_IP(name_or_ip, self._CFG,cached)
+        cached=kw.get("cached",False)
+        name_or_ip=kw.get("name_or_ip",False)
         if cached :
             partDict={}
             for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
+                partDict[p.name]["ExtAttr"] = self.DBManager.getFromCache(ExtPartAttr,mustBeunique=True,serv_uuid=serv_uuid,name=p.name).getDict()
+                # XXX if there's no entry, fix default value of projectIDS
+                if partDict[p.name]["ExtAttr"]["projectIDs"] == None :
+                    partDict[p.name]["ExtAttr"]["projectIDs"] = {}
             return partDict
+        if name_or_ip == "" :
+            name_or_ip=afsutil.getHostnameByFSUUID(serv_uuid,self._CFG)
         partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
-        partDict={}
+        partDict = {}
         for p in partList :
             p["serv_uuid"]=serv_uuid
-            partDict[p["name"]]=p
+            partDict[p["name"]] = p
         return partDict
 
-    def getVolStati(self, name_or_ip):
+    def getNumVolumes(self,name_or_ip,part="",cached=False) :
         """
-        get number of online and offline volumes
+        Scan all or one server-partition and count volums
         """
-        StatDict={"total": -1, "on-line" : -1, "off-line" : -1}
-        return StatDict
-
-    ################################################
-    #  Internal Cache Management 
-    ################################################
-
+        self.Logger.debug("getNumVolumes: Entering with name_or_ip=%s,part=%s,cached=%s" % (name_or_ip,part,cached) )
+        # get DNS-info about server
+        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        # UUID
+        uuid=afsutil.getFSUUIDByName_IP(servernames[0],self._CFG)
+        if cached :
+            if part != "" :
+                numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid,part=part)
+                numRO=self.DBManager.count(Volume.id,type="RO",serv_uuid=uuid,part=part)
+                numBK=self.DBManager.count(Volume.id,type="BK",serv_uuid=uuid,part=part)
+                numOffline=self.DBManager.count(Volume.id,status="offline",serv_uuid=uuid,part=part)
+            else :
+                numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid)
+                numRO=self.DBManager.count(Volume.id,type="RO",serv_uuid=uuid)
+                numBK=self.DBManager.count(Volume.id,type="BK",serv_uuid=uuid)
+                numOffline=self.DBManager.count(Volume.id,status="offline")
+        else :
+            numRW = numRO = numBK = numOffline = 0
+            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token,noresolve=True) :
+                self.Logger.debug("server=%s" %f)
+                for v in self._vlDAO.getVolumeList(f["name_or_ip"],self._CFG.CELL_NAME, self._CFG.Token,part,noresolve=True) :
+                    self.Logger.debug("Volume=%s" % v )
+                    if v["RWSite"] == f["name_or_ip"] :
+                         numRW += 1
+                    if f["name_or_ip"] in v["ROSites"] :
+                        numRO += 1
+                self.Logger.debug("_getNumVolumes having: %s,%s,%s,%s" % (numRW,numRO,numBK,numOffline))
+            # we don't get infos about existing Backups here !?
+            # an existing BK-ID doesnot mean that there is one.
+            numBK = -1
+        self.Logger.debug("getNumVolumes returning: %s,%s,%s,%s" % (numRW,numRO,numBK,numOffline))
+        return numRW,numRO,numBK,numOffline 

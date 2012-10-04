@@ -1,5 +1,5 @@
 # Init 
-__all__=["AuthService","BaseService","CellService","FsService","PtService","ProjectService","QueryVol","VolService","OSDVolService","OSDFsService","OSDCellService"]
+__all__=["AuthService","BaseService","CellService","FsService","PtService","ProjectService","QueryVol","VolService","OSDVolService","OSDFsService","OSDCellService","DBsService","BsService"]
 
 def setupOptions():   
         import argparse

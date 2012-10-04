@@ -156,26 +156,3 @@ class OSDFileServerDAO(BaseDAO) :
                    volIds.append(m.groups()[0]) 
                 
             return volIds
-
-    def getPartList(self,  serv, cellname, token) :
-        """
-        return list  of  Partitions-dicts
-        """       
-        RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
-        CmdList=[afs.dao.bin.VOSBIN,"partinfo", "%s" % serv, "-cell","%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-                raise FServError("Error", outerr)
-        partitions= []
-        for line in output :
-            m=RX.match(line)
-            if not m :
-                raise FServError("Error parsing output" , line)
-
-            part, free, size=m.groups()
-            size=long(size)
-            free=long(free)
-            used = size-free
-            partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : size,  "used" : used,  "free" : free})
-        self.Logger.debug("getPartList: returning %s" % partitions)
-        return partitions

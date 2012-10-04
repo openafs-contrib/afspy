@@ -57,32 +57,28 @@ class VolService (BaseService):
                 vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
             else :
                 vol=self.DBManager.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
+            vol.ExtAttr=self.getExtVolAttr(vol.vid)
             return vol
         vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
         if vdict == None :
             return None
         vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
         vdict.pop("serv")
+        self.Logger.debug("getVolume: vdict=%s" % vdict)
         vol = None
         if vdict:
             vol = Volume()
             vol.setByDict(vdict)
             if self._CFG.DB_CACHE :
                 self.DBManager.setIntoCache(Volume,vol,vid = vol.vid)
-        return  vol
+        return vol
 
     def getExtVolAttr(self,vid) :
-        cachedObj=ExtVolAttr()
+        cachedObj=self.DBManager.getFromCache(ExtVolAttr,vid=vid)
         return cachedObj
 
     def saveExtVolAttr(self, Obj):
         cachedObj=self.DBManager.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
-        return cachedObj
-
-    def saveExtVolAttrbyDict(self,vid,dict) :
-        cachedObj=ExtVolAttr()
-        cachedObj.setByDict(dict)
-        cachedObj=self.saveExtVolAttr(cachedObj)
         return cachedObj
 
     ################################################
