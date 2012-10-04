@@ -28,4 +28,4 @@ class Partition(BaseModel):
         ## update date of this object
         self.udate         = datetime.now()
         ## list of attributes not to put into the DB
-        self.ignAttrList= ['ExtAttr']
+        self.ignAttrList= ["ExtAttr"]

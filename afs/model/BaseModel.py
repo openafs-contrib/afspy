@@ -19,7 +19,7 @@ class BaseModel(object):
         """
         Logger.debug("setByDict: got dict=%s" % objByDict)
         # inject ignAttrList is not present, happens in hand-craftet dicts..
-        if not objByDict.has_key("ignAttrList") : objByDict["ignAttrList"]=[]
+        if not objByDict.has_key("ignAttrList") : objByDict["ignAttrList"]=self.getDict()["ignAttrList"]
         for attr, value in objByDict.iteritems():
             if not hasattr(self,attr) and not attr in objByDict["ignAttrList"] + ["ignAttrList"]  :
                 raise AfsError("Cannot create new attribute '%s' to object '%s'" %(attr, self.__class__.__name__))
@@ -27,6 +27,7 @@ class BaseModel(object):
                 raise AfsError("Cannot set json representational attributes here.")
             else :# do not alter DB internal id and creation date
                 if attr != "id" and attr != "cdate":
+                    Logger.debug("setByDict: setting %s to %s" % (attr,value) )
                     setattr(self,attr,value)
         return True
 
@@ -71,7 +72,6 @@ class BaseModel(object):
     def copyObj(self, obj):
         """
         copies one object onto another.
-        complex attributes are synced with their _js counterparts.
         """
         dict=obj.getDict()
         self.setByDict(dict)
