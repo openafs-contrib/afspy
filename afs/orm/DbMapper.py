@@ -26,7 +26,7 @@ def createDbEngine(conf=None):
     ###########################################
     engine = 0
     if conf.DB_TYPE == "mysql":
-        driver = 'mysql+pymysql://%s:%s@%s:%s/%s' % (conf.DB_USER,  conf.DB_PASSWD,conf.DB_HOST, conf.DB_PORT, conf.DB_SID)
+        driver = 'mysql://%s:%s@%s:%s/%s' % (conf.DB_USER,  conf.DB_PASSWD,conf.DB_HOST, conf.DB_PORT, conf.DB_SID)
         logger.debug("creating engine with driver :'%s'" % driver)
         try: 
             engine = create_engine(driver,pool_size=20, max_overflow=30, pool_recycle=3600, echo=False)         
@@ -68,7 +68,7 @@ def safeMapping( ModelClass, TableDef):
     
 def setupDbMappers(conf=None):
     from sqlalchemy     import Table, Column, Integer, BigInteger, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  ForeignKeyConstraint
+    from sqlalchemy     import  ForeignKeyConstraint,ForeignKey
     
     if conf:
         _CFG = conf
@@ -164,7 +164,7 @@ def setupDbMappers(conf=None):
     tbl_partition = Table('tbl_partition', metadata,
           Column('id'           , Integer, primary_key=True),
           Column('serv_uuid'         , String(255), index=True),
-          Column('name'         , String(2)),
+          Column('name'         , String(2),index=True),
           Column('size'         , BigInteger ),
           Column('free'         , BigInteger ),
           Column('used'         , BigInteger ),
@@ -177,8 +177,8 @@ def setupDbMappers(conf=None):
 
     tbl_extpartattr = Table('tbl_extpartattr', metadata,
           Column('id'           , Integer, primary_key=True),
-          Column('serv_uuid',     String(255)), 
-          Column('name'         , String(2)),
+          Column('serv_uuid',     String(255),ForeignKey("tbl_partition.serv_uuid"),nullable=False), 
+          Column('name'         , String(2),ForeignKey("tbl_partition.name"), nullable=False),
           Column('projectIDs_js'      , TEXT),
           Column('allocated'    , BigInteger ),
           Column('allocated_stale', BigInteger ),
@@ -190,7 +190,6 @@ def setupDbMappers(conf=None):
           Column('numOffline'         ,Integer,  nullable=False, default=0),
           Column('cdate'        , DateTime),
           Column('udate'        , DateTime),
-          ForeignKeyConstraint(['serv_uuid','name'], ['tbl_partition.serv_uuid','tbl_partition.name']),
          )
 
     #Mapping Table

@@ -54,7 +54,7 @@ class VLDbDAO(BaseDAO) :
         """
         CmdList=[afs.dao.bin.VOSBIN,"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % cellname ]
         if part != "" :
-            CmdList.append("-part", "%s" % part)
+            CmdList += ["-part", "%s" % part]
         if noresolve :
             CmdList.append("-noresolve")
         rc,output,outerr=self.execute(CmdList)
@@ -65,10 +65,10 @@ class VLDbDAO(BaseDAO) :
         # header is always 2 lines
         i = 1
         while i < len(output) :
-            self.Logger.debug("getVolumeList: parsing %s" % output[i:i+10]) 
-            if "Total entries:" in output[i] or "Volume is currently LOCKED" in output[i] :
+            if "Total entries:" in output[i] or "Volume is currently LOCKED" in output[i] or "Volume is locked for a" in output[i]  :
                 i += 1 
                 continue
+            self.Logger.debug("getVolumeList: parsing %s" % output[i:i+10]) 
              
             Volume={}
             # mpe.integr.revol.0010 

@@ -29,6 +29,9 @@ class CellService(BaseService):
         self.Logger.debug("Using cellname : %s " % cellname)
         if cached :
             cell=self.DBManager.getFromCache(Cell,Name = cellname)
+            if cell == None :
+               self.Logger.info("Cannot get cached Cell. Returning none.")
+               return cell
             self.Logger.debug("Cell.udate=%s" % cell.udate)
             # update Sums etc. from DB_CACHE
             cell.Name=cellname
