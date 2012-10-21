@@ -15,14 +15,13 @@ class VolumeDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
 
-    def move(self,ID, DstServer,DstPartition, cellname, token) :
+    def move(self,ID, SrcServer, SrcPartition, DstServer,DstPartition, cellname, token) :
         """
-        moves this volume to a new Destination. In case of a RO, do 
-        an remove/addsite/release
+        moves a volume to a new Destination. 
+        In case of a RO, do an addsite/release/remove 
         """
-        CmdList=[afs.dao.bin.VOSBIN, "move","%s" % ID, "-cell",  "%s" % cellname ]
+        CmdList=[afs.dao.bin.VOSBIN, "move","%s" % ID, "-fromserver", "%s" % SrcServer, "-frompartition" , "%s" % SrcPartition, "-toserver" , "%s" % DstServer, "-topartition", "%s" % DstPartition,  "-cell",  "%s" % cellname ]
         rc,output,outerr=self.execute(CmdList)
-        # use output for logging.
         if rc:
             raise VolError("Error", outerr)
         return True
@@ -91,8 +90,21 @@ class VolumeDAO(BaseDAO) :
         CmdList=[afs.dao.bin.VOSBIN, "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % cellname ]
         rc,output,outerr=self.execute(CmdList) 
         if rc:
-             raise VolError("Error", outerr)
-    
+            raise VolError("Error", outerr)
+   
+    def getVolIDList(self, Server, cellname,token,Partition=""): 
+        CmdList=[afs.dao.bin.VOSBIN, "listvol","-server", "%s" % Server, "-fast", "-cell",  "%s" % cellname ]
+        if Partition != "" :
+            CmdList += ["-partition", "%s" % Partition]    
+        rc,output,outerr=self.execute(CmdList) 
+        if rc :
+            raise VolError("Error", outerr)  
+        res=[]
+        for l in output :
+           l=l.strip()
+           if len(l) == 0 or "Total" in l : continue
+           res.append(int(l))
+        return res
     
     def getVolGroupList(self, vid, cellname, token) :
         """
