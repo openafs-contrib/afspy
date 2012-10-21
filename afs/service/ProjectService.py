@@ -51,11 +51,20 @@ class ProjectService(BaseService):
         dict={}
         return dict
 
-    def getProjectVolumes(self,prjname) :
+    def getProjectVolumeIDs(self,prjname) :
+        """
+        return list of Volume IDs part of  this project
+        """
         thisProject=self.getProjectByName(prjname)
         if not thisProject : return []
-        list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id)
-        return list
+        # XXX: projectIDs is list of strings!
+        list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,"%s" % thisProject.id)
+        if list == None :
+            return []
+        VolIDList=[]
+        for l in list :
+            VolIDList.append(l.vid) 
+        return VolIDList
         
     def getProjectList(self) :
         """

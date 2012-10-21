@@ -22,42 +22,28 @@ class OSDVolService (VolService):
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["osdvol","fs"])
 
-    """
-    Retrieve Volume Group
-    """
-    def getVolGroup(self, id , cached=False):
-        self.Logger.debug("entering with id=%s" % id) 
-        if cached :
-            return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW,id)
-        list = self._osdvolDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
-        volGroup = None
-        if len(list) > 0:
-            volGroup =  VolumeGroup()
-            for el in list:
-                volGroup.name = el['volname']
-                if el['type'] == 'RW':
-                    volGroup.RW=el
-                elif el['type'] == 'RO':
-                    volGroup.RO.append(el)
-                else :
-                    volGroup.BK=el
-        self.Logger.debug("returning : %s" % volGroup)
-        if self._CFG.DB_CACHE :
-            self.DBManager.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
-        return volGroup
-
-    
 
     """
     Retrieve Volume Information by Name or ID
     Overridden from VolService.
     """
-    def getVolume(self, name_or_id, serv, part,  cached=False):
+    def getVolume(self, name_or_id, serv="", part="",  cached=False):
         self.Logger.debug("Entering with name_or_id=%s, serv=%s, part=%s,cached=%s",name_or_id, serv, part,  cached) 
         if cached :
-            serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
-            vol=self.DBManager.getFromCache(name_or_id, serv_uuid, part)
-            vol.OsdAttr=self.DBManager.getFromCache(OsdVolAttr,vid=vid)
+            if serv != "" :
+                serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
+                # need function in util name_or_ip and name_or_id?
+                if afsutil.isName(name_or_id) :
+                    vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
+                else :
+                    vol=self.DBManager.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
+            else :
+                if afsutil.isName(name_or_id) :
+                    vol=self.DBManager.getFromCache(Volume,name=name_or_id)
+                else :
+                    vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
+            vol.ExtAttr=self.getExtVolAttr(vol.vid)
+            vol.OsdAttr=self.DBManager.getFromCache(ExtVolAttr_OSD,vid=vol.vid)
             return vol
         osdExtAttr=ExtVolAttr_OSD()
         odict=osdExtAttr.getDict()
@@ -66,9 +52,9 @@ class OSDVolService (VolService):
         if not vdict :
             return None
         StorageUsage=self.getStorageUsage([serv,],vdict["vid"])
-        vdict["block_osd_on"]=StorageUsage["storageUsage"]["online"]["Data"]
-        vdict["block_osd_off"]=StorageUsage["storageUsage"]["archival"]["Data"]
-        vdict["block_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
+        vdict["blocks_osd_on"]=StorageUsage["storageUsage"]["online"]["Data"]
+        vdict["blocks_osd_off"]=StorageUsage["storageUsage"]["archival"]["Data"]
+        vdict["blocks_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
         vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
         vdict.pop("serv")
         self.Logger.debug("getVolume: vdict=%s" % vdict)
@@ -162,9 +148,9 @@ class OSDVolService (VolService):
         if self._CFG.DB_CACHE :
             OsdVolAttr={}
             OsdVolAttr['vid'] = vid
-            OsdVolAttr['block_fs']=int(StorageUsage["storageUsage"]["fileserver"]["Data"])
-            OsdVolAttr['block_osd_on']=int(StorageUsage["storageUsage"]["online"]["Data"])
-            OsdVolAttr['block_osd_off']=int(StorageUsage["storageUsage"]["archival"]["Data"])
+            OsdVolAttr['blocks_fs']=int(StorageUsage["storageUsage"]["fileserver"]["Data"])
+            OsdVolAttr['blocks_osd_on']=int(StorageUsage["storageUsage"]["online"]["Data"])
+            OsdVolAttr['blocks_osd_off']=int(StorageUsage["storageUsage"]["archival"]["Data"])
             thisObj=ExtVolAttr_OSD()
             thisObj.setByDict(OsdVolAttr)
             self.DBManager.setIntoCache(ExtVolAttr_OSD,thisObj,vid=thisObj.vid)

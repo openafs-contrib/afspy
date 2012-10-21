@@ -17,7 +17,7 @@ class OSDFsService (FsService):
     _CFG    = None
     
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs","osdfs", "bnode", "vl","rx"])
+        BaseService.__init__(self, conf, DAOList=["fs","osdfs", "bnode", "vol", "vl","rx"])
 
     ###############################################
     # Volume Section
