@@ -38,7 +38,7 @@ class TestDataBaseTearDown :
         return
 
 def parseCMDLine():
-    myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
+    myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False,epilog=afs.argParser.epilog)
     myParser.add_argument("--setup", default="./Test.cfg", help="path to Testconfig")
     parseDefaultConfig(myParser)
     if not os.path.exists(afs.defaultConfig.setup) :

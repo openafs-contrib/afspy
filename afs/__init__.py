@@ -18,15 +18,15 @@ util_argParser=util.setupOptions()
 model_argParser=model.setupOptions()
 
 global argParser
-argParser=argparse.ArgumentParser(parents=[orm_argParser, dao_argParser, service_argParser, util_argParser,model_argParser])
+argParser=argparse.ArgumentParser(parents=[orm_argParser, dao_argParser, service_argParser, util_argParser,model_argParser],epilog="For more options, see documentation and example config-files")
 
 argParser.add_argument("--config","-c" ,  default="", help="path to configuration file" )
-argParser.add_argument("--DAOImplementation", default="", help="Implementation of how to access AFS-Cell" )
-argParser.add_argument("--DAO_SPOOL_PARENTDIR", default="", help="If using 'childprocs'-DAO,  use spool dir under this path")
-argParser.add_argument("--globalLogLevel", default="", help="global python Loglevel")
 argParser.add_argument("--CELL_NAME", default="", help="Default Cell")
-argParser.add_argument("--ignoreIP",  default=[],action="append",  help="IP to ignore for active polling. May be used more than once. Useful for multi-homed servers and complex network-topologies")
-argParser.add_argument("--hostmap",  default=[],action="append",  help="hostname,IP-pairs to override complex DNS-setups with aliases.")
+argParser.add_argument("--globalLogLevel", default="", help=argparse.SUPPRESS)
+argParser.add_argument("--DAOImplementation", default="", help=argparse.SUPPRESS )
+argParser.add_argument("--DAO_SPOOL_PARENTDIR", default="", help=argparse.SUPPRESS)
+argParser.add_argument("--ignoreIP",  default=[],action="append",  help=argparse.SUPPRESS)
+argParser.add_argument("--hostmap",  default=[],action="append",  help=argparse.SUPPRESS)
 
 # a Namespace Object to be created from argParser
 global defaultConfig
