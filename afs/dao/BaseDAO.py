@@ -66,7 +66,7 @@ class BaseDAO(object) :
             if line == "" : continue
             outerr.append(line)
         # XXX magic constant here
-        self.Logger.debug("returning %s" % ( (pipo.returncode, output[:10], outerr[:10]), ))
+        self.Logger.debug("returning %s" % ( (pipo.returncode, output, outerr), ))
         return pipo.returncode,output,outerr
 
     def execute_detached(self,CmdList, SpoolDir, env={}, Input="") :

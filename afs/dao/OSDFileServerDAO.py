@@ -66,15 +66,17 @@ class OSDFileServerDAO(BaseDAO) :
                         try: 
                           vol['name']     = splits[1]
                           splits = output[i+2].split()
+                          self.Logger.debug("splits = %s" % splits)
                           vol['vid']      = int(splits[1])
                           splits = output[i+3].split()
+                          self.Logger.debug("splits = %s" % splits)
                         except :
                             # XXX Here we need a flag to show that parsing was not complete
                             # or a list of Volumes which need to be reparsed.
                             # this will be in the return-code
                             while output[i] != "END_OF_ENTRY":
                                 i = i+1
-                            self.Logger.error("Cannot parse name of volume with id=%s! Skipping." % vol['vid'])
+                            self.Logger.debug("Cannot parse name of volume with id=%s! Skipping." % vol['vid'])
                             continue
                         
                         if len(splits) > 2:
@@ -83,54 +85,80 @@ class OSDFileServerDAO(BaseDAO) :
                            #Only ip is available 
                            vol['servername']     = splits[1] 
                         splits = output[i+4].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['part']     = afsutil.canonicalizePartition(splits[1])
                         splits = output[i+5].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['status']     = splits[1]
                         if vol['status'] != "OK" : 
                             while output[i] != "END_OF_ENTRY":
                                 i = i+1
                             continue
                         splits = output[i+6].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['backupID'] = int(splits[1])
                         splits = output[i+7].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['parentID'] = int(splits[1])
                         splits = output[i+8].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['cloneID']  = int(splits[1])
                         splits = output[i+9].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['inUse']    = splits[1]
                         splits = output[i+10].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['needsSalvaged'] = splits[1]
                         splits = output[i+11].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['destroyMe']     = splits[1]
                         splits = output[i+12].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['type']          = splits[1]
                         splits = output[i+13].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['creationDate']  =  dateT.fromtimestamp(float(splits[1]))
                         splits = output[i+14].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['accessDate']    = dateT.fromtimestamp(float(splits[1]))
                         splits = output[i+15].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['updateDate']    = dateT.fromtimestamp(float(splits[1]))
                         splits = output[i+16].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['backupDate']     = dateT.fromtimestamp(float(splits[1]))
                         splits = output[i+17].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['copyDate']      = dateT.fromtimestamp(float(splits[1]))
                         splits = output[i+18].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['flags']         = splits[1]
                         splits = output[i+19].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['diskused']      = int(splits[1])
                         splits = output[i+20].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['maxquota']      = int(splits[1])
                         splits = output[i+21].split()
-                        vol['filecount']     = int(splits[1])
+                        self.Logger.debug("splits = %s" % splits)
+                        vol['osdPolicy']     = int(splits[1])
                         splits = output[i+22].split()
-                        vol['dayUse']        = int(splits[1])
+                        self.Logger.debug("splits = %s" % splits)
+                        vol['filecount']        = int(splits[1])
                         splits = output[i+23].split()
-                        vol['weekUse']       = int(splits[1])
+                        self.Logger.debug("splits = %s" % splits)
+                        vol['dayUse']       = int(splits[1])
                         splits = output[i+24].split()
-                        vol['osdPolicy']        = int(splits[1])
+                        self.Logger.debug("splits = %s" % splits)
+                        vol['weekUse']        = int(splits[1])
                         splits = output[i+25].split()
+                        self.Logger.debug("splits = %s" % splits)
+                        # ignore spare fields
+                        #vol['spare2']        = int(splits[1])
+                        splits = output[i+26].split()
+                        self.Logger.debug("splits = %s" % splits)
                         vol['filequota']        = int(splits[1])
-                        i = i+26
+                        i = i+27
                     
                     volList.append(vol)
         return volList

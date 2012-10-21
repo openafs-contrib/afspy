@@ -74,7 +74,7 @@ class UbikPeerDAO(BaseDAO):
         resDict["lastVoteStart"] = int(output[idx].split()[3])
         idx += 1
         # "Local db version is 1348069670.41454"
-        resDict["localDBVersion"] = float(output[idx].split()[4])
+        resDict["localDBVersion"] = output[idx].split()[4]
         idx += 1
         # now we need to distinguish between sync site and others
         if "I am sync site" in output[idx] :
@@ -93,7 +93,7 @@ class UbikPeerDAO(BaseDAO):
             # "I am currently managing write trans 1348069670.115422006"
             if "I am currently managing" in output[idx] : idx += 1 
             # "Sync site's db version is 1348069670.41445"
-            resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
+            resDict["SyncSiteDBVersion"] = output[idx].split()[5]
         else :
             if "I am not sync site" == output[idx] :
                 resDict["isClone"] = False
@@ -111,7 +111,7 @@ class UbikPeerDAO(BaseDAO):
             resDict["SyncSite"] = output[idx].split()[2]
             idx += 1
             # "Sync site's db version is 1348069670.41454"
-            resDict["SyncSiteDBVersion"] = float(output[idx].split()[5])
+            resDict["SyncSiteDBVersion"] = output[idx].split()[5]
             idx += 1
             # "0 locked pages, 0 of them for write"
             # XXX ignore the rest

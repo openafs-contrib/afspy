@@ -185,7 +185,7 @@ class OSDVolumeDAO(VolumeDAO) :
    
     def traverse(self,Servers, name_or_id, cellname, token) :
         self.Logger.debug("Entering traverse with Servers=%s, name_or_id=%s, cellname=%s, token=%s" % (Servers, name_or_id, cellname, token) )
-        Converter={"B" : 1, "KB" : 1024, "MB" : 1024*1024, "GB" : 1024*1024*1024, "TB" : 1024*1024*1024*1024}
+        Converter={"B" : 1, "KB" : 1024, "MB" : 1024*1024, "GB" : 1024*1024*1024, "TB" : 1024*1024*1024*1024, "PB" : 1024*1024*1024*1024*1024}
         histogram={}
         if type(Servers) == types.ListType :
             Servers = string.join(Servers," ")
@@ -213,6 +213,7 @@ class OSDVolumeDAO(VolumeDAO) :
         # "storage usage"
         i+=3
         splits=output[i].split()
+        self.Logger.debug("splits=%s"% splits) 
         # localdisk
         self.Logger.debug("splits=%s"% splits) 
         histogram["storageUsage"]={"fileserver" : {"numFiles" : int(splits[2]),"Data" :  round(float(splits[4])*Converter[splits[5]])}}
@@ -223,6 +224,7 @@ class OSDVolumeDAO(VolumeDAO) :
         while 1 :
             if "---------" in output[i] : break
             splits=output[i].split()
+            self.Logger.debug("splits=%s"% splits) 
             if splits[0] == "arch." :
                 histogram["storageUsage"]["archival"]["numFiles"] += int(splits[4])
                 histogram["storageUsage"]["archival"]["Data"] += round(float(splits[6])*Converter[splits[7]])
@@ -234,11 +236,13 @@ class OSDVolumeDAO(VolumeDAO) :
             i += 1
         i += 1
         splits=output[i].split()
+        self.Logger.debug("splits=%s"% splits) 
         histogram["totals"]["storageUsage"]={"numFiles" : int(splits[1]),"Data" : round(float(splits[3])*Converter[splits[4]])}
         # data without a copy
         i+=3 
         # localdisk
         splits=output[i].split()
+        self.Logger.debug("splits=%s"% splits) 
         histogram["withoutCopy"]={"fileserver":{"numFiles" : int(splits[4]),"Data" :  round(float(splits[6])*Converter[splits[7]])}}
         histogram["withoutCopy"]["online"] = {"numFiles" : 0, "Data" : 0}
         histogram["withoutCopy"]["archival"] = {"numFiles" : 0, "Data" : 0}
@@ -247,6 +251,7 @@ class OSDVolumeDAO(VolumeDAO) :
         while 1 :
             if "---------" in output[i] : break
             splits=output[i].split()
+            self.Logger.debug("splits=%s"% splits) 
             if splits[0] == "arch." :
                 histogram["withoutCopy"]["archival"]["numFiles"] += int(splits[4])
                 histogram["withoutCopy"]["archival"]["Data"] += round(float(splits[6])*Converter[splits[7]])
@@ -258,6 +263,7 @@ class OSDVolumeDAO(VolumeDAO) :
             i += 1
         i += 1
         splits=output[i].split()
+        self.Logger.debug("splits=%s"% splits) 
         histogram["totals"]["withoutCopy"]={"numFiles" : int(splits[1]),"Data" : round(float(splits[3])*Converter[splits[4]])}
         self.Logger.debug("returning : %s" % histogram) 
         return histogram
