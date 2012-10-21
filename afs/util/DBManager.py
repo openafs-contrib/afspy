@@ -27,6 +27,24 @@ class DBManager :
         self.DbSession=afs.DbSessionFactory()
 	return
 
+
+    def executeRaw(self,rawsql) :
+        """
+        execute directly a SQL-statement
+        """
+        self.Logger.debug("executeRaw: statement=%s" % (rawsql))
+        conn = self._CFG.DB_ENGINE.connect()
+        t = conn.begin()
+        try:
+            res = conn.execute(rawsql)
+            t.commit()
+        except:
+            t.rollback()
+        
+        self.Logger.debug("executeRaw: res=%s" % (rawsql))
+        return res
+        
+
     def getFromCache(self, Class, mustBeunique=True,**where) :
         """
         get an object from the cache.
@@ -62,6 +80,8 @@ class DBManager :
         emptyObj=Class()
         self.Logger.debug("getFromCacheByListElement, regex is : %s" % (RegEx))
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        if len(resObjs) == 0 :
+            return None
         for r in resObjs :
             r.updateAppRepr()
             # the ignAttrList is not stored in DB, thus add it here explictly.
@@ -76,6 +96,8 @@ class DBManager :
         RegEx="\{.*\"{0}\"\s+:.*\}".format(Elem)
         emptyObj=Class()
         resObjs=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        if len(resObjs) == 0 :
+            return None
         for r in resObjs :
             r.updateAppRepr()
             # the ignAttrList is not stored in DB, thus add it here explictly.
@@ -138,7 +160,7 @@ class DBManager :
         self.Logger.debug("got %s" % mappedObj)
         # remove DB-association of Object ???
         sqlalchemy.orm.session.make_transient(mappedObj)
-        self.Logger.debug("returning=%s" % mappedObj)
+        self.Logger.debug("do_setIntoCache: returning=%s" % mappedObj)
         return mappedObj
     
     def deleteFromCache(self,Class,**unique):

@@ -14,10 +14,8 @@ class FsService (BaseService):
     Provides Service about a FileServer
     """
     
-    _CFG    = None
-    
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl","rx"])
+        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl","rx","vol"])
 
     ###############################################
     # Volume Section
@@ -106,10 +104,14 @@ class FsService (BaseService):
             partDict={}
             for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
-                partDict[p.name]["ExtAttr"] = self.DBManager.getFromCache(ExtPartAttr,mustBeunique=True,serv_uuid=serv_uuid,name=p.name).getDict()
+                extPartAttr=self.DBManager.getFromCache(ExtPartAttr,mustBeunique=True,serv_uuid=serv_uuid,name=p.name)
+                if extPartAttr != None :
+                    partDict[p.name]["ExtAttr"] = extPartAttr.getDict()
+                else : # if there is no "ExtAttr", fake an emtpy one !? 
+                    partDict[p.name]["ExtAttr"] =  None
                 # XXX if there's no entry, fix default value of projectIDS
-                if partDict[p.name]["ExtAttr"]["projectIDs"] == None :
-                    partDict[p.name]["ExtAttr"]["projectIDs"] = {}
+                if partDict[p.name]["ExtAttr"] == None :
+                    partDict[p.name]["ExtAttr"] = { "projectIDs" : [] }
             return partDict
         if name_or_ip == "" :
             name_or_ip=afsutil.getHostnameByFSUUID(serv_uuid,self._CFG)
@@ -119,6 +121,22 @@ class FsService (BaseService):
             p["serv_uuid"]=serv_uuid
             partDict[p["name"]] = p
         return partDict
+
+    def getVolumeIDs(self,name_or_ip,part="",cached=False) :
+        """
+        return list of IDs present on given server partition
+        """
+        self.Logger.debug("getVolumeIds: Entering with name_or_ip=%s,part=%s,cached=%s" % (name_or_ip,part,cached) )
+        servernames,ipaddrs = afsutil.getDNSInfo(name_or_ip)
+        # UUID
+        uuid=afsutil.getFSUUIDByName_IP(servernames[0],self._CFG)
+        if cached :
+            if part != "" :
+               pass
+            else :
+               pass 
+            return []
+        return self._volDAO.getVolIDList(servernames[0],self._CFG.CELL_NAME,self._CFG.Token,Partition=part)
 
     def getNumVolumes(self,name_or_ip,part="",cached=False) :
         """
