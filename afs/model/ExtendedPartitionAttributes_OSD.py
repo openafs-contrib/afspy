@@ -9,7 +9,7 @@ class ExtPartAttr_OSD(BaseModel):
     IN DB_CACHE, this is stored in an own table
     """
     
-    def __init__(self, serv_uuid="", name="", block_fs=-1,block_osd_on=-1,block_osd_off=-1):
+    def __init__(self, serv_uuid="", name="", blocks_fs=-1,blocks_osd_on=-1,blocks_osd_off=-1):
         """
         initialize an empty object
         """
@@ -19,11 +19,11 @@ class ExtPartAttr_OSD(BaseModel):
         self.name=name
         self.serv_uuid=serv_uuid
         ## number of blocks stored on Fileserver directly
-        self.block_fs       = block_fs
+        self.blocks_fs       = blocks_fs
         ## number of blocks which are on-line
-        self.block_osd_on  = block_osd_on
+        self.blocks_osd_on  = blocks_osd_on
         ## number of off-line blocks
-        self.block_osd_off = block_osd_off
+        self.blocks_osd_off = blocks_osd_off
         ## creation date of this object
         self.cdate         = datetime.now()
         ## update date of this object

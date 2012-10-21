@@ -7,7 +7,7 @@ class ExtVolAttr_OSD(BaseModel):
     Model object of  a Partition
     """
        
-    def __init__(self, vid=-1, filequota=0, files_fs=0,files_osd=0,block_fs=0, block_osd_on=0, block_osd_off=0, osdPolicy=0):
+    def __init__(self, vid=-1, filequota=0, files_fs=0,files_osd=0,blocks_fs=0, blocks_osd_on=0, blocks_osd_off=0, osdPolicy=0):
         """
         initialize an empty object
         """
@@ -20,11 +20,11 @@ class ExtVolAttr_OSD(BaseModel):
         ## number of OSD-objects 
         self.files_osd = files_osd
         ## number of blocks stored on Fileserver directly
-        self.block_fs       = block_fs
+        self.blocks_fs       = blocks_fs
         ## number of blocks which are on-line
-        self.block_osd_on  = block_osd_on
+        self.blocks_osd_on  = blocks_osd_on
         ## number of off-line blocks
-        self.block_osd_off = block_osd_off
+        self.blocks_osd_off = blocks_osd_off
         ## osd policy
         self.osdPolicy     = osdPolicy
         ## creation date of this object

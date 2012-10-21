@@ -40,11 +40,11 @@ class Cell_OSD(BaseModel) :
         self.allocated_OSD=-1
         self.allocated_stale_OSD=-1
         ## number of blocks stored on Fileserver directly
-        self.block_fs       = -1
+        self.blocks_fs       = -1
         ## number of blocks which are on-line
-        self.block_osd_on  = -1
+        self.blocks_osd_on  = -1
         ## number of off-line blocks
-        self.block_osd_off = -1
+        self.blocks_osd_off = -1
         ## storage histogram
         ## "vos traverse"
         self.StorageUsage=None
