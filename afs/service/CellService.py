@@ -21,7 +21,7 @@ class CellService(BaseService):
         self.PS=ProjectService()
 
 
-    def getCellInfo(self, cellname="", cached=False) :
+    def getCellInfo(self, cellname="", _user="", cached=False) :
         """
         return full Cellobject.
         """
@@ -102,19 +102,20 @@ class CellService(BaseService):
     # Internal helper Section
     ###############################################    
    
-    def getFileServers(self,cached=False):
+    def getFileServers(self, _user="", cached=False):
         """
         Return FileServers as a list of hostnames for each fileserver
         """
         self.Logger.debug("refreshing FileServers from live system")
         FileServers = []
-        for na in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token,noresolve=True) :
+        cellname=self._CFG.CELL_NAME
+        for na in self._vlDAO.getFsServList(cellname, _cfg=self._CFG, _user=_user,noresolve=True) :
             na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['name_or_ip'])
             FileServers.append(na['hostnames'][0])
         self.Logger.debug("returning %s" % FileServers)
         return FileServers
     
-    def getDBServers(self,cached=False):
+    def getDBServers(self, _user="", cached=False):
         """
         return a DB-Server-hostname list
         """
@@ -130,9 +131,9 @@ class CellService(BaseService):
         if len(DBServList) == 0 :
             # get one fileserver and from that one the DBServList
             # we need to make sure to get the IP
-            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token, noresolve=True ) :
+            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user, noresolve=True ) :
                 if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
-            DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], self._CFG.CELL_NAME) 
+            DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user) 
         
         # canonicalize DBServList 
         DBServers=[]
@@ -141,14 +142,14 @@ class CellService(BaseService):
             DBServers.append(na['hostnames'][0])
         return DBServers
 
-    def getUbikDBInfo(self, name_or_ip, Port):
+    def getUbikDBInfo(self, name_or_ip, Port, _user=""):
         """
         return (SyncSite,DBVersion,DBState) tuple for DataBase accessible from Port
         """
-        shortInfo = self._ubikDAO.getShortInfo(name_or_ip, Port,self._CFG.CELL_NAME,self._CFG.Token)
+        shortInfo = self._ubikDAO.getShortInfo(name_or_ip, Port, self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         # we get DBState only from SyncSite  
         if not shortInfo["isSyncSite"] : 
-             shortInfo = self._ubikDAO.getShortInfo(shortInfo["SyncSite"], Port,self._CFG.CELL_NAME,self._CFG.Token)
+             shortInfo = self._ubikDAO.getShortInfo(shortInfo["SyncSite"], Port,self._CFG.CELL_NAME, _cfg=self._CFG,_user=_user)
         return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])
 
     def getUsage(self,cached=False) :

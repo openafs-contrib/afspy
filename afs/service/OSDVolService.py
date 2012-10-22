@@ -47,7 +47,7 @@ class OSDVolService (VolService):
             return vol
         osdExtAttr=ExtVolAttr_OSD()
         odict=osdExtAttr.getDict()
-        vdict = self._osdvolDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
+        vdict = self._osdvolDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         self.Logger.debug("getVolume: vdict=%s" % vdict)
         if not vdict :
             return None
@@ -88,7 +88,7 @@ class OSDVolService (VolService):
         if cached = True, then save in DBCache
         """
         try:
-            StorageUsage=self._osdvolDAO.traverse(servers,vid,self._CFG.CELL_NAME, self._CFG.Token)
+            StorageUsage=self._osdvolDAO.traverse(servers,vid,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         except:
             return emptyStorageUsageDict
 

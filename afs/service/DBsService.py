@@ -16,7 +16,7 @@ class DBsService(BaseService) :
     def __init__(self,conf=None):
         BaseService.__init__(self, conf, DAOList=["vl","ubik","rx"])
 
-    def getDBServer(self, name_or_ip, DBType,cached=False) :
+    def getDBServer(self, name_or_ip, DBType,_user="",cached=False) :
         """
         Return DB-Server object
         """ 
@@ -50,7 +50,7 @@ class DBsService(BaseService) :
         this_DBServer.type = DBType
         this_DBServer.servernames=servernames
         this_DBServer.ipaddr=mandIP
-        shortInfo=self._ubikDAO.getShortInfo(mandIP,port,self._CFG.CELL_NAME,self._CFG.Token)
+        shortInfo=self._ubikDAO.getShortInfo(mandIP,port,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         this_DBServer.isClone=shortInfo["isClone"]
         this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
         this_DBServer.version,this_DBServer.builddate=self._rxDAO.getVersionandBuildDate(mandIP,port)
