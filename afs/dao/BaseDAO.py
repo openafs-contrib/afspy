@@ -42,9 +42,10 @@ def execwrapper(fn) :
         # ParseInfo are any info the ParseFct requires beside rc, outout and outerr 
         parseParamList={"args" : args, "kwargs" : kwargs } 
         argspec=inspect.getargspec(fn)
-        for a in range(len(argspec[0])-len(argspec[3])) :
-            k = argspec[0][a+len(argspec[0])-len(argspec[3])]
-            v = argspec[3][a]
+        count = 0
+        for k in argspec[0][-len(argspec[3]):] :
+            v = argspec[3][count]
+            count += 1
             if not parseParamList["kwargs"].has_key(k) :
                 parseParamList["kwargs"][k]=v
         CmdList,ParseFct=fn(self,*args, **kwargs) 
