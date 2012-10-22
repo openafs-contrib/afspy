@@ -1,6 +1,6 @@
 import re
 
-def parse_getVersionandBuildDate(rc,output,outerr,execParamList,Logger):
+def parse_getVersionandBuildDate(rc,output,outerr,parseParamList,Logger):
     RXVerRegEx=re.compile("AFS version:  OpenAFS(.*)built (.*)")
     if len(output) != 2 :
         version="Not readable."

@@ -3,7 +3,7 @@ from afs.exceptions.FServError import FServError
 from afs.util import afsutil
 
 
-def getVolList(rc, output, outerr, execParamList, Logger) :
+def getVolList(rc, output, outerr, parseParamList, Logger) :
     if rc :
         raise FServError("Error",outerr)
         
@@ -118,7 +118,7 @@ def getVolList(rc, output, outerr, execParamList, Logger) :
                 volList.append(vol)
     return volList
 
-def getIdVolList(rc,output,outerr,execParamList,Logger) :
+def getIdVolList(rc,output,outerr,parseParamList,Logger) :
     if rc : 
          raise FServError("Error", outerr) 
     RX=re.compile("^(\d+)")
@@ -131,7 +131,7 @@ def getIdVolList(rc,output,outerr,execParamList,Logger) :
     return volIds
 
 
-def getPartList(rc,output,outerr,execParamList,Logger) :
+def getPartList(rc,output,outerr,parseParamList,Logger) :
     if rc :
          raise FServError("Error", outerr)
     RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")

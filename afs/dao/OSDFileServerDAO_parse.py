@@ -2,7 +2,7 @@ import re, datetime
 from afs.util import afsutil
 from afs.exceptions.FServError import FServError
 
-def getVolList(rc,output,outerr,execParamList,Logger) :
+def getVolList(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise FServError("Error",outerr)
     # first line gives Name, ID, Type, Used and Status 
@@ -142,7 +142,7 @@ def getVolList(rc,output,outerr,execParamList,Logger) :
                 volList.append(vol)
     return volList
 
-def getIdVolList(rc,output,outerr,execParamList,Logger):
+def getIdVolList(rc,output,outerr,parseParamList,Logger):
     RX=re.compile("^(\d+)")
     volIds = []
     for line in output [1:]:

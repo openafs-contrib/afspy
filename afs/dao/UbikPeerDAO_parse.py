@@ -16,7 +16,7 @@ HostTimeRX=re.compile("Host's (.*) time is (.*)")
 LocalTimeRX=re.compile("Local time is (.*) \(time differential (\d+) secs\)")
 LastYesVoteRX=re.compile("Last yes vote for (.*) was (.*) secs ago \(sync site\);")
     
-def parse_getShortInfo(rc, output, outerr, execParamList, Logger) :
+def parse_getShortInfo(rc, output, outerr, parseParamList, Logger) :
     """
     parse output of udebug
     """
@@ -84,7 +84,7 @@ def parse_getShortInfo(rc, output, outerr, execParamList, Logger) :
     return resDict
         
 
-def parse_getLongInfo( rc, output, outerr, execParamList,Logger) :
+def parse_getLongInfo( rc, output, outerr, parseParamList,Logger) :
     """
     Parsing is always the same, so do it here.
     """

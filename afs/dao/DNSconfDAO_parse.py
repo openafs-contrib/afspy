@@ -1,6 +1,6 @@
 from afs.exceptions.AfsError import AfsError
 
-def getDBServList(rc,output,outerr,execParamList,Logger) :
+def getDBServList(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise AfsError
     # parse "This workstation belongs to cell 'beolink.org'"
