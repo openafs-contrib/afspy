@@ -6,8 +6,7 @@ from afs.model.Volume import Volume
 from afs.service.BaseService import BaseService
 from afs.service.FsService import FsService
 from afs.service.ProjectService import ProjectService
-from afs.util import afsutil
-
+import afs
 
 class CellService(BaseService):
     """
@@ -109,9 +108,9 @@ class CellService(BaseService):
         self.Logger.debug("refreshing FileServers from live system")
         FileServers = []
         cellname=self._CFG.CELL_NAME
-        for na in self._vlDAO.getFsServList(cellname, _cfg=self._CFG, _user=_user,noresolve=True) :
-            na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['name_or_ip'])
-            FileServers.append(na['hostnames'][0])
+        for na in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user,noresolve=True) :
+            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['name_or_ip'])
+            FileServers.append(DNSInfo['names'][0])
         self.Logger.debug("returning %s" % FileServers)
         return FileServers
     
@@ -125,31 +124,31 @@ class CellService(BaseService):
 
         # try DNS _SRV Records from afsdb
         try :
-            DBServList=self._dns.getDBServList()
+            DBServList=self._dnsDAO.getDBServList(self._CFG.CELL_NAME)
         except:
             pass
         if len(DBServList) == 0 :
             # get one fileserver and from that one the DBServList
             # we need to make sure to get the IP
-            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user, noresolve=True ) :
+            for f in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True ) :
                 if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
-            DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user) 
+            DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], _cfg=self._CFG, _user=_user) 
         
         # canonicalize DBServList 
         DBServers=[]
         for na in DBServList :
-            na['hostnames'],na['ipaddrs']=afsutil.getDNSInfo(na['hostname'])
-            DBServers.append(na['hostnames'][0])
+            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['hostname'])
+            DBServers.append(DNSInfo['names'][0])
         return DBServers
 
     def getUbikDBInfo(self, name_or_ip, Port, _user=""):
         """
         return (SyncSite,DBVersion,DBState) tuple for DataBase accessible from Port
         """
-        shortInfo = self._ubikDAO.getShortInfo(name_or_ip, Port, self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+        shortInfo = self._ubikDAO.getShortInfo(name_or_ip, Port, _cfg=self._CFG, _user=_user)
         # we get DBState only from SyncSite  
         if not shortInfo["isSyncSite"] : 
-             shortInfo = self._ubikDAO.getShortInfo(shortInfo["SyncSite"], Port,self._CFG.CELL_NAME, _cfg=self._CFG,_user=_user)
+             shortInfo = self._ubikDAO.getShortInfo(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
         return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])
 
     def getUsage(self,cached=False) :

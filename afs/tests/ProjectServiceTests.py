@@ -32,8 +32,7 @@ class TestProjectServiceCachedMethods(unittest.TestCase, SetupTest):
 
     def test_getProjectByName(self) :
         Prj = self.PrjMng.getProjectByName(self.ProjectName)
-        print Prj.id
-        return
+        self.assertTrue( type(Prj) != type(None) )
 
 if __name__ == '__main__' :
     parseCMDLine()

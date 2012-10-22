@@ -7,6 +7,6 @@ def setupOptions():
     """
     import argparse
     argParser=argparse.ArgumentParser(add_help=False)
-    for d in ["util","DBManager"]:
+    for d in ["util","DBManager","LookupUtil"]:
         argParser.add_argument("--LogLevel_%s" %d , default="", help=argparse.SUPPRESS)
     return argParser

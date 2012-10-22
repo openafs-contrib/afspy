@@ -3,8 +3,8 @@
 import unittest
 import logging
 from BaseTest import parseCMDLine, basicTestSetup
+import afs
 
-from afs.util import afsutil
 
 
 class TestLookupUtilMethods(unittest.TestCase, basicTestSetup):
@@ -21,14 +21,26 @@ class TestLookupUtilMethods(unittest.TestCase, basicTestSetup):
         self.HostAlias=self.TestCfg.get("LookupUtil","HostAlias")
         self.primaryHostName=self.TestCfg.get("LookupUtil","primaryHostName")
         self.IPAddr=self.TestCfg.get("LookupUtil","IPAddr")
-        self.LookupUtil = afsutil.LookupUtil()
-        self.LookupUtil.Logger.setLevel(logging.DEBUG)
+        self.FsUUID=self.TestCfg.get("LookupUtil","FsUUID")
         return
 
-    def test_Lookup(self) :
-        DNSInfo=self.LookupUtil.getDNSInfo(self.HostAlias)
-        self.assertEqual(self.primaryHostName,DNSInfo[0][0])
+    def test_Lookup_HostAlias(self) :
+        DNSInfo=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getDNSInfo(self.HostAlias)
+        self.assertEqual(self.primaryHostName,DNSInfo["names"][0])
         return
+
+    def test_Lookup_UUID(self) :
+        uuid=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(self.HostAlias)
+        self.assertEqual(self.FsUUID,uuid)
+        return
+
+    def test_Lookup_HostnameByFSUUID(self) :
+        afs.LookupUtil[afs.defaultConfig.CELL_NAME].Logger.setLevel(logging.DEBUG)
+        hostname=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getHostnameByFSUUID(self.FsUUID)
+        afs.LookupUtil[afs.defaultConfig.CELL_NAME].Logger.setLevel(logging.WARN)
+        self.assertEqual(self.primaryHostName,hostname)
+        return
+
 
 
 if __name__ == '__main__' :

@@ -40,7 +40,7 @@ class TestOSDVolServiceCachedMethods(unittest.TestCase, SetupTest):
     
     def test_getOsdVolAttr(self):
         vol=self.volMng.getVolume(self.VolID,self.FS,self.Part)
-        self.assertTrue(type(vol)!=type(None))
+        self.assertTrue( type(vol) != type(None) )
         return
 
 if __name__ == '__main__' :

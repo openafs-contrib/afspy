@@ -1,8 +1,9 @@
 from afs.exceptions.VLDbError import VLDbError
-from afs.util import afsutil
+import afs
 
 def getFsServList(rc,output,outerr,parseParamList,Logger):
     noresolve=parseParamList["kwargs"]["noresolve"]
+    _cfg=parseParamList["kwargs"]["_cfg"]
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     servers = []
@@ -12,12 +13,12 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
             server = {}
             splits = output[i].split()
             server['uuid'] = splits[1]
-            i = i +1
-            hostnames,ipaddrs=afsutil.getDNSInfo(output[i])
+            i = i + 1
+            DNSInfo=afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(output[i])
             if noresolve :
-                server['name_or_ip'] = ipaddrs[0]
+                server['name_or_ip'] = DNSInfo["ipaddrs"][0]
             else :
-                server['name_or_ip'] = hostnames[0]
+                server['name_or_ip'] = DNSInfo["names"][0]
             servers.append(server)
         i += 1
     return servers
@@ -30,6 +31,7 @@ def getFsUUID(rc,output,outerr,parseParamList,Logger) :
 
 def Volumelist(rc,output,outerr,parseParamList,Logger) :
     noresolve=parseParamList["kwargs"]["noresolve"]
+    _cfg=parseParamList["kwargs"]["_cfg"]
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     Volumes=[]
@@ -57,12 +59,12 @@ def Volumelist(rc,output,outerr,parseParamList,Logger) :
         Volume["ROSites"] = []
         for l in range(Volume["numSites"]) :
             splits=output[i+3+l].split()
-            hostnames,ipaddrs = afsutil.getDNSInfo(splits[1])
+            DNSInof = afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(splits[1])
             if splits[4] == "RW" :
                 if noresolve :
-                    Volume["RWSite"] = ipaddrs[0]
+                    Volume["RWSite"] = DNSInfo["ipaddrs"][0]
                 else :
-                    Volume["RWSite"] = hostnames[0]
+                    Volume["RWSite"] = DNSInfo["names"][0]
             elif splits[4] == "RO" :
                 if noresolve :
                     Volume["ROSites"].append(ipaddrs[0])
