@@ -1,6 +1,5 @@
-import re,string,os,sys
-import afs.dao.bin
-from afs.dao.BaseDAO import BaseDAO
+from afs.dao.BaseDAO import BaseDAO,execwrapper
+import OsdDbDAO_parse as PM
 
 class OsdDbDAO(BaseDAO):
     
@@ -11,16 +10,12 @@ class OsdDbDAO(BaseDAO):
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-        
-    def getStatistics(self,srv, cellname,token):
+     
+    @execwrapper   
+    def getStatistics(self,srv, _cfg=None):
         """
         get RPC-statistics of OsdDb-Server
         """
-        CmdList=[afs.dao.bin.OSDBIN, "osddbstatistics","-server","%s" % srv,"-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise OsdDbError("Error", outerr)
-        
-        statDict={}
-        
-        return statDict
+        CmdList=[_cfg.binaries["osd"], "osddbstatistics","-server","%s" % srv,"-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.getStatistics
+

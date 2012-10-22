@@ -1,7 +1,8 @@
-import afs.dao.bin
-from afs.exceptions.VLDbError import VLDbError
 from afs.dao.BaseDAO import BaseDAO
+from afs.dao.BaseDAO import execwrapper
 from afs.util import afsutil
+import VLDbDAO_parse as PM
+import string
 
 class VLDbDAO(BaseDAO) :
     """
@@ -12,153 +13,94 @@ class VLDbDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
     
-    def getFsServList(self,cellname, token, noresolve=False):
+    @execwrapper
+    def getFsServList(self,_cfg=None, noresolve=False):
         """
         get list of dicts of all fileservers registered in the VLDB
         """
-        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-printuuid", "-cell","%s" % cellname ]
+        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.CELL_NAME ]
         if noresolve :
             CmdList.append("-noresolve")
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise VLDbError("Error", outerr)
-       
-        servers = []
-        i = 0
-        while i < len(output) :
-            if output[i].startswith("UUID:"):
-                server = {}
-                splits = output[i].split()
-                server['uuid'] = splits[1]
-                i = i +1
-                hostnames,ipaddrs=afsutil.getDNSInfo(output[i])
-                if noresolve :
-                    server['name_or_ip'] = ipaddrs[0]
-                else :
-                    server['name_or_ip'] = hostnames[0]
-                servers.append(server)
-            i += 1
-        return servers
+        return CmdList,PM.getFsServList
 
-    def getFsUUID(self, name_or_ip, cellname, token) :
-        CmdList=[afs.dao.bin.VOSBIN,"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise VLDbError("Error", outerr)
-        uuid=output[0].split()[1]
-        return uuid
+    @execwrapper
+    def getFsUUID(self, name_or_ip, _cfg) :
+        CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.CELL_NAME ]
 
-    def getVolumeList(self,name_or_ip, cellname,token,part="",noresolve=False) :
+        return CmdList,PM.getFsUUID
+
+    @execwrapper
+    def getVolumeList(self, name_or_ip, _cfg, part="", noresolve=False) :
         """
         Return list of volumes on a server
         """
-        CmdList=[afs.dao.bin.VOSBIN,"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % cellname ]
+        CmdList=[_cfg.binaries["vos"],"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % _cfg.CELL_NAME ]
         if part != "" :
             CmdList += ["-part", "%s" % part]
         if noresolve :
             CmdList.append("-noresolve")
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise VLDbError("Error", outerr)
+        return CmdList,PM.getVolumeList
 
-        Volumes=[]
-        # header is always 2 lines
-        i = 1
-        while i < len(output) :
-            if "Total entries:" in output[i] or "Volume is currently LOCKED" in output[i] or "Volume is locked for a" in output[i]  :
-                i += 1 
-                continue
-            self.Logger.debug("getVolumeList: parsing %s" % output[i:i+10]) 
-             
-            Volume={}
-            # mpe.integr.revol.0010 
-            Volume["name"]=output[i].strip() 
-            # RWrite: 536985599     ROnly: 536985600 
-            splits=output[i+1].split()             
-            if len(splits) == 6 :
-                Volume["BK"] = splits[5]
-            elif len(splits) == 4 :
-                Volume["RO"] = splits[3]
-            elif len(splits) == 2 :
-                Volume["BK"] = splits[1]
-            Volume["numSites"] = int(output[i+2].split()[4])
-            Volume["RWSite"] = ""
-            Volume["ROSites"] = []
-            for l in range(Volume["numSites"]) :
-                splits=output[i+3+l].split()
-                hostnames,ipaddrs = afsutil.getDNSInfo(splits[1])
-                if splits[4] == "RW" :
-                    if noresolve :
-                        Volume["RWSite"] = ipaddrs[0]
-                    else :
-                        Volume["RWSite"] = hostnames[0]
-                elif splits[4] == "RO" :
-                    if noresolve :
-                        Volume["ROSites"].append(ipaddrs[0])
-                    else :
-                        Volume["ROSites"].append(hostnames[0])
-            i = i + 3 + Volume["numSites"]
-            Volumes.append(Volume)
-        self.Logger.debug("getVolumeList: returning %s" % Volumes[:10])     
-        return Volumes 
-    
-    def syncVLDb(self):
+    @execwrapper
+    def syncVLDb(self, name_or_ip, part="", volume="",_cfg=None):
         """
         Check that volumes residing at given Fileserver/partition have a correct  VLDB entries.
         """
-        pass
+        CmdList=[_cfg.binaries["vos"], "syncvldb", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.CELL_NAME ]
+        if part != "" :
+            CmdList += [ "-part", "%s" % part]
+        if volume != "" :
+            CmdList += [ "-volume", "%s" % volume]
+        return CmdList,PM.syncVLDB
         
-    def syncServ(self):
+    @execwrapper
+    def syncServ(self, name_or_ip, part="",_cfg=None):
         """
         Verifies VLDB that entries pointing to a specified site are really on that Fileserver/Partition
         """
-        pass 
+        CmdList=[_cfg.binaries["vos"], "syncserv", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.CELL_NAME ]
+        if part != "" :
+            CmdList += [ "-part", "%s" % part]
+        return CmdList,PM.syncServ
     
-    def changeVolLocation(self):
-        """
-        change the location of a Volume in the VLDB only
-        """
-        pass
-
-    def setFSaddrs(self, UUID, hostlist, cellname, token): 
+    @execwrapper
+    def setaddrs(self, UUID, hostlist, _cfg=None): 
         """
         set the list of IP address for a given UUID in the VLDB
+        Usage: vos setaddrs -uuid <uuid of server> -host <address of host>+ [-cell <cell name>] [-noauth] [-localauth] [-verbose] [-encrypt] [-noresolve] [-help]
         """
-        pass
+        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % string.join(hostlist," "),  "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.setaddrs
         
-    def addsite(self,VolName,DstServer,DstPartition,cellname, token) :
+    @execwrapper
+    def addsite(self,VolName,DstServer,DstPartition, _cfg=None) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
-        CmdList=["vos", "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList) 
-        if rc:
-            raise VLDbError("Error", outerr)
+        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.addsite
     
-    def remsite(self,VolName,Server,Partition,cellname, token) :
+    @execwrapper
+    def remsite(self,VolName,Server,Partition, _cfg=None) :
         """
         removes entry for a RO-Volume in VLDB
         """
-        CmdList=["vos", "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList) 
-        if rc:
-            raise VLDbError("Error", outerr)
+        CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.remsite
         
-    def lock(self,ID, cellname, token) :
+    @execwrapper
+    def lock(self,ID, _cfg=None) :
         """
         locks volume in VLDB
         """
-        CmdList=["vos", "lock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise VLDbError("Error", outerr)
+        CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
+        return CmdList,PM.lock
     
-    def unlock(self,ID, cellname, token) :
+    @execwrapper
+    def unlock(self,ID, _cfg=None) :
         """
         unlocks volume in VLDB
         """
-        CmdList=["vos", "unlock","-id" ,"%s" % ID, "-cell",  "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise VLDbError("Error", outerr)
+        CmdList=[_cfg.binaries["vos"], "unlock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
+        return CmdList,PM.unlock
     

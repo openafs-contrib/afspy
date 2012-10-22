@@ -4,6 +4,7 @@ import unittest
 from BaseTest import parseCMDLine, basicTestSetup
 
 from afs.dao import CacheManagerDAO 
+import afs
 
 class TestCacheManagerDAOMethods(unittest.TestCase, basicTestSetup):
     """
@@ -19,12 +20,12 @@ class TestCacheManagerDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_getWSCell(self) :
-        cellname=self.DAO.getWSCell()
-        self.assertEqual(self.Cell, cellname)
+        cellname=self.DAO.getWSCell( _cfg=afs.defaultConfig,_user="test")
+        self.assertEqual(self.Cell,cellname)
         return
         
     def test_getCellAliases(self) :
-        Aliases=self.DAO.getCellAliases()
+        Aliases=self.DAO.getCellAliases(_cfg=afs.defaultConfig,_user="test")
         print Aliases
         return
     

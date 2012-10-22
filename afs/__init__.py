@@ -27,6 +27,7 @@ argParser.add_argument("--DAOImplementation", default="", help=argparse.SUPPRESS
 argParser.add_argument("--DAO_SPOOL_PARENTDIR", default="", help=argparse.SUPPRESS)
 argParser.add_argument("--ignoreIP",  default=[],action="append",  help=argparse.SUPPRESS)
 argParser.add_argument("--hostmap",  default=[],action="append",  help=argparse.SUPPRESS)
+argParser.add_argument("--binconfig", default="", help=argparse.SUPPRESS )
 
 # a Namespace Object to be created from argParser
 global defaultConfig
