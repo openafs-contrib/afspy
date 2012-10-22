@@ -2,6 +2,7 @@ import logging
 import string,os,sys
 import subprocess,types
 import tempfile
+import afs
 
 
 class ExecError( BaseException):
@@ -13,23 +14,59 @@ class ExecError( BaseException):
     def __str__(self):
       #FIXME parse build a complete message with stack
       return repr(self.message)
-        
+       
+
+def execwrapper(fn) :
+    """
+    This decorator is intended for all DAO-methods.
+    The method itself is just compiling the CMDList to execute,
+    and returns the appropriate parsing function and all Info this
+    parsing function needs.
+    Hooks for Auth checking are in place.
+    """
+    def wrapped(self,*args,**kwargs):
+        if not kwargs.has_key("_user") :
+            raise "No user given"
+        else :
+            _user=kwargs["_user"]
+            kwargs.pop("_user")
+        if not kwargs.has_key("_cfg") :
+            raise "No config given"
+        else : 
+            _cfg=kwargs["_cfg"]
+        self.Logger.debug("should check auth of user=%s for method %s in class %s" % (_user,fn.__name__,self.__class__.__name__))
+        # get cmdlist and parsefunction from method
+        self.Logger.debug("%s: entering with  args=%s,kwargs=%s" % (fn.__name__,args,kwargs))
+        # ParseFct is parsing the output of the executed function
+        # ParseInfo are any info the ParseFct requires beside rc, outout and outerr 
+        execParamList={"args": args, "kwargs": kwargs}
+        CmdList,ParseFct=fn(self,*args, **kwargs) 
+        if self.Implementation == "childprocs" :
+            rc,output,outerr=self.execute(CmdList)
+        elif self.Implementation == "detached" :
+            jobinfo=self.execute_detached(CmdList)
+            self.Logger.debug("should put jobinfo %s into jobmanager" % jobinfo)
+        self.Logger.debug("calling ParseFct %s with rc=%s, output=%s,outerr=%s" % (ParseFct.__name__,rc,output[:10],outerr[:10]))
+        result=ParseFct(rc,output,outerr,execParamList,self.Logger)
+        self.Logger.debug("%s: returning %s..." % (fn.__name__,result))
+        return result
+    return wrapped
+
+ 
 class BaseDAO(object) :
     
     """
     The mother of all DAOs
     """
     
-    def __init__(self, onlyDAO=False) :
+    def __init__(self, Implementation="childprocs" ) :
         # LOG INIT
-        if not onlyDAO :
-            import afs
-            # LOG INIT
-            classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
-            numericLogLevel = getattr(logging,classLogLevel, 0)
-            self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)   
-            self.Logger.setLevel(numericLogLevel)
-            self.Logger.debug("initializing %s-Object" % (self.__class__.__name__))
+        classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
+        numericLogLevel = getattr(logging,classLogLevel, 0)
+        self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)   
+        self.Logger.setLevel(numericLogLevel)
+        self.Logger.debug("initializing %s-Object" % (self.__class__.__name__))
+        self.Implementation=Implementation
         return
         
     def execute(self,CmdList,  env={}, Input="", stdout=None, stderr=None) :
@@ -48,8 +85,9 @@ class BaseDAO(object) :
         if pipo.returncode != 0 :
             if pipo.returncode == 13 : # permission denied
                 return 13, "","Permission denied"
-            if "not authorized" in _output.lower() or  "not authorized" in _outerr.lower()  :
-                return 13, "","Permission denied"
+            for line in _output + _outerr :
+                if "not authorized" in line.lower() :
+                    return 13, "","Permission denied"
             raise ExecError("cmd: \"%s\" failed with rc=%d and stderr=%s\n" % (string.join(CmdList),pipo.returncode, _outerr))
     
         # get rid of whitespace
@@ -66,7 +104,7 @@ class BaseDAO(object) :
             if line == "" : continue
             outerr.append(line)
         # XXX magic constant here
-        self.Logger.debug("returning %s" % ( (pipo.returncode, output, outerr), ))
+        self.Logger.debug("returning (truncateed to 10 lines in output, outerr) %s" % ( (pipo.returncode, output[:10], outerr[:10]), ))
         return pipo.returncode,output,outerr
 
     def execute_detached(self,CmdList, SpoolDir, env={}, Input="") :

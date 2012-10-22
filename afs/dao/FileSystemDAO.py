@@ -1,5 +1,6 @@
-from afs.exceptions.FSError import FSError
-from afs.dao.BaseDAO import BaseDAO
+import types,string
+from afs.dao.BaseDAO import BaseDAO,execwrapper
+import FileSystemDAO_parse as PM
 
 class FileSystemDAO(BaseDAO) :
     """
@@ -11,45 +12,66 @@ class FileSystemDAO(BaseDAO) :
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-            
 
-    def  makeMountpoint(self, path, target) :
-        return
+    @execwrapper
+    def makeMountpoint(self, path, target, _cfg=None) :
+        CmdList=[_cfg.binaries["fs"],  "makemount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.makeMountpoint
         
-    def removeMountpoint(self, path) :
-        return
+    @execwrapper
+    def removeMountpoint(self, pathlist, _cfg=None) :
+        if type(pathlist) == types.ListType :
+            pathes = string.join(pathlist)
+        else :
+            pathes = pathlist
+        CmdList=[_cfg.binaries["fs"],  "rmmount" , "-dir" , "%s" % pathes ]
+        return CmdList,PM.removeMountpoint
         
-    def listMountpoint(self, path):
+    @execwrapper
+    def listMountpoint(self, pathlist, _cfg=None):
         """
         Return target volume of a mount point
         """
-        mountpoint=""
-        return mountpoint
+        if type(pathlist) == types.ListType :
+            pathes = string.join(pathlist)
+        else :
+            pathes = pathlist
+        CmdList=[_cfg.binaries["fs"],  "lsmount" , "-dir" , "%s" % pathes ]
+        return CmdList,PM.listMountpoint
         
-    def getCellByPath(self, path):
+    @execwrapper
+    def getCellByPath(self, path, _cfg=None):
         """
         Returns the cell to which a file or directory belongs
         """
-        cellname=""
-        return cellname
+        CmdList=[_cfg.binaries["fs"],  "whichcell" , "-path" , "%s" % path ]
+        return CmdList,PM.getCellByPath
         
-    def setQuota(self, path):
+    @execwrapper
+    def setQuota(self, path, quota, _cfg=None):
         """
         Set a volume-quota by path
         """
-        return
+        CmdList=[_cfg.binaries["fs"],  "setquota" , "-path" , "%s" % path, "-max", "%s" % quota ]
+        return CmdList,PM.setQuota
         
-    def listQuota(self, path):
+    @execwrapper
+    def listQuota(self, path, _cfg=None):
         """
         list a volume quota by path
         """
-        quota=-1
-        return quota
+        CmdList=[_cfg.binaries["fs"],  "listquota" , "-path" , "%s" % path ]
+        return CmdList,PM.listQuota
     
-    def returnVolumeByPath(self, path):
+    @execwrapper
+    def returnVolumeByPath(self, pathlist, _cfg=None):
         """
         Basically a fs examine
         """
-        volume=""
-        return volume
+        if type(pathlist) == types.ListType :
+            pathes = string.join(pathlist)
+        else :
+            pathes = pathlist
+        CmdList=[_cfg.binaries["fs"],  "examine" , "-path" , "%s" % pathes ]
+        return CmdList,PM.returnVolumeByPath
         

@@ -1,6 +1,5 @@
-import afs.dao.bin
-from afs.exceptions.CMError import CMError
-from afs.dao.BaseDAO import BaseDAO
+from afs.dao.BaseDAO import BaseDAO,execwrapper
+import CacheManagerDAO_parse as PM
 
 class CacheManagerDAO(BaseDAO):
     """
@@ -10,75 +9,59 @@ class CacheManagerDAO(BaseDAO):
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-    
-    def getWSCell(self):
+
+    @execwrapper 
+    def getWSCell(self, _cfg=None):
         """
         Returns the name of the cell to which a machine belongs
         """
-        CmdList=[afs.dao.bin.FSBIN , "wscell"]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        # parse "This workstation belongs to cell 'beolink.org'"
-        cellname=output[0].split()[5].replace("'", "")
-        return cellname
+        CmdList=[_cfg.binaries["fs"] , "wscell"]
+        return CmdList,PM.parse_getWsCell
         
-    def flushall(self):
+    @execwrapper 
+    def flushall(self, _cfg=None):
         """
         Force the AFS Cache Manager to discard all data
         """
-        CmdList=[afs.dao.bin.FSBIN , "flushall"]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return
+        CmdList=[_cfg.binaries["fs"] , "flushall"]
+        return CmdList,PM.parse_flushall
     
-    def flushvolume(self, path):
+    @execwrapper 
+    def flushvolume(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard cached data from a volume
         """
-        CmdList=[afs.dao.bin.FSBIN , "flushvolume", "%s" % path]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return
+        CmdList=[_cfg.binaries["fs"] , "flushvolume", "%s" % path]
+        return CmdList,PM.parse_flushvolume
     
-    def flushmount(self, path):
+    @execwrapper 
+    def flushmount(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard a mount point
         """
-        CmdList=[afs.dao.bin.FSBIN , "flushmount", "-path", "%s"%path]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return
+        CmdList=[_cfg.binaries["fs"] , "flushmount", "-path", "%s"%path]
+        return CmdList,PM.parse_flushmount
         
-    def flush(self, path):
+    @execwrapper 
+    def flush(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard a cached file or directory
         """
-        CmdList=[afs.dao.bin.FSBIN , "flush", "-path", "%s" % path]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return
+        CmdList=[_cfg.binaries["fs"] , "flush", "-path", "%s" % path]
+        return CmdList,PM.parse_flush
     
-    def getCellAliases(self):
+    @execwrapper 
+    def getCellAliases(self, _cfg=None):
         """
         list defined Cell aliases
         """
-        CmdList=[afs.dao.bin.FSBIN , "listaliases"]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return output
+        CmdList=[_cfg.binaries["fs"] , "listaliases"]
+        return CmdList,PM.parse_getCellAliases
         
-    def newCellAlias(self, alias, cellname):
+    @execwrapper 
+    def newCellAlias(self, alias, _cfg=None):
         """
         set a new Cell alias
         """
-        CmdList=[afs.dao.bin.FSBIN , "newaliases", "-alias" "%s"  % alias,"-name" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise CMError
-        return
+        CmdList=[_cfg.binaries["fs"] , "newaliases", "-alias" "%s"  % alias,"-name" % _cfg.CELL_NAME]
+        return CmdList,PM.parse_newCellAlias

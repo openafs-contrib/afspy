@@ -1,6 +1,6 @@
-import re,string,os,sys
-import afs.dao.bin
-from afs.dao.BaseDAO import BaseDAO
+from afs.dao.BaseDAO import BaseDAO,execwrapper
+import RxOsdDAO_parse as PM
+from afs.exceptions.RxOsdError import RxOsdError
 
 class RxOsdDAO(BaseDAO):
     
@@ -11,122 +11,91 @@ class RxOsdDAO(BaseDAO):
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-    
-    def examine(self, osd_id, fid,cellname,token,lun=0):
+    @execwrapper  
+    def examine(self, osd_id, fid,_cfg=None):
         """
         examine an object 
         """
-        CmdList=[afs.dao.bin.OSDBIN, "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
+        CmdList=[_cfg.binaries["osd"], "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.parse_examine
         
-        obj_dict={}
-        
-        return obj_dict
-        
-    def getFetchQueue(self, cellname,token, osd_id=None,):
+    @execwrapper  
+    def getFetchQueue(self, osd_id=-1,  _cfg=None ):
         """
         query fetchqueues of archival osd.
         """
-        CmdList=[afs.dao.bin.OSDBIN, "fetchq", "-cell",  "%s" % cellname ]
-        if osd_id :
+        CmdList=[_cfg.binaries["osd"], "fetchq", "-cell",  "%s" % _cfg.CELL_NAME ]
+        if osd_id != -1:
             CmdList += ["-name" , "%s" % osd_id]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        FetchQDict={}
-        return FetchQDict
+        return CmdList,PM.parse_getFetchQueue
     
-    def getListOfServerSettings(self,osd_id,cellname,token):
+    @execwrapper  
+    def getListOfServerSettings(self,osd_id,_cfg=None):
         """
-        query Servers for it tuneables
+        query Servers for its tuneables
         """
-        CmdList=[afs.dao.bin.OSDBIN, "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        settingsList=[]
-        return settingsList       
+        CmdList=[_cfg.binaries["osd"], "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.parse_getListOfServerSettings
  
-    def getServerSetting(self,osd_id,key,cellname,token):
+    @execwrapper  
+    def getServerSetting(self,osd_id,key,_cfg=None):
         """
         query Servers for it tuneables
         """
-        CmdList=[afs.dao.bin.OSDBIN, "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        value=""
-        return value
+        CmdList=[_cfg.binaries["osd"], "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.parse_getServerSetting
    
-    def setServerSettings(self,osd_id,key,value,cellname,token) :
+    @execwrapper  
+    def setServerSetting(self,osd_id,key,value,_cfg=None) :
         """
         set Server tunable. Verifies result
         """ 
-        CmdList=[afs.dao.bin.OSDBIN, "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        newSettings=self.getServeSettings(self,osd_id,key,cellname,token)
-        if newSettings[key] == value :
-            return value
-        else :
-            raise RxOsdError("Error", "failed to set variable")
+        CmdList=[_cfg.binaries["osd"], "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.parse_setServerSetting
 
-    def getObjectsofVolumeByOsd(self,osd_id,vid,lun,cellname,token) :
+    @execwrapper  
+    def getObjectsofVolumeByOsd(self,osd_id,vid,lun,_cfg=None) :
         """
         get all objects of a given volume on an RxOsd. 
         Optional: define lun on RxOsd
         """ 
-        CmdList=[afs.dao.bin.OSDBIN, "objects", "-osd","%s" % osd_id, "-volume", "%s" % vid, "-cell",  "%s" % cellname ]
+        CmdList=[_cfg.binaries["osd"], "objects", "-osd","%s" % osd_id, "-volume", "%s" % vid, "-cell",  "%s" % _cfg.CELL_NAME ]
         if osd_id :
             CmdList += ["-lun" , "%s" % lun]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        obj_list=[]
-        return obj_list
+        return CmdList,PM.parse_getObjectsofVolumeByOsd
 
-    def getStatistics(self,osd_id,cellname,token,extended=False) :
+    @execwrapper  
+    def getStatistics(self,osd_id,extended=False,_cfg=None) :
         """
         get RPC-statistics of RxOsd-sever
         """
-        CmdList=[afs.dao.bin.OSDBIN, "statistics", "-osd","%s" % osd_id, "-cell",  "%s" % cellname ]
+        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
         if extended :
             CmdList += ["-verbose" ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        statDict={}
-        return statDict
+        return CmdList,PM.parse_getStatistics
 
-    def resetStatistics(self,osd_id,cellname,token) :
+    @execwrapper  
+    def resetStatistics(self,osd_id,_cfg=None) :
         """
         reset RPC-statistics of a RxOsd-sever
         """
-        CmdList=[afs.dao.bin.OSDBIN, "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % cellname ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        return 
+        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % _cfg.CELL_NAME ]
+        return CmdList,PM.parse_resetStatistics
 
-    def getActiveThreads(self,osd_id,cellname,token) :
+    @execwrapper  
+    def getActiveThreads(self,osd_id,extended=False,_cfg=None) :
         """
         get list of active threads of a RxOsd-sever
         """
-        CmdList=[afs.dao.bin.OSDBIN, "threads", "-server","%s" % osd_id, "-cell",  "%s" % cellname ]
+        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
         if extended :
             CmdList += ["-verbose" ]
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        threadList=[]
-        return threadList
+        return CmdList,PM.parse_getActiveThreads
    
-    def getWipeCandidates(self,osd_id,cellname,token,lun=None,maxNum=100,criteria="atime",minSizeMB=0) :
-        CmdList=[afs.dao.bin.OSDBIN, "threads", "-server","%s" % osd_id, "-max" , "%s" % maxNum, "-minMB", "%s" % minSizeMB, "-cell",  "%s" % cellname ]
-        if lun :
+    @execwrapper  
+    def getWipeCandidates(self,osd_id,_cfg=None,lun=-1,maxNum=100,criteria="atime",minSizeMB=0) :
+        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-max" , "%s" % maxNum, "-minMB", "%s" % minSizeMB, "-cell",  "%s" % _cfg.CELL_NAME ]
+        if lun != -1 :
             CmdList += ["-lun", "%s" % lun ]
         if criteria == "atime" :
             CmdList += ["-crit" , "0"]
@@ -136,9 +105,5 @@ class RxOsdDAO(BaseDAO):
             CmdList += ["-crit" , "2"]
         else :
             raise RxOsdError("Error", "invalid criteria %s" % criteria)
+        return CmdList,PM.parse_getWipeCandidates
             
-        rc,output,outerr=self.execute(CmdList)
-        if rc:
-            raise RxOsdError("Error", outerr)
-        candList=[]
-        return candList

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import unittest
+import unittest,logging
 from BaseTest import parseCMDLine, basicTestSetup
 
 from afs.dao import OSDFileServerDAO 
+import afs
 
 class TestOSDFileServerDAOMethods(unittest.TestCase, basicTestSetup):
     """
@@ -23,21 +24,23 @@ class TestOSDFileServerDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_getVolList(self) :
-        VolList=self.DAO.getVolList(self.FS,self.Part,self.Cell,None)
+        VolList=self.DAO.getVolList(self.FS,self.Part,_cfg=afs.defaultConfig,_user="test")
         # this is somewhat silly, but what can you do ?
         # maybe check structure of result ?
         self.assertTrue(len(VolList)> 100)
         return
         
     def test_getIdVolList(self) :
-        IdVolList=self.DAO.getIdVolList(self.FS,self.Part,self.Cell,None)
+        self.DAO.Logger.setLevel(logging.DEBUG)
+        IdVolList=self.DAO.getIdVolList(self.FS,self.Part,_cfg=afs.defaultConfig,_user="test")
+        self.DAO.Logger.setLevel(logging.WARN)
         # this is somewhat silly, but what can you do ?
         # maybe check structure of result ?
         self.assertTrue(len(IdVolList)> 100)
         return
 
     def test_getPartList(self,) :
-        PartList=self.DAO.getPartList(self.FS,self.Cell,None)
+        PartList=self.DAO.getPartList(self.FS,_cfg=afs.defaultConfig,_user="test")
         for p in PartList :
            if not p["name"] in self.allParts :
                 self.assertEqual(p,"Not in Test.cfg")

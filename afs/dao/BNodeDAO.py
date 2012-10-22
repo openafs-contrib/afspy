@@ -1,69 +1,28 @@
-import re
-import afs.dao.bin
-
+import string, types
+from afs.dao.BaseDAO import BaseDAO,execwrapper
+import BNodeDAO_parse as PM
 from afs.exceptions.BNodeError import BNodeError
-from afs.dao.BaseDAO import BaseDAO
 
-def restartT2Minutes(Time):
-    """
-    converts a restart time from the human readable output to
-    minutes after midnight.
-    -1 means never
-    """
-    if Time == "never" : return -1
-    Minutes=0
-    tokens=Time.split()
-    if tokens[1] == "pm" :
-       Minutes = 12*60
-    hours, min=tokens[0].split(":")
-    Minutes += int(hours)*60 + min
-    return Minutes
-
-def minutes2restartT(Minutes) :
-    """
-    converts an int meaning Minutes after midnight into a 
-    restartTime string  understood by the bos command
-    """
-    if Minutes == -1 :
-        return "never"
-    Pod="am"
-    if Minutes > 12*60 :
-        Pod="pm"
-        Minutes -= 12*60
-    Time = "%d:%02d %s" % (Minutes/60, Minutes%60,Pod)
-    return Time
 
 class BNodeDAO(BaseDAO) :
     """
     Direct Access Object for a Process (BNode)
     """
-    generalRestartRegEX=re.compile("Server (\S+) restarts (?:at)?(.*)")
-    binaryRestartRegEX=re.compile("Server (\S+) restarts for new binaries (?:at)?(.*)")
-    DBServerRegEx=re.compile("Host (\d+) is (\S+)")
 
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-    
-    def getRestartTimes(self, servername, cellname, token):
+
+    @execwrapper    
+    def getRestartTimes(self, servername, _cfg=None):
         """
         return dict telling the restart times
         """
-        CmdList=[afs.dao.bin.BOSBIN,"getrestart","-server", "%s"  % servername]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise BNodeError( outerr, output)
-        
-        if len(output) != 2 :
-            raise BNodeError( outerr, output)
-        
-        st = {}
-        st["general"]=self.generalRestartRegEX.match(output[0]).groups()[1].strip()
-        st["binary"]=self.binaryRestartRegEX.match(output[1]).groups()[1].strip()
-        
-        return st
+        CmdList=[_cfg.binaries["bos"],"getrestart","-server", "%s"  % servername]
+        return CmdList,PM.getRestartTimes
 
-    def setRestartTimes(self, servername, time, restarttype, cellname, token):
+    @execwrapper    
+    def setRestartTimes(self, servername, time, restarttype, _cfg=None) :
         if restarttype == "general" :
             option = "-general"
         elif restarttype == "binary" :
@@ -71,73 +30,97 @@ class BNodeDAO(BaseDAO) :
         else :
              raise BNodeError( "invalid restarttype=%s" % restarttype, '')
              return 1, "invalid restarttype=%s" % restarttype
-        CmdList=[afs.dao.bin.BOSBIN,"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
-        rc,output,outerr=self.execute(CmdList)
-        
-        return 
+        CmdList=[_cfg.binaries["bos"],"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
+        return CmdList,PM.setRestartTimes
 
-    def addUser(self, user, servername, cellname):
-        pass
+    @execwrapper    
+    def addUser(self, servername, userlist, _cfg=None) :
+        if type(userlist) == types.ListType :
+            usernames = string.join(userlist)
+        else :
+            usernames = userlist
+        CmdList=[_cfg.binaries["bos"],"adduser","-server", "%s"  % servername, "-user",  "%s" % usernames ]
+        return CmdList,PM.addUser
     
-    def removeUser(self, user, servername, cellname):
-        pass
+    @execwrapper    
+    def removeUser(self, servername, userlist, _cfg=None) :
+        if type(userlist) == types.ListType :
+            usernames = string.join(userlist)
+        else :
+            usernames = userlist
+        CmdList=[_cfg.binaries["bos"],"removeuser","-server", "%s"  % servername, "-user",  "%s" % usernames ]
+        return CmdList,PM.removeUser
     
-    def getUserList(self, servername, cellname):
-        pass
+    @execwrapper    
+    def getUserList(self, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"listuser","-server", "%s"  % servername ]
+        return CmdList,PM.getUserList
     
-    def getFileDate(self,file, servername, cellname):
-        pass
+    @execwrapper    
+    def getFileDate(self, servername, filelist, destdir="", _cfg=None) :
+        if type(filelist) == types.ListType :
+            filenames = string.join(filelist)
+        else :
+            filenames = filelist
+        CmdList=[_cfg.binaries["bos"],"getdate","-server", "%s"  % servername, "-files", "%s" % filenames ]
+        if destdir != "" :
+            CmdList += ["-dir", "%s" % destdir]
+        return CmdList,PM.getFileDate
     
-    def cmd(self, cmd, servername, cellname):
-        pass
+    @execwrapper    
+    def cmd(self, servername, cmd, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"cmd","-server", "%s"  % servername ]
+        return CmdList,PM.cmd
     
-    def getLog(self, log, servername, cellname):
-        pass
+    @execwrapper    
+    def getLog(self, servername, logfile,_cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"getlog","-server", "%s"  % servername ]
+        return CmdList,PM.getLog
     
-    def pruneLog(self, type, servername, cellname):
-        pass
+    @execwrapper    
+    def prune(self, type, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"prune","-server", "%s"  % servername ]
+        return CmdList,PM.pruneLog
 
-    def runRestart(self, process, servername, cellname):
-        pass
+    @execwrapper    
+    def runRestart(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"restart","-server", "%s"  % servername ]
+        return CmdList,PM.runRestart
     
-    def runStart(self, process, servername, cellname):
-        pass
+    @execwrapper    
+    def runStart(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"start","-server", "%s"  % servername ]
+        return CmdList,PM.runStart
     
-    def runShutdown(self, process, servername, cellname):
-        pass
+    @execwrapper    
+    def runShutdown(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"shutdown","-server", "%s"  % servername ]
+        return CmdList,PM.runShutdown
     
-    def runStartup(self, process, servername, cellname):
-        pass
+    @execwrapper    
+    def runStartup(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"startup","-server", "%s"  % servername ]
+        return CmdList,PM.runStartup
     
-    def runStop(self, process, servername, cellname):
-        pass
+    @execwrapper    
+    def runStop(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"stop","-server", "%s"  % servername ]
+        return CmdList,PM.runStop
 
-    def salvage(self, vid, part, servername, cellname, **kwargs):
-        pass
+    @execwrapper    
+    def salvage(self, vid, part, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"salvageXXX","-server", "%s"  % servername ]
+        return CmdList,PM.salvage
     
-    def status(self, process, servername, cellname, **kwargs):
-        pass
+    @execwrapper    
+    def status(self, process, servername, _cfg=None) :
+        CmdList=[_cfg.binaries["bos"],"status","-server", "%s"  % servername ,"-long"]
+        return CmdList,PM.status
 
-    def getDBServList(self,servername, cellname ):
+    @execwrapper    
+    def getDBServList(self,servername, _cfg=None) :
         """
         get list of all database-servers known to a given AFS-server
         """
-        CmdList=[afs.dao.bin.BOSBIN,"listhosts","-server", "%s"  % servername, "-cell" , "%s" % cellname]
-        rc,output,outerr=self.execute(CmdList)
-        if rc :
-            raise BNodeError( outerr, output)
-            
-        DBServers=[]
-        for line in output :
-            mObj=self.DBServerRegEx.match(line)
-            if mObj :
-                server = {}
-                host=mObj.groups()[1].strip()
-                if host[0] == "[" and host[len(host)-1] == "]" :
-                    server['hostname']=host[1:-1]
-                    server['isClone'] = 1
-                else :
-                    server['hostname']=host
-                    server['isClone'] = 0
-                DBServers.append(server)
-        return DBServers
+        CmdList=[_cfg.binaries["bos"],"listhosts","-server", "%s"  % servername, "-cell" , "%s" % _cfg.CELL_NAME]
+        return CmdList,PM.getDBServList

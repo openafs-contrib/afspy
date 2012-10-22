@@ -3,6 +3,7 @@
 import unittest
 from BaseTest import parseCMDLine, basicTestSetup
 from afs.dao import DNSconfDAO
+import afs
 
 class TestDNSconfDAO(unittest.TestCase,basicTestSetup):
     """
@@ -16,12 +17,13 @@ class TestDNSconfDAO(unittest.TestCase,basicTestSetup):
         basicTestSetup.setUp(self)
 
         self.DAO = DNSconfDAO.DNSconfDAO()
+        self.Cell=self.TestCfg.get("general","Cell")
         self.allDBServs=self.TestCfg.get("general","allDBServs").split(",")
         self.allDBServs.sort()
         return
 
     def test_getDBServList(self):
-        DBServList=self.DAO.getDBServList(self.Cell)
+        DBServList=self.DAO.getDBServList(self.Cell, _cfg=afs.defaultConfig, _user="test")
         DBServList.sort()
         self.assertEqual(DBServList, self.allDBServs)
         return
