@@ -6,7 +6,7 @@ from afs.model.ExtendedPartitionAttributes import ExtPartAttr
 from afs.model.Volume import Volume
 from afs.model.Partition import Partition
 from afs.model.Project import Project
-from afs.util  import afsutil
+import afs
 
 
 class FsService (BaseService):
@@ -28,11 +28,11 @@ class FsService (BaseService):
         vols = []
             
         if partname:    
-            vols = self._fsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+            vols = self._fsDAO.getVolList( servername,partname, _cfg=self._CFG, _user=_user)
         else:
             parts = self.getPartitions(servername,cached=cached)
             for part in parts:
-                vols += self._fsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+                vols += self._fsDAO.getVolList(servername,parts[part]["name"], _cfg=self._CFG, _user=_user)
         return vols
     
     ###############################################
@@ -48,14 +48,14 @@ class FsService (BaseService):
         cached=kw.get("cached","")
         _user=kw.get("_user","")
 
-        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
-        if ipaddrs[0] in self._CFG.ignoreIPList :
+        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        if DNSInfo["ipaddrs"][0] in self._CFG.ignoreIPList :
             return None
         if uuid != "" :
-            if uuid != afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached) :
-                uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
+            if uuid != afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached) :
+                uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached)
         else :
-            uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
+            uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached)
          
         if cached :
             this_FileServer=self.DBManager.getFromCache(FileServer,uuid=uuid)
@@ -67,7 +67,9 @@ class FsService (BaseService):
 
         this_FileServer = FileServer()
         # get DNS-info about server
-        this_FileServer.servernames, this_FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        DNSInfo = afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        this_FileServer.servernames = DNSInfo["names"]
+        this_FileServer.ipaddrs = DNSInfo["ipaddrs"]
         # UUID
         this_FileServer.uuid=uuid
         this_FileServer.version,this_FileServer.builddate=self._rxDAO.getVersionandBuildDate(this_FileServer.servernames[0], 7000, _cfg=self._CFG, _user=_user)
@@ -90,9 +92,9 @@ class FsService (BaseService):
         return this_FileServer
 
     def getPartitions(self,name_or_ip,cached=False) : 
-        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
-        serv_uuid=afsutil.getFSUUIDByName_IP(servernames[0], self._CFG, cached)
-        return self.getPartitionsByUUID(serv_uuid,name_or_ip=servernames[0],cached=cached)
+        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(DNSInfo["names"][0], self._CFG, cached)
+        return self.getPartitionsByUUID(serv_uuid,name_or_ip=DNSInfo["names"][0],cached=cached)
 
     def getPartitionsByUUID(self,serv_uuid, **kw):
         """
@@ -116,8 +118,8 @@ class FsService (BaseService):
                     partDict[p.name]["ExtAttr"] = { "projectIDs" : [] }
             return partDict
         if name_or_ip == "" :
-            name_or_ip=afsutil.getHostnameByFSUUID(serv_uuid,self._CFG)
-        partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+            name_or_ip=afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid,self._CFG)
+        partList = self._fsDAO.getPartList(name_or_ip, _cfg=self._CFG, _user=_user)
         partDict = {}
         for p in partList :
             p["serv_uuid"]=serv_uuid
@@ -129,16 +131,16 @@ class FsService (BaseService):
         return list of IDs present on given server partition
         """
         self.Logger.debug("getVolumeIds: Entering with name_or_ip=%s,part=%s,cached=%s" % (name_or_ip,part,cached) )
-        servernames,ipaddrs = afsutil.getDNSInfo(name_or_ip)
+        DNSInfo = afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
         # UUID
-        uuid=afsutil.getFSUUIDByName_IP(servernames[0],self._CFG)
+        uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(DNSInfo["names"][0],self._CFG)
         if cached :
             if part != "" :
                pass
             else :
                pass 
             return []
-        return self._volDAO.getVolIDList(servernames[0],self._CFG.CELL_NAME,Partition=part, _cfg=self._CFG, _user=_user)
+        return self._volDAO.getVolIDList(DNSInfo["names"][0],Partition=part, _cfg=self._CFG, _user=_user)
 
     def getNumVolumes(self,name_or_ip,part="",_user="",cached=False) :
         """
@@ -146,9 +148,9 @@ class FsService (BaseService):
         """
         self.Logger.debug("getNumVolumes: Entering with name_or_ip=%s,part=%s,cached=%s" % (name_or_ip,part,cached) )
         # get DNS-info about server
-        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
         # UUID
-        uuid=afsutil.getFSUUIDByName_IP(servernames[0],self._CFG)
+        uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(DNSInfo["names"][0],self._CFG)
         if cached :
             if part != "" :
                 numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid,part=part)
@@ -162,9 +164,9 @@ class FsService (BaseService):
                 numOffline=self.DBManager.count(Volume.id,status="offline")
         else :
             numRW = numRO = numBK = numOffline = 0
-            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, noresolve=True, _cfg=self._CFG, _user=_user) :
+            for f in self._vlDAO.getFsServList(noresolve=True, _cfg=self._CFG, _user=_user) :
                 self.Logger.debug("server=%s" %f)
-                for v in self._vlDAO.getVolumeList(f["name_or_ip"],self._CFG.CELL_NAME, part,noresolve=True, _cfg=self._CFG, _user=_user) :
+                for v in self._vlDAO.getVolumeList(f["name_or_ip"], part,noresolve=True, _cfg=self._CFG, _user=_user) :
                     self.Logger.debug("Volume=%s" % v )
                     if v["RWSite"] == f["name_or_ip"] :
                          numRW += 1

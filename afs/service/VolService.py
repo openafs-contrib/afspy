@@ -6,6 +6,7 @@ from afs.service.BaseService import BaseService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
 from afs.util import afsutil
+import afs
 
 
 class VolService (BaseService):
@@ -29,7 +30,7 @@ class VolService (BaseService):
         self.Logger.debug("entering with id=%s" % id) 
         if cached :
             return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW_js,id)
-        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+        list = self._volDAO.getVolGroupList(id, _cfg=self._CFG, _user=_user)
         volGroup = None
         if len(list) > 0:
             volGroup =  VolumeGroup()
@@ -52,7 +53,7 @@ class VolService (BaseService):
     def getVolume(self, name_or_id, serv="", part="", _user="", cached=False):
         if cached :
             if serv != "" :
-                serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
+                serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
                 # need function in util name_or_ip and name_or_id?
                 if afsutil.isName(name_or_id) :
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
@@ -65,10 +66,10 @@ class VolService (BaseService):
                     vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
             vol.ExtAttr=self.getExtVolAttr(vol.vid)
             return vol
-        vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+        vdict = self._volDAO.getVolume(name_or_id, serv, part, _cfg=self._CFG, _user=_user)
         if vdict == None :
             return None
-        vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
+        vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
         vdict.pop("serv")
         self.Logger.debug("getVolume: vdict=%s" % vdict)
         vol = None

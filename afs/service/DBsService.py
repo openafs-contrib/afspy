@@ -2,6 +2,7 @@ from afs.service.BaseService import BaseService
 from afs.model.DBServer import DBServer
 from afs.util import afsutil
 from afs.exceptions.AfsError import AfsError
+import afs
 
 
 class DBsService(BaseService) :
@@ -25,10 +26,10 @@ class DBsService(BaseService) :
 
         if not DBType in ["vldb","ptdb" ] : raise AfsError ("invalid DBType DB-Type %s. Valid DBTypes are vldb and ptdb." % DBType)
 
-        servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
+        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
         mandIP=""
-        if len(ipaddrs) != 0 :
-            for ip in ipaddrs :
+        if len(DNSInfo["ipaddrs"]) != 0 :
+            for ip in DNSInfo["ipaddrs"] :
                 if not ip in self._CFG.ignoreIPList :
                     if mandIP != "" : AfsError ("DB-Servers may only be registered with one IP here for the time being. Please add all non.used IPs to the ignoreList.")
                 mandIP=ip
@@ -48,9 +49,9 @@ class DBsService(BaseService) :
 
         this_DBServer = DBServer()
         this_DBServer.type = DBType
-        this_DBServer.servernames=servernames
+        this_DBServer.servernames=DNSInfo["names"]
         this_DBServer.ipaddr=mandIP
-        shortInfo=self._ubikDAO.getShortInfo(mandIP,port,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+        shortInfo=self._ubikDAO.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
         this_DBServer.isClone=shortInfo["isClone"]
         this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
         this_DBServer.version,this_DBServer.builddate=self._rxDAO.getVersionandBuildDate(mandIP,port)

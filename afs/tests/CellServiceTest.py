@@ -20,8 +20,10 @@ class SetupTest(basicTestSetup) :
         basicTestSetup.setUp(self)
         self.CellService = CellService.CellService()
         self.numFSs=int(self.TestCfg.get("CellService", "numFSs"))
-        self.allDBs=self.TestCfg.get("CellService", "allDBs").split(",")
-        self.allDBs.sort()
+        self.allDBIPs=self.TestCfg.get("CellService", "allDBIPs").split(",")
+        self.allDBIPs.sort()
+        self.allDBHostnames=self.TestCfg.get("CellService", "allDBHostnames").split(",")
+        self.allDBHostnames.sort()
         self.FS=self.TestCfg.get("CellService", "FS")
         self.FsUUID=self.TestCfg.get("CellService", "FsUUID")
         return
@@ -41,11 +43,8 @@ class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
     
     def test_Cellinfo_DBList_live(self) :
         DBList=self.CellInfo.DBServers
-        DB_IPs=[]
-        for db in DBList :
-            DB_IPs.append(db['ipaddrs'][0])
-        DB_IPs.sort()
-        self.assertEqual(self.allDBs, DB_IPs)
+        DBList.sort()
+        self.assertEqual(self.allDBHostnames, DBList)
         return
 
     def test_getFSServers_live(self) :
@@ -60,7 +59,7 @@ class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
 
     def test_PTDBSyncSite_live(self):
         DBSyncSite=self.CellInfo.PTDBSyncSite
-        self.assertTrue((DBSyncSite in self.allDBs))
+        self.assertTrue((DBSyncSite in self.allDBIPs))
         return
         
     def test_VLDBVersion_live(self):
@@ -70,7 +69,7 @@ class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
 
     def test_VLDBSyncSite_live(self):
         DBSyncSite=self.CellInfo.VLDBSyncSite
-        self.assertTrue((DBSyncSite in self.allDBs))
+        self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
 class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
@@ -87,11 +86,8 @@ class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
 
     def test_getDBList_cached(self) :
         DBList=self.CellInfo.DBServers
-        DB_IPs=[]
-        for db in DBList :
-            DB_IPs.append(db['ipaddrs'][0])
-        DB_IPs.sort()
-        self.assertEqual(self.allDBs, DB_IPs)
+        DBList.sort()
+        self.assertEqual(self.allDBHostnames, DBList)
         return
 
 
@@ -108,7 +104,7 @@ class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
 
     def test_PTDBSyncSite_cached(self):
         DBSyncSite=self.CellInfo.PTDBSyncSite
-        self.assertTrue((DBSyncSite in self.allDBs))
+        self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
     def test_VLDBVersion_cached(self):
@@ -118,7 +114,7 @@ class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
 
     def test_VLDBSyncSite_cached(self):
         DBSyncSite=self.CellInfo.VLDBSyncSite
-        self.assertTrue((DBSyncSite in self.allDBs))
+        self.assertTrue((DBSyncSite in self.allDBIPs))
         return        
 
 

@@ -4,6 +4,7 @@ import logging
 import tempfile
 from afs.exceptions.AfsError import AfsError
 import afs
+import afs.util.LookupUtil
 import afs.orm.DbMapper
 
 def parseDefaultConfig(myParser=None):
@@ -12,7 +13,7 @@ def parseDefaultConfig(myParser=None):
     """
     HOME=os.environ.get("HOME","")
     ## module-wide Configuration file
-    BASE_CFG_FILE="%s/etc/afspy.cfg" % os.path.dirname(afs.__file__)
+    BASE_CFG_DIR="%s/etc/" % os.path.dirname(afs.__file__)
     if not myParser :
         myParser = afs.argParser
     
@@ -31,8 +32,8 @@ def parseDefaultConfig(myParser=None):
     if HOME :
         if os.path.exists("%s/.config/afspy.cfg") :
             afs.defaultConfig=loadAfsConfig(afs.defaultConfig,"%s/.config/afspy.cfg")
-    if os.path.exists(BASE_CFG_FILE) :
-        afs.defaultConfig=loadAfsConfig(afs.defaultConfig, BASE_CFG_FILE)
+    if os.path.exists(BASE_CFG_DIR + "afspy.cfg") :
+        afs.defaultConfig=loadAfsConfig(afs.defaultConfig, BASE_CFG_DIR + "afspy.cfg")
 
     # we need to deal with that one later
     afs.defaultConfig.Token=None
@@ -89,6 +90,9 @@ def parseDefaultConfig(myParser=None):
         if afs.defaultConfig.LogLevel_util.upper() != "OFF" :
             utilLogger=logging.getLogger("afs.util") 
             utilLogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_util))
+        if afs.defaultConfig.LogLevel_LookupUtil.upper() != "OFF" :
+            LookupUtilLogger=logging.getLogger("afs.LookupUtil") 
+            LookupUtilLogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_LookupUtil))
         if afs.defaultConfig.LogLevel_Model.upper() != "OFF" :
             modelLogger=logging.getLogger("afs.model") 
             modelLogger.setLevel(getNumericLogLevel(afs.defaultConfig.LogLevel_Model))
@@ -122,6 +126,30 @@ def parseDefaultConfig(myParser=None):
         afs.defaultConfig.DB_ENGINE=afs.orm.DbMapper.createDbEngine(afs.defaultConfig)
         afs.orm.DbMapper.setupDbMappers(afs.defaultConfig)
         afs.DbSessionFactory=sqlalchemy.orm.sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
+
+    # setup binary-pathes
+    afs.defaultConfig.binaries={}
+    if afs.defaultConfig.binconfig == "" :
+        binconfig=BASE_CFG_DIR + "binaries.cfg"
+    else :
+        binconfig=afs.defaultConfig.binconfig
+
+    # setup LookupUtil
+    afs.LookupUtil[afs.defaultConfig.CELL_NAME]=afs.util.LookupUtil.LookupUtil()
+
+    f=file(binconfig, "r")
+    while 1:
+        line =f.readline()
+        if not line : break
+        line=line.strip()
+        if len(line) == 0 : continue
+        if line[0] == "#" : continue
+        k,v=line.split("#")[0].split("=")
+        if afs.defaultConfig.binaries.has_key(k) :
+            raise AfsError("binary %s defined twice in config file %s" % (k,binconfig))
+        afs.defaultConfig.binaries[k]=v
+
+
     return
 
 def loadAfsConfig(NameSpaceObj,  conf_file):

@@ -34,8 +34,14 @@ global defaultConfig
 defaultConfig=None
 
 # 
+#
 global DbSessionFactory
 DbSessionFactory = None
+
+#
+#
+global LookupUtil
+LookupUtil={}
 
 #
 # __all__ of submodules created by
