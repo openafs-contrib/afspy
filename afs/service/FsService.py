@@ -21,18 +21,18 @@ class FsService (BaseService):
     # Volume Section
     ###############################################    
     
-    def getVolList(self,servername, partname=None, cached=False):
+    def getVolList(self,servername, partname=None, _user="", cached=False):
         """
         Retrieve Volume List.
         """
         vols = []
             
         if partname:    
-            vols = self._fsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, self._CFG.Token)
+            vols = self._fsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         else:
             parts = self.getPartitions(servername,cached=cached)
             for part in parts:
-                vols += self._fsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, self._CFG.Token)
+                vols += self._fsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         return vols
     
     ###############################################
@@ -46,6 +46,7 @@ class FsService (BaseService):
         self.Logger.debug("Entering getFileServer with kw=%s" % kw)
         uuid=kw.get("uuid","")
         cached=kw.get("cached","")
+        _user=kw.get("_user","")
 
         servernames, ipaddrs=afsutil.getDNSInfo(name_or_ip)
         if ipaddrs[0] in self._CFG.ignoreIPList :
@@ -55,7 +56,7 @@ class FsService (BaseService):
                 uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
         else :
             uuid=afsutil.getFSUUIDByName_IP(name_or_ip,self._CFG, cached)
- 
+         
         if cached :
             this_FileServer=self.DBManager.getFromCache(FileServer,uuid=uuid)
             if this_FileServer == None : # it's not in the cache. Log it and get it from live-system
@@ -69,7 +70,7 @@ class FsService (BaseService):
         this_FileServer.servernames, this_FileServer.ipaddrs=afsutil.getDNSInfo(name_or_ip)
         # UUID
         this_FileServer.uuid=uuid
-        this_FileServer.version,this_FileServer.builddate=self._rxDAO.getVersionandBuildDate(this_FileServer.servernames[0], 7000)
+        this_FileServer.version,this_FileServer.builddate=self._rxDAO.getVersionandBuildDate(this_FileServer.servernames[0], 7000, _cfg=self._CFG, _user=_user)
         # Partitions
         this_FileServer.parts = self.getPartitions(name_or_ip,cached=cached)
         if self._CFG.DB_CACHE :
@@ -100,6 +101,7 @@ class FsService (BaseService):
         """
         cached=kw.get("cached",False)
         name_or_ip=kw.get("name_or_ip",False)
+        _user=kw.get("_user","")
         if cached :
             partDict={}
             for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
@@ -115,14 +117,14 @@ class FsService (BaseService):
             return partDict
         if name_or_ip == "" :
             name_or_ip=afsutil.getHostnameByFSUUID(serv_uuid,self._CFG)
-        partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, self._CFG.Token)
+        partList = self._fsDAO.getPartList(name_or_ip, self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         partDict = {}
         for p in partList :
             p["serv_uuid"]=serv_uuid
             partDict[p["name"]] = p
         return partDict
 
-    def getVolumeIDs(self,name_or_ip,part="",cached=False) :
+    def getVolumeIDs(self,name_or_ip,part="",_user="",cached=False) :
         """
         return list of IDs present on given server partition
         """
@@ -136,9 +138,9 @@ class FsService (BaseService):
             else :
                pass 
             return []
-        return self._volDAO.getVolIDList(servernames[0],self._CFG.CELL_NAME,self._CFG.Token,Partition=part)
+        return self._volDAO.getVolIDList(servernames[0],self._CFG.CELL_NAME,Partition=part, _cfg=self._CFG, _user=_user)
 
-    def getNumVolumes(self,name_or_ip,part="",cached=False) :
+    def getNumVolumes(self,name_or_ip,part="",_user="",cached=False) :
         """
         Scan all or one server-partition and count volums
         """
@@ -160,9 +162,9 @@ class FsService (BaseService):
                 numOffline=self.DBManager.count(Volume.id,status="offline")
         else :
             numRW = numRO = numBK = numOffline = 0
-            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, self._CFG.Token,noresolve=True) :
+            for f in self._vlDAO.getFsServList(self._CFG.CELL_NAME, noresolve=True, _cfg=self._CFG, _user=_user) :
                 self.Logger.debug("server=%s" %f)
-                for v in self._vlDAO.getVolumeList(f["name_or_ip"],self._CFG.CELL_NAME, self._CFG.Token,part,noresolve=True) :
+                for v in self._vlDAO.getVolumeList(f["name_or_ip"],self._CFG.CELL_NAME, part,noresolve=True, _cfg=self._CFG, _user=_user) :
                     self.Logger.debug("Volume=%s" % v )
                     if v["RWSite"] == f["name_or_ip"] :
                          numRW += 1

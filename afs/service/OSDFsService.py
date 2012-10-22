@@ -23,16 +23,16 @@ class OSDFsService (FsService):
     # Volume Section
     ###############################################    
     
-    def getVolList(self,servername, partname=None, cached=False):
+    def getVolList(self,servername, partname=None, _user="", cached=False):
         """
         Retrieve Volume List
         """
         vols = []
             
         if partname:    
-            vols = self._osdfsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, self._CFG.Token)
+            vols = self._osdfsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         else:
             parts = self.getPartitions(servername,cached=cached)
             for part in parts:
-                vols += self._osdfsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, self._CFG.Token)
+                vols += self._osdfsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         return vols

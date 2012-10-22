@@ -25,11 +25,11 @@ class VolService (BaseService):
     """
     Retrieve Volume Group
     """
-    def getVolGroup(self, id , cached=False):
+    def getVolGroup(self, id, _user="", cached=False):
         self.Logger.debug("entering with id=%s" % id) 
         if cached :
             return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW_js,id)
-        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, self._CFG.Token)
+        list = self._volDAO.getVolGroupList(id,  self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         volGroup = None
         if len(list) > 0:
             volGroup =  VolumeGroup()
@@ -49,7 +49,7 @@ class VolService (BaseService):
     """
     Retrieve Volume Information by Name or ID
     """
-    def getVolume(self, name_or_id, serv="", part="",  cached=False):
+    def getVolume(self, name_or_id, serv="", part="", _user="", cached=False):
         if cached :
             if serv != "" :
                 serv_uuid=afsutil.getFSUUIDByName_IP_FromCache(serv,self._CFG)
@@ -65,7 +65,7 @@ class VolService (BaseService):
                     vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
             vol.ExtAttr=self.getExtVolAttr(vol.vid)
             return vol
-        vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, self._CFG.Token)
+        vdict = self._volDAO.getVolume(name_or_id, serv, part,  self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
         if vdict == None :
             return None
         vdict["serv_uuid"]=afsutil.getFSUUIDByName_IP(serv,self._CFG)
