@@ -3,12 +3,12 @@ from datetime import datetime
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
 
-def create(rc,output,outerr,execParamList,Logger) :
+def create(rc,output,outerr,parseParamList,Logger) :
     if rc:
         raise VolError("Error", outerr)
     return
 
-def getVolGroupList(rc,output,outerr,execParamList,Logger) :
+def getVolGroupList(rc,output,outerr,parseParamList,Logger) :
     if rc:
         raise VolError("Error", outerr)
 
@@ -53,11 +53,11 @@ def getVolGroupList(rc,output,outerr,execParamList,Logger) :
             break
     return volGroup
        
-def getVolume(rc,output,outerr,execParamList,Logger) : 
+def getVolume(rc,output,outerr,parseParamList,Logger) : 
        
-        name_or_id=execParamList["args"][0] 
-        serv=execParamList["args"][1] 
-        part=execParamList["args"][2] 
+        name_or_id=parseParamList["args"][0] 
+        serv=parseParamList["args"][1] 
+        part=parseParamList["args"][2] 
         line_no = 0
         line = output[line_no]
        
@@ -144,7 +144,7 @@ def getVolume(rc,output,outerr,execParamList,Logger) :
             vol = None
         return vol
 
-def traverse(rc,output,outerr,execParamList,Logger) :
+def traverse(rc,output,outerr,parseParamList,Logger) :
     if rc or "AFSVolTraverse failed" in string.join(outerr) :
         raise VolError("Cannot traverse volume: %s" % outerr)
     histogram={}

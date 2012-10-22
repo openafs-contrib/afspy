@@ -1,11 +1,11 @@
 from afs.exceptions.CMError import CMError
 
-def parse_newCellAlias(rc,output,outerr,execParamList,Logger) :
+def parse_newCellAlias(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return
 
-def parse_getWsCell(rc,output,outerr,execParamList,Logger) :
+def parse_getWsCell(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
 
@@ -15,28 +15,28 @@ def parse_getWsCell(rc,output,outerr,execParamList,Logger) :
     return cellname
 
 
-def parse_flushall(rc,output,outerr,execParamList,Logger) :
+def parse_flushall(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return
 
-def parse_flushvolume(rc,output,outerr,execParamList,Logger) :
+def parse_flushvolume(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return
 
-def parse_flushmount(rc,output,outerr,execParamList,Logger) :
+def parse_flushmount(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return
 
-def parse_flush(rc,output,outerr,execParamList,Logger) :
+def parse_flush(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return
 
 
-def parse_getCellAliases(rc,output,outerr,execParamList,Logger) :
+def parse_getCellAliases(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise CMError("error: %s" % outerr)
     return

@@ -1,8 +1,8 @@
 from afs.exceptions.VLDbError import VLDbError
 from afs.util import afsutil
 
-def getFsServList(rc,output,outerr,execParamList,Logger):
-    noresolve=execParamList["kwargs"]["noresolv"]
+def getFsServList(rc,output,outerr,parseParamList,Logger):
+    noresolve=parseParamList["kwargs"]["noresolve"]
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     servers = []
@@ -22,14 +22,14 @@ def getFsServList(rc,output,outerr,execParamList,Logger):
         i += 1
     return servers
 
-def getFsUUID(rc,output,outerr,execParamList,Logger) :
+def getFsUUID(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     uuid=output[0].split()[1]
     return uuid
 
-def Volumelist(rc,output,outerr,execParamList,Logger) :
-    noresolve=execParamList["kwargs"]["noresolv"]
+def Volumelist(rc,output,outerr,parseParamList,Logger) :
+    noresolve=parseParamList["kwargs"]["noresolve"]
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     Volumes=[]
@@ -73,42 +73,42 @@ def Volumelist(rc,output,outerr,execParamList,Logger) :
     Logger.debug("getVolumeList: returning %s" % Volumes[:10])     
     return Volumes 
 
-def unlock(rc,output,outerr,execParamList,Logger) :
+def unlock(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def lock(rc,output,outerr,execParamList,Logger) :
+def lock(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def getVolumeList(rc,output,outerr,execParamList,Logger) :
+def getVolumeList(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def syncVLDB(rc,output,outerr,execParamList,Logger) :
+def syncVLDB(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def setaddrs(rc,output,outerr,execParamList,Logger) :
+def setaddrs(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def addsite(rc,output,outerr,execParamList,Logger) :
+def addsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def remsite(rc,output,outerr,execParamList,Logger) :
+def remsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")
 
-def syncServ(rc,output,outerr,execParamList,Logger) :
+def syncServ(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")

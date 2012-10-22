@@ -3,12 +3,12 @@ from afs.util import afsutil
 from datetime import datetime
 from afs.exceptions.VolError import VolError
 
-def move(rc,output,outerr,execParamList,Logger) :
+def move(rc,output,outerr,parseParamList,Logger) :
     if rc:
         raise VolError("Error", outerr)
     return
 
-def getVolIDList(rc,output,outerr,execParamList,Logger) :
+def getVolIDList(rc,output,outerr,parseParamList,Logger) :
     if rc:
         raise VolError("Error", outerr)
     res=[]
@@ -19,7 +19,7 @@ def getVolIDList(rc,output,outerr,execParamList,Logger) :
     return res
 
 
-def getVolGroupList(rc,output,outerr,execParamList,Logger) :
+def getVolGroupList(rc,output,outerr,parseParamList,Logger) :
     if rc:
         raise VolError("Error", outerr)
 
@@ -69,12 +69,12 @@ def getVolGroupList(rc,output,outerr,execParamList,Logger) :
             break
     return volGroup
 
-def getVolume(rc,output,outerr,execParamList,Logger):
+def getVolume(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
-    name_or_id=execParamList["args"]["name_or_id"]
-    serv=execParamList["args"]["serv"]
-    part=execParamList["args"]["part"]
+    name_or_id=parseParamList["args"]["name_or_id"]
+    serv=parseParamList["args"]["serv"]
+    part=parseParamList["args"]["part"]
 
     line_no = 0
     line = output[line_no]
@@ -165,30 +165,30 @@ def getVolume(rc,output,outerr,execParamList,Logger):
     return vol
 
 
-def release(rc,output,outerr,execParamList,Logger):
+def release(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def setBlockQuota(rc,output,outerr,execParamList,Logger):
+def setBlockQuota(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def dump(rc,output,outerr,execParamList,Logger):
+def dump(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def restore(rc,output,outerr,execParamList,Logger):
+def restore(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def convert(rc,output,outerr,execParamList,Logger):
+def convert(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def create(rc,output,outerr,execParamList,Logger):
+def create(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
 
-def remove(rc,output,outerr,execParamList,Logger):
+def remove(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)

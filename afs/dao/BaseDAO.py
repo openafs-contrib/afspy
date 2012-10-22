@@ -1,8 +1,9 @@
-import logging
+import logging,inspect
 import string,os,sys
 import subprocess,types
 import tempfile
 import afs
+from afs.exceptions.AfsError import AfsError
 
 
 class ExecError( BaseException):
@@ -26,32 +27,37 @@ def execwrapper(fn) :
     """
     def wrapped(self,*args,**kwargs):
         if not kwargs.has_key("_user") :
-            raise "No user given"
+            raise AfsError("Internal error. No _user= given in parameterlist")
         else :
             _user=kwargs["_user"]
             kwargs.pop("_user")
         if not kwargs.has_key("_cfg") :
-            raise "No config given"
+            raise AfsError("Internal error. No _cfg= given in parameterlist")
         else : 
             _cfg=kwargs["_cfg"]
         self.Logger.debug("should check auth of user=%s for method %s in class %s" % (_user,fn.__name__,self.__class__.__name__))
         # get cmdlist and parsefunction from method
-        self.Logger.debug("%s: entering with  args=%s,kwargs=%s" % (fn.__name__,args,kwargs))
+        self.Logger.debug("%s: entering with  self=%s, args=%s, kwargs=%s" % (self,fn.__name__,args,kwargs))
         # ParseFct is parsing the output of the executed function
         # ParseInfo are any info the ParseFct requires beside rc, outout and outerr 
-        execParamList={"args": args, "kwargs": kwargs}
+        parseParamList={"args" : args, "kwargs" : kwargs } 
+        argspec=inspect.getargspec(fn)
+        for a in range(len(argspec[0])-len(argspec[3])) :
+            k = argspec[0][a+len(argspec[0])-len(argspec[3])]
+            v = argspec[3][a]
+            if not parseParamList["kwargs"].has_key(k) :
+                parseParamList["kwargs"][k]=v
         CmdList,ParseFct=fn(self,*args, **kwargs) 
         if self.Implementation == "childprocs" :
             rc,output,outerr=self.execute(CmdList)
         elif self.Implementation == "detached" :
             jobinfo=self.execute_detached(CmdList)
             self.Logger.debug("should put jobinfo %s into jobmanager" % jobinfo)
-        self.Logger.debug("calling ParseFct %s with rc=%s, output=%s,outerr=%s" % (ParseFct.__name__,rc,output[:10],outerr[:10]))
-        result=ParseFct(rc,output,outerr,execParamList,self.Logger)
+        self.Logger.debug("calling ParseFct %s with rc=%s, output=%s,outerr=%s,parseParamList=%s" % (ParseFct.__name__,rc,output[:10],outerr[:10],parseParamList))
+        result=ParseFct(rc,output,outerr,parseParamList,self.Logger)
         self.Logger.debug("%s: returning %s..." % (fn.__name__,result))
         return result
     return wrapped
-
  
 class BaseDAO(object) :
     

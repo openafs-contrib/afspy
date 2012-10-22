@@ -34,7 +34,7 @@ def minutes2restartT(Minutes) :
     Time = "%d:%02d %s" % (Minutes/60, Minutes%60,Pod)
     return Time
 
-def getRestartTimes(rc,output,outerr,execParamList,Logger):
+def getRestartTimes(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     
@@ -46,7 +46,7 @@ def getRestartTimes(rc,output,outerr,execParamList,Logger):
     st["binary"]=binaryRestartRegEX.match(output[1]).groups()[1].strip()
     return st
 
-def getDBServList(rc,output,outerr,execParamList,Logger) :
+def getDBServList(rc,output,outerr,parseParamList,Logger) :
     if rc :
        raise BNodeError(outerr, output)
     DBServers=[]
@@ -65,77 +65,77 @@ def getDBServList(rc,output,outerr,execParamList,Logger) :
     return DBServers
 
 
-def status(rc,output,outerr,execParamList,Logger):
+def status(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def salvage(rc,output,outerr,execParamList,Logger):
+def salvage(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def runStop(rc,output,outerr,execParamList,Logger):
+def runStop(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def setRestartTimes(rc,output,outerr,execParamList,Logger):
+def setRestartTimes(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def addUser(rc,output,outerr,execParamList,Logger):
+def addUser(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def removeUser(rc,output,outerr,execParamList,Logger):
+def removeUser(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def getUserList(rc,output,outerr,execParamList,Logger):
+def getUserList(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def getFileDate(rc,output,outerr,execParamList,Logger):
+def getFileDate(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def cmd(rc,output,outerr,execParamList,Logger):
+def cmd(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def getLog(rc,output,outerr,execParamList,Logger):
+def getLog(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def pruneLog(rc,output,outerr,execParamList,Logger):
+def pruneLog(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def runRestart(rc,output,outerr,execParamList,Logger):
+def runRestart(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def runStart(rc,output,outerr,execParamList,Logger):
+def runStart(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def runShutdown(rc,output,outerr,execParamList,Logger):
+def runShutdown(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return
 
-def runStartup(rc,output,outerr,execParamList,Logger):
+def runStartup(rc,output,outerr,parseParamList,Logger):
     if rc :
         raise BNodeError( outerr, output)
     return

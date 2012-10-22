@@ -14,11 +14,11 @@ class VLDbDAO(BaseDAO) :
         return
     
     @execwrapper
-    def getFsServList(self,_cfg=None, noresolve=False):
+    def getFsServList(self, cellname, noresolve=False, _cfg=None):
         """
         get list of dicts of all fileservers registered in the VLDB
         """
-        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % cellname]
         if noresolve :
             CmdList.append("-noresolve")
         return CmdList,PM.getFsServList
@@ -30,7 +30,7 @@ class VLDbDAO(BaseDAO) :
         return CmdList,PM.getFsUUID
 
     @execwrapper
-    def getVolumeList(self, name_or_ip, _cfg, part="", noresolve=False) :
+    def getVolumeList(self, name_or_ip, part="", noresolve=False, _cfg=None) :
         """
         Return list of volumes on a server
         """
