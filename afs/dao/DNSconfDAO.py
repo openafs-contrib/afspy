@@ -12,9 +12,9 @@ class DNSconfDAO(BaseDAO):
         return
 
     @execwrapper
-    def getDBServList(self, cellname, _cfg=None):
+    def getDBServList(self, _cfg=None):
         """
         Returns the dbservers from AFSDB records
         """
-        CmdList=[_cfg.binaries["dig"], "AFSDB", cellname]
+        CmdList=[_cfg.binaries["dig"], "AFSDB", _cfg.CELL_NAME]
         return CmdList,PM.getDBServList

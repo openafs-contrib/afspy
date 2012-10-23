@@ -29,7 +29,7 @@ def getFsUUID(rc,output,outerr,parseParamList,Logger) :
     uuid=output[0].split()[1]
     return uuid
 
-def Volumelist(rc,output,outerr,parseParamList,Logger) :
+def getVolumeList(rc,output,outerr,parseParamList,Logger) :
     noresolve=parseParamList["kwargs"]["noresolve"]
     _cfg=parseParamList["kwargs"]["_cfg"]
     if rc :
@@ -59,7 +59,7 @@ def Volumelist(rc,output,outerr,parseParamList,Logger) :
         Volume["ROSites"] = []
         for l in range(Volume["numSites"]) :
             splits=output[i+3+l].split()
-            DNSInof = afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(splits[1])
+            DNSInfo = afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(splits[1])
             if splits[4] == "RW" :
                 if noresolve :
                     Volume["RWSite"] = DNSInfo["ipaddrs"][0]
@@ -67,9 +67,9 @@ def Volumelist(rc,output,outerr,parseParamList,Logger) :
                     Volume["RWSite"] = DNSInfo["names"][0]
             elif splits[4] == "RO" :
                 if noresolve :
-                    Volume["ROSites"].append(ipaddrs[0])
+                    Volume["ROSites"].append(DNSInfo["ipaddrs"][0])
                 else :
-                    Volume["ROSites"].append(hostnames[0])
+                    Volume["ROSites"].append(DNSInfo["names"][0])
         i = i + 3 + Volume["numSites"]
         Volumes.append(Volume)
     Logger.debug("getVolumeList: returning %s" % Volumes[:10])     
@@ -81,11 +81,6 @@ def unlock(rc,output,outerr,parseParamList,Logger) :
     raise VLDbError("Not Implemented.")
 
 def lock(rc,output,outerr,parseParamList,Logger) :
-    if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
-
-def getVolumeList(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
     raise VLDbError("Not Implemented.")

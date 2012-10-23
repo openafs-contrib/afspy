@@ -124,7 +124,7 @@ class CellService(BaseService):
 
         # try DNS _SRV Records from afsdb
         try :
-            DBServList=self._dnsDAO.getDBServList(self._CFG.CELL_NAME)
+            DBServList=self._dnsDAO.getDBServList(_cfg=self._CFG)
         except:
             pass
         if len(DBServList) == 0 :
