@@ -166,7 +166,7 @@ class FsService (BaseService):
             numRW = numRO = numBK = numOffline = 0
             for f in self._vlDAO.getFsServList(noresolve=True, _cfg=self._CFG, _user=_user) :
                 self.Logger.debug("server=%s" %f)
-                for v in self._vlDAO.getVolumeList(f["name_or_ip"], part,noresolve=True, _cfg=self._CFG, _user=_user) :
+                for v in self._vlDAO.getVolumeList(f["name_or_ip"], part=part,noresolve=True, _cfg=self._CFG, _user=_user) :
                     self.Logger.debug("Volume=%s" % v )
                     if v["RWSite"] == f["name_or_ip"] :
                          numRW += 1

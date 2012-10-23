@@ -54,7 +54,7 @@ class DBsService(BaseService) :
         shortInfo=self._ubikDAO.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
         this_DBServer.isClone=shortInfo["isClone"]
         this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
-        this_DBServer.version,this_DBServer.builddate=self._rxDAO.getVersionandBuildDate(mandIP,port)
+        this_DBServer.version,this_DBServer.builddate=self._rxDAO.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
 
         if self._CFG.DB_CACHE :
             self.DBManager.setIntoCache(DBServer,this_DBServer,ipaddr=this_DBServer.ipaddr,type=DBType)

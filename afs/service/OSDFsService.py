@@ -30,9 +30,9 @@ class OSDFsService (FsService):
         vols = []
             
         if partname:    
-            vols = self._osdfsDAO.getVolList( servername,partname,self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+            vols = self._osdfsDAO.getVolList( servername,partname, _cfg=self._CFG, _user=_user)
         else:
             parts = self.getPartitions(servername,cached=cached)
             for part in parts:
-                vols += self._osdfsDAO.getVolList(servername,parts[part]["name"], self._CFG.CELL_NAME, _cfg=self._CFG, _user=_user)
+                vols += self._osdfsDAO.getVolList(servername,parts[part]["name"], _cfg=self._CFG, _user=_user)
         return vols
