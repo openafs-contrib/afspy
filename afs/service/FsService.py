@@ -142,15 +142,16 @@ class FsService (BaseService):
             return []
         return self._volDAO.getVolIDList(DNSInfo["names"][0],Partition=part, _cfg=self._CFG, _user=_user)
 
-    def getNumVolumes(self,name_or_ip,part="",_user="",cached=False) :
+    def getNumVolumes(self,name_or_ip,uuid="",part="",_user="",cached=False) :
         """
         Scan all or one server-partition and count volums
         """
-        self.Logger.debug("getNumVolumes: Entering with name_or_ip=%s,part=%s,cached=%s" % (name_or_ip,part,cached) )
-        # get DNS-info about server
-        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
-        # UUID
-        uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(DNSInfo["names"][0],self._CFG)
+        self.Logger.debug("getNumVolumes: Entering with name_or_ip=%s,uuid=%s,part=%s,cached=%s" % (name_or_ip,uuid,part,cached) )
+        if uuid == "" :
+            # get DNS-info about server
+            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+            # UUID
+            uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(DNSInfo["names"][0],self._CFG)
         if cached :
             if part != "" :
                 numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid,part=part)
