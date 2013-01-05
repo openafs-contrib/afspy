@@ -33,6 +33,8 @@ class Project(BaseModel):
         self.minSize_kB=-1
         ## maximum Size for a volume
         self.maxSize_kB=-1
+        ## is this a retention project
+        self.NestingLevel=0
         ## contact 
         self.contact = ""
         ## owner 
