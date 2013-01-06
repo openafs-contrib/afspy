@@ -72,9 +72,9 @@ def getVolGroupList(rc,output,outerr,parseParamList,Logger) :
 def getVolume(rc,output,outerr,parseParamList,Logger):
     if rc:
         raise VolError("Error", outerr)
-    name_or_id=parseParamList["args"]["name_or_id"]
-    serv=parseParamList["args"]["serv"]
-    part=parseParamList["args"]["part"]
+    name_or_id=parseParamList["args"][0]
+    serv=parseParamList["args"][1]
+    part=parseParamList["args"][2]
 
     line_no = 0
     line = output[line_no]
