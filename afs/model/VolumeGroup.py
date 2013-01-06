@@ -13,7 +13,7 @@ class VolumeGroup(BaseModel) :
         ## json encoded RW volume dict
         self.RW_js = ""
         ## to be decoded RW volume dict, not mapped to DB
-        self.RW = None
+        self.RW = {}
         ## json encoded list of RO-Volume dicts
         self.RO_js = ""
         ## to be decoded list of RO volume dict, not mapped to DB
@@ -21,7 +21,7 @@ class VolumeGroup(BaseModel) :
         ## json encoded BK volume dict
         self.BK_js = ""
         ## to be decoded BK volume dict, not mapped to DB
-        self.BK = None
+        self.BK = {}
         ## list of attributes not to put into the DB
         self.ignAttrList= []
         return
