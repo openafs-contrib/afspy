@@ -3,7 +3,6 @@ from afs.model.ExtendedVolumeAttributes_OSD import ExtVolAttr_OSD
 from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
 from afs.service.VolService import VolService
-from afs.service.CellService import CellService
 from afs.service.FsService import FsService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
@@ -21,7 +20,7 @@ class OSDVolService (VolService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["osdvol","fs"])
+        BaseService.__init__(self, conf, DAOList=["vol","osdvol","fs"])
 
 
     """
@@ -78,25 +77,24 @@ class OSDVolService (VolService):
                 self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
         return vol
 
-    def saveOsdVolAttr(self,Obj):
+    def saveExtVolAttr_OSD(self,Obj):
         cachedObj=self.DBManager.setIntoCache(ExtVolAttr_OSD,Obj,vid=Obj.vid)
         return cachedObj
 
-    def getStorageUsage(self,servers,vid,oldStorageUsage=None,_user="",cached=False) :
+    def getExtVolAttr_OSD(self,vid) :
+        cachedObj=self.DBManager.getFromCache(ExtVolAttr_OSD,vid=vid)
+        return cachedObj
+
+    def getStorageUsage(self,servers,vid,oldStorageUsage=None,_user="") :
         """
-        do a vos traverse and merge with another histogram, if given
+        do a vos traverse on a single Volume and merge with another histogram, if given
         return result as a dict
-        if cached = True, then save in DBCache
+        if cached = True, then save ExtVolAttr_OSD in DBCache
         """
         try:
-            StorageUsage=self._osdvolDAO.traverse(servers,vid, _cfg=self._CFG, _user=_user)
+            StorageUsage=self._osdvolDAO.traverse(servers, vid, _cfg=self._CFG, _user=_user)
         except:
             return emptyStorageUsageDict
-
-        # store OsdVolAttr in DB_CACHE 
-        if cached :
-            cachedObj=self.DBManager.getFromCache(ExtVolAttr_OSD,vid=vid)
-            return cachedObj
 
         if oldStorageUsage == None : return StorageUsage
         if len(oldStorageUsage) == 0 : return StorageUsage
@@ -146,6 +144,7 @@ class OSDVolService (VolService):
                     StorageUsage["withoutCopy"]["detailed"][b]["numFiles"] += k["numFiles"]
             if not found :
                 StorageUsage["withoutCopy"]["detailed"].append(k)
+
         if self._CFG.DB_CACHE :
             OsdVolAttr={}
             OsdVolAttr['vid'] = vid

@@ -30,11 +30,13 @@ class VolService (BaseService):
         self.Logger.debug("entering with id=%s" % id) 
         if cached :
             return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW_js,id)
-        list = self._volDAO.getVolGroupList(id, _cfg=self._CFG, _user=_user)
+        VolGroupList = self._volDAO.getVolGroupList(id, _cfg=self._CFG, _user=_user)
+        self.Logger.debug("got VolGroupList : %s" % VolGroupList)
         volGroup = None
-        if len(list) > 0:
-            volGroup =  VolumeGroup()
-            for el in list:
+        if len(VolGroupList) > 0:
+            volGroup = VolumeGroup()
+            self.Logger.debug("returning : %s" % volGroup)
+            for el in VolGroupList:
                 volGroup.name = el['volname']
                 if el['type'] == 'RW':
                     volGroup.RW=el
@@ -42,6 +44,8 @@ class VolService (BaseService):
                     volGroup.RO.append(el)
                 else :
                     volGroup.BK=el
+        else : 
+            return None
         self.Logger.debug("returning : %s" % volGroup)
         if self._CFG.DB_CACHE :
             self.DBManager.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
@@ -49,12 +53,12 @@ class VolService (BaseService):
        
     """
     Retrieve Volume Information by Name or ID
+    Must be unique.
     """
     def getVolume(self, name_or_id, serv="", part="", _user="", cached=False):
         if cached :
             if serv != "" :
                 serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
-                # need function in util name_or_ip and name_or_id?
                 if afsutil.isName(name_or_id) :
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
                 else :
