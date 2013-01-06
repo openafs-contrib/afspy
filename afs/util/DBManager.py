@@ -60,7 +60,7 @@ class DBManager :
             c.ignAttrList=emptyObj.ignAttrList
         if mustBeunique :
             if len(cachedObjList) > 1 :
-                raise AfsError("Constraints %s return no unique Object from DB" % unique)
+                raise AfsError("Constraints %s return no unique Object from DB" % where)
             elif len(cachedObjList) == 1 :
                 return cachedObjList[0]
             else :
