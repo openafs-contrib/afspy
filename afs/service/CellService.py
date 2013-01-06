@@ -41,10 +41,11 @@ class CellService(BaseService):
             cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
             numVolDict=self.bulk_getNumVolumes()
             for f in cell.FileServers :
-                if numVolDict.has_key(f.uuid) :
-                    cell.numRW += numVolDict[f.uuid].get("RW",0)
-                    cell.numRO += numVolDict[f.uuid].get("RO",0)
-                    cell.numBK += numVolDict[f.uuid].get("BK",0)
+                uuid = afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(f)
+                if numVolDict.has_key(uuid) :
+                    cell.numRW += numVolDict[uuid].get("RW",0)
+                    cell.numRO += numVolDict[uuid].get("RO",0)
+                    cell.numBK += numVolDict[uuid].get("BK",0)
             cell.numOffline = -1
             cell.numUsers,cell.numGroups = self.getPTInfo(cached=True)
             cell.allocated,cell.allocated_stale = self.getAllocated()
