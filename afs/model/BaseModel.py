@@ -37,8 +37,12 @@ class BaseModel(object):
         """
         cmplxAttrs={}
         for attr, value in self.__dict__.iteritems() :
+            Logger.debug("updateAppRepr: attr=%s, value=%s" % (attr,value))
             if attr[-3:]=="_js" :
-                cmplxAttrs[attr[:-3]]=json.loads(value)
+                if len(value) == 0 :
+                    cmplxAttrs[attr[:-3]]= '""'
+                else :
+                    cmplxAttrs[attr[:-3]]=json.loads(value)
         for attr,value in cmplxAttrs.iteritems() :
             setattr(self,attr,value)
         return
