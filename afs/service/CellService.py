@@ -2,7 +2,8 @@ import socket,sys
 
 from afs.exceptions.AfsError import AfsError
 from afs.model.Cell import Cell
-from afs.model.Volume import Volume
+from afs.model.FileServer import FileServer
+from afs.model.DBServer import DBServer
 from afs.service.BaseService import BaseService
 from afs.service.FsService import FsService
 from afs.service.ProjectService import ProjectService
@@ -18,6 +19,7 @@ class CellService(BaseService):
         BaseService.__init__(self, conf, DAOList=["fs", "bnode","vl", "vol", "rx", "ubik", "dns"])
         self.FS=FsService()
         self.PS=ProjectService()
+        return
 
 
     def getCellInfo(self, cellname="", _user="", cached=False) :
@@ -37,12 +39,13 @@ class CellService(BaseService):
             cell.FileServers=self.getFileServers(cached=True)
             cell.DBServers=self.getDBServers(cached=True)
             cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
+            numVolDict=self.bulk_getNumVolumes()
             for f in cell.FileServers :
-                numRW,numRO,numBK,numOffline = self.FS.getNumVolumes(name_or_ip=f,cached=True)
-                cell.numRW += numRW
-                cell.numRO += numRO
-                cell.numBK += numBK
-                cell.numOffline += numOffline
+                if numVolDict.has_key(f.uuid) :
+                    cell.numRW += numVolDict[f.uuid].get("RW",0)
+                    cell.numRO += numVolDict[f.uuid].get("RO",0)
+                    cell.numBK += numVolDict[f.uuid].get("BK",0)
+            cell.numOffline = -1
             cell.numUsers,cell.numGroups = self.getPTInfo(cached=True)
             cell.allocated,cell.allocated_stale = self.getAllocated()
             cell.size,cell.used,cell.free=self.getUsage(cached=True)
@@ -105,9 +108,12 @@ class CellService(BaseService):
         """
         Return FileServers as a list of hostnames for each fileserver
         """
+        FileServers=[]
+        if cached :
+           for fs in self.DBManager.getFromCache(FileServer,mustBeunique=False) :
+               FileServers.append(fs.servernames[0])
+           return FileServers
         self.Logger.debug("refreshing FileServers from live system")
-        FileServers = []
-        cellname=self._CFG.CELL_NAME
         for na in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user,noresolve=True) :
             DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['name_or_ip'])
             FileServers.append(DNSInfo['names'][0])
@@ -118,6 +124,11 @@ class CellService(BaseService):
         """
         return a DB-Server-hostname list
         """
+        DBServers=[]
+        if cached :
+           for na in self.DBManager.getFromCache(DBServer,mustBeunique=False) :
+               DBServers.append(na.servernames[0])
+        return DBServers
         # we need to bootstrap ourselves now from nothing but the Cellname
         # just list of simple dicts hostnames
         DBServList=[]
@@ -135,9 +146,8 @@ class CellService(BaseService):
             DBServList = self._bnodeDAO.getDBServList(f["name_or_ip"], _cfg=self._CFG, _user=_user) 
         
         # canonicalize DBServList 
-        DBServers=[]
         for na in DBServList :
-            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['hostname'])
+            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na)
             DBServers.append(DNSInfo['names'][0])
         return DBServers
 
@@ -172,3 +182,22 @@ class CellService(BaseService):
          """
          numUsers = numGroups = 0
          return numUsers,numGroups
+
+    def bulk_getNumVolumes(self) :
+        """
+        returns all volume count for all servers from DB
+        """
+        self.Logger.debug("bulk_getNumVolumes:") 
+        resDict={}
+        conn = self._CFG.DB_ENGINE.connect()
+        transa = conn.begin()
+        for t in ["RW","RO","BK"] :
+            rawsql='SELECT TF.uuid, COUNT(TV.vid) FROM tbl_volume AS TV JOIN tbl_fileserver AS TF on TV.serv_uuid = TF.uuid WHERE TV.type="%s" GROUP BY TF.uuid;' % t
+            for uuid,count in conn.execute(rawsql).fetchall() :
+                if not resDict.has_key(uuid) : resDict[uuid]={"RW" : 0,"RO" : 0, "BK" : 0}
+                resDict[uuid][t]=count
+                
+        transa.commit()
+        conn.close()  
+        self.Logger.debug("bulk_getNumVolumes: returning %s" % resDict) 
+        return resDict

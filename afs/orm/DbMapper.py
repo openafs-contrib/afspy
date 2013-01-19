@@ -312,6 +312,7 @@ def setupDbMappers(conf=None):
           Column('name'        , String(255)),
           Column('contact'        , String(255)),
           Column('owner'        , String(255)),
+          Column('NestingLevel'        , Integer),
           Column('description'      , String(1023)),
           Column('rw_locations_js',  TEXT), 
           Column('ro_locations_js',  TEXT), 

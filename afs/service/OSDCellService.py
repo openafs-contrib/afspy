@@ -20,6 +20,7 @@ class OSDCellService(CellService):
         BaseService.__init__(self, conf, DAOList=["osdfs", "bnode","vl", "vol", "rx", "ubik", "dns"])
         self.FS=FsService()
         self.PS=ProjectService()
+        return
 
     def getRXOSDServers(self) :
         RXOSDServers = []

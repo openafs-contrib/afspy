@@ -26,13 +26,15 @@ def execwrapper(fn) :
     Hooks for Auth checking are in place.
     """
     def wrapped(self,*args,**kwargs):
+        # kwarg  _user is not passed to DAO
         if not kwargs.has_key("_user") :
-            raise AfsError("Internal error. No _user= given in parameterlist")
+            _user=""
         else :
             _user=kwargs["_user"]
             kwargs.pop("_user")
+        # kwarg _cfg must be passed to DAO
         if not kwargs.has_key("_cfg") :
-            raise AfsError("Internal error. No _cfg= given in parameterlist")
+            kwargs["_cfg"]=afs.defaultConfig
         else : 
             _cfg=kwargs["_cfg"]
         self.Logger.debug("should check auth of user=%s for method %s in class %s" % (_user,fn.__name__,self.__class__.__name__))
@@ -43,12 +45,16 @@ def execwrapper(fn) :
         parseParamList={"args" : args, "kwargs" : kwargs } 
         argspec=inspect.getargspec(fn)
         count = 0
-        for k in argspec[0][-len(argspec[3]):] :
-            v = argspec[3][count]
-            count += 1
-            if not parseParamList["kwargs"].has_key(k) :
-                parseParamList["kwargs"][k]=v
-        CmdList,ParseFct=fn(self,*args, **kwargs) 
+        self.Logger.debug("argspec=%s" % (argspec,))
+        self.Logger.debug("args=%s" % (args,))
+        self.Logger.debug("kwargs=%s" % (kwargs,))
+        if argspec[3] != None : 
+            for k in argspec[0][-len(argspec[3]):] :
+                v = argspec[3][count]
+                count += 1
+                if not parseParamList["kwargs"].has_key(k) :
+                    parseParamList["kwargs"][k]=v
+        CmdList,ParseFct=fn(self, *args, **kwargs) 
         if self.Implementation == "childprocs" :
             rc,output,outerr=self.execute(CmdList)
         elif self.Implementation == "detached" :

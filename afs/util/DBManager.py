@@ -38,10 +38,11 @@ class DBManager :
         try:
             res = conn.execute(rawsql)
             t.commit()
+            self.Logger.debug("executeRaw: returning %s rows." % (res.rowcount))
         except:
+            self.Logger.warn("executeRaw: statement=%s failed." % (rawsql))
             t.rollback()
-        
-        self.Logger.debug("executeRaw: res=%s" % (rawsql))
+            res=None
         return res
         
 
@@ -75,7 +76,7 @@ class DBManager :
         if type(Elem) == StringType :
             RegEx="\[.*\"{0}\".*\]".format(Elem)
         else :
-            RegEx="\[({0}|.*,{0}|{0},.*|.*,{0},.*)\]".format(Elem)
+            RegEx="\[({0}|.*, {0}|{0},.*|.*, {0},.*)\]".format(Elem)
         
         emptyObj=Class()
         self.Logger.debug("getFromCacheByListElement, regex is : %s" % (RegEx))
