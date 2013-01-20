@@ -31,16 +31,16 @@ class CellService(BaseService):
         if cached :
             cell=self.DBManager.getFromCache(Cell,Name = cellname)
             if cell == None :
-               self.Logger.info("Cannot get cached Cell. Returning none.")
+               self.Logger.info("getCellInfo: Cannot get cached Cell. Returning none.")
                return cell
-            self.Logger.debug("Cell.udate=%s" % cell.udate)
+            self.Logger.debug("getCellInfo: Cell.udate=%s" % cell.udate)
             # update Sums etc. from DB_CACHE
             cell.Name=cellname
-            cell.FileServers=self.getFileServers(cached=True)
-            cell.DBServers=self.getDBServers(cached=True)
+            self.Logger.debug("getCellInfo: Cell.FileServers=%s" % cell.FileServers)
             cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
             numVolDict=self.bulk_getNumVolumes()
             for f in cell.FileServers :
+                self.Logger.debug("getCellInfo: f=%s" % f)
                 uuid = afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(f)
                 if numVolDict.has_key(uuid) :
                     cell.numRW += numVolDict[uuid].get("RW",0)
@@ -53,8 +53,6 @@ class CellService(BaseService):
             cell.Projects=[] # Projects are in DB_CACHE only
             for p in self.PS.getProjectList() :
                 cell.Projects.append(p.name)
-            self.Logger.debug("Cell=%s" % cell)
-            self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
             self.Logger.debug("Cell=%s" % cell)
             return cell
 
@@ -111,9 +109,9 @@ class CellService(BaseService):
         """
         FileServers=[]
         if cached :
-           for fs in self.DBManager.getFromCache(FileServer,mustBeunique=False) :
-               FileServers.append(fs.servernames[0])
-           return FileServers
+            for fs in self.DBManager.getFromCache(FileServer,mustBeunique=False) :
+                FileServers.append(fs.servernames[0])
+            return FileServers
         self.Logger.debug("refreshing FileServers from live system")
         for na in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user,noresolve=True) :
             DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['name_or_ip'])
@@ -127,9 +125,9 @@ class CellService(BaseService):
         """
         DBServers=[]
         if cached :
-           for na in self.DBManager.getFromCache(DBServer,mustBeunique=False) :
-               DBServers.append(na.servernames[0])
-        return DBServers
+            for na in self.DBManager.getFromCache(DBServer,mustBeUnique=False) :
+                DBServers.append(na.servernames[0])
+            return DBServers
         # we need to bootstrap ourselves now from nothing but the Cellname
         # just list of simple dicts hostnames
         DBServList=[]
@@ -150,6 +148,7 @@ class CellService(BaseService):
         for na in DBServList :
             DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na)
             DBServers.append(DNSInfo['names'][0])
+        self.Logger.debug("returning %s" % DBServers)
         return DBServers
 
     def getUbikDBInfo(self, name_or_ip, Port, _user=""):
