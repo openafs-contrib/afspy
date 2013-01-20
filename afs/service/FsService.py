@@ -106,9 +106,9 @@ class FsService (BaseService):
         _user=kw.get("_user","")
         if cached :
             partDict={}
-            for p in self.DBManager.getFromCache(Partition,mustBeunique=False,serv_uuid=serv_uuid) :
+            for p in self.DBManager.getFromCache(Partition,mustBeUnique=False,serv_uuid=serv_uuid) :
                 partDict[p.name] = p.getDict()
-                extPartAttr=self.DBManager.getFromCache(ExtPartAttr,mustBeunique=True,serv_uuid=serv_uuid,name=p.name)
+                extPartAttr=self.DBManager.getFromCache(ExtPartAttr,mustBeUnique=True,serv_uuid=serv_uuid,name=p.name)
                 if extPartAttr != None :
                     partDict[p.name]["ExtAttr"] = extPartAttr.getDict()
                 else : # if there is no "ExtAttr", fake an emtpy one !? 

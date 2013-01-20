@@ -21,14 +21,14 @@ class Project(BaseModel):
         ## name
         self.name   = ""
         ## list of regexes, json encoded
-        self.volnameRegEx_js="[]"
-        self.volnameRegEx=None
+        self.volnameRegEx_js=""
+        self.volnameRegEx=""
         ## list of additional Volumenames, json encoded
-        self.additionalVolnames_js="[]"
-        self.additionalVolnames=None
+        self.additionalVolnames_js=""
+        self.additionalVolnames=""
         ## list of excluded Volumenames , json encoded
-        self.excludedVolnames_js="[]"
-        self.excludedVolnames=None
+        self.excludedVolnames_js=""
+        self.excludedVolnames=""
         ## minimum Size for a Volume
         self.minSize_kB=-1
         ## maximum Size for a volume
@@ -40,17 +40,17 @@ class Project(BaseModel):
         ## owner 
         self.owner = ""
         ## list of locationIDs for RW-Volumes, json encoded
-        self.rw_locations_js="[]"
-        self.rw_locations=None
+        self.rw_locations_js=""
+        self.rw_locations=[]
         ## list of locationIDs for RO-Volumes, json encoded
-        self.ro_locations_js="[]"
-        self.ro_locations=None
+        self.ro_locations_js=""
+        self.ro_locations=[]
         ## list of "server-uuid,partition" pairs for RW-Volumes, json encoded
-        self.rw_serverparts_js="[[]]"
-        self.rw_serverparts=None
+        self.rw_serverparts_js=""
+        self.rw_serverparts=[[]]
         ## list of "server-uuid,partition" pairs for RO-Volumes, json encoded
-        self.ro_serverparts_js="[[]]"
-        self.ro_serverparts=None
+        self.ro_serverparts_js=""
+        self.ro_serverparts=[[]]
         ## free form description
         self.description=""
         ## minimum number of RO-replicas

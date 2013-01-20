@@ -68,7 +68,7 @@ def safeMapping( ModelClass, TableDef):
     
 def setupDbMappers(conf=None):
     from sqlalchemy     import Table, Column, Integer, BigInteger, String, MetaData, DateTime, Boolean, TEXT, Float
-    from sqlalchemy     import  ForeignKeyConstraint,ForeignKey
+    from sqlalchemy     import  ForeignKeyConstraint,ForeignKey,UniqueConstraint
     
     if conf:
         _CFG = conf
@@ -291,19 +291,6 @@ def setupDbMappers(conf=None):
     from afs.model.ExtendedVolumeAttributes import ExtVolAttr
     safeMapping(ExtVolAttr,tbl_extvolattr)
   
-    # Volume Group Table
-    #################################################
-    tbl_volgroup = Table('tbl_volgroup',metadata,
-          Column('id' ,Integer,  primary_key=True ),
-          Column('RW_js' ,TEXT,),
-          Column('RO_js' , TEXT),
-          Column('BK_js' , TEXT),
-          Column('name' , String(255)),
-          )
-    #Mapping Table
-    from afs.model.VolumeGroup import VolumeGroup
-    safeMapping(VolumeGroup,tbl_volgroup)
-
  
     #  Project Table
     ##################################################
@@ -331,6 +318,27 @@ def setupDbMappers(conf=None):
     #Map Table to object
     from afs.model.Project import Project
     safeMapping(Project,tbl_project)
+
+    #  Project Spread
+    ##################################################
+    tbl_project_spread = Table('tbl_project_spread',metadata,
+          Column('id'           , Integer, primary_key=True),
+          Column('project_id'   , Integer),
+          Column('serv_uuid'   ,  String(255)),
+          Column('part'        , String(2)),
+          Column('blocks_fs'     , BigInteger),
+          Column('blocks_osd_on' , BigInteger),
+          Column('blocks_osd_off', BigInteger),
+          Column('vol_type'      , String(2)),
+          Column('num_vol'         , Integer ),
+          Column('cdate'        , DateTime),
+          Column('udate'        , DateTime),
+          UniqueConstraint('project_id', 'serv_uuid', 'part', 'vol_type', name='uix_1')
+          )
+
+    #Map Table to object
+    from afs.model.ProjectSpread import ProjectSpread
+    safeMapping(ProjectSpread,tbl_project_spread)
 
     #  Cell Table
     ##################################################

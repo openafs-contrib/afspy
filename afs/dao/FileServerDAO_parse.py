@@ -132,6 +132,10 @@ def getIdVolList(rc,output,outerr,parseParamList,Logger) :
 
 
 def getPartList(rc,output,outerr,parseParamList,Logger) :
+    """
+    return list of dicts { "name" : , "size" : ,  "used" : ,  "free" : free}
+    Sizes in KiBytes
+    """
     if rc :
          raise FServError("Error", outerr)
     RX=re.compile("Free space on partition /vicep(\S+): (\d+) K blocks out of total (\d+)")
