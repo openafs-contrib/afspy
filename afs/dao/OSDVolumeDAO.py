@@ -24,22 +24,11 @@ class OSDVolumeDAO(VolumeDAO) :
                  "-filequota", "%s" % MaxFiles ,"-osdpolicy" ,osdpolicy, "-cell",  "%s" % _cfg.CELL_NAME]
         return CmdList,PM.create
     
-    
     @execwrapper
-    def getVolGroupList(self, vid, _cfg=None) :
-        """
-        update entry via vos examine from vol-server. 
-        """
-        CmdList = [_cfg.binaries["vos"],"examine", "-id", "%s"  % vid , "-format","-cell", "%s" %  _cfg.CELL_NAME]
-        return CmdList,PM.getVolGroupList
-        
-    @execwrapper
-    def getVolume(self, name_or_id, serv, part,  _cfg=None) :
+    def getVolume(self, name_or_id, serv=None, _cfg=None) :
         """
         Volume entry via vos examine from vol-server. 
         """
-        if part :
-            part = afsutil.canonicalizePartition(part)
         CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.CELL_NAME]
         return CmdList,PM.getVolume
   

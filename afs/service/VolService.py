@@ -1,7 +1,6 @@
-import string,json
+import string,json,logging
 from afs.model.Volume import Volume
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
-from afs.model.VolumeGroup import VolumeGroup
 from afs.service.BaseService import BaseService
 from afs.exceptions.VolError import VolError
 from afs.exceptions.AfsError import AfsError
@@ -24,38 +23,78 @@ class VolService (BaseService):
     ###############################################    
     
     """
-    Retrieve Volume Group
+    Retrieve Volume Group.
+    Returns dict "RW": RWVolObj, "RO": [ROVolObj1, ROVolObj2, ...]
     """
-    def getVolGroup(self, id, _user="", cached=False):
-        self.Logger.debug("entering with id=%s" % id) 
+    def getVolGroup(self, id, _user="", cached=True):
+        self.Logger.debug("getVolGroup: entering with id=%s" % id) 
+        VolGroupDict={"RW" : None, "RO" : [], "BK": None}
         if cached :
-            return self.DBManager.getFromCacheByListElement(VolumeGroup,VolumeGroup.RW_js,id)
-        VolGroupList = self._volDAO.getVolGroupList(id, _cfg=self._CFG, _user=_user)
-        self.Logger.debug("got VolGroupList : %s" % VolGroupList)
-        volGroup = None
-        if len(VolGroupList) > 0:
-            volGroup = VolumeGroup()
-            self.Logger.debug("returning : %s" % volGroup)
-            for el in VolGroupList:
-                volGroup.name = el['volname']
-                if el['type'] == 'RW':
-                    volGroup.RW=el
-                elif el['type'] == 'RO':
-                    volGroup.RO.append(el)
-                else :
-                    volGroup.BK=el
-        else : 
+            VolList=self.DBManager.getFromCache(Volume,vid=id,mustBeUnique=False)
+            if VolList != None :
+                parentID=VolList[0].parentID
+                VolList=self.DBManager.getFromCache(Volume,parentID=parentID,mustBeUnique=False)
+                for v in VolList :
+                    if v.type == "RW" :
+                        VolGroupDict["RW"] = v  
+                    elif v.type == "RO" : 
+                        VolGroupDict["RO"].append(v)  
+                    elif v.type == "BK" :
+                        VolGroupDict["BK"] = v  
+                    else :
+                        raise AfsError("getVolGroup: invalid volume type encountered: %s" % v.type)
+                return VolGroupDict 
+        vol = self._volDAO.getVolume(id, _cfg=self._CFG, _user=_user)
+        if vol == None : 
+            self.Logger.debug("getVolGroup: returning live: None")
             return None
-        self.Logger.debug("returning : %s" % volGroup)
-        if self._CFG.DB_CACHE :
-            self.DBManager.setIntoCache(VolumeGroup,volGroup,name = volGroup.name)
-        return volGroup
+        self.Logger.debug("getVolGroup: got vol=%s" % vol)
+        if vol[0]["vid"] == vol[0]["parentID"] : # is RW
+            rwvol = vol
+            try :
+                rovol = self._volDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
+            except : 
+                rovol = []
+            try :           
+                bkvol = self._volDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+            except :
+                bkvol = []
+        elif vol[0]["vid"] == vol[0]["cloneID"] : # is RO
+            rovol = vol
+            try :
+                rwvol = self._volDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+            except :
+                rwvol = []
+            try :
+                bkvol = self._volDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+            except :
+                bkvol = []
+        elif vol[0]["vid"] == vol[0]["backupID"] : # is RO
+            bkvol = vol
+            try :
+                rwvol = self._volDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+            except :
+                rwvol = []
+            try :           
+                rovol = self._volDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
+            except :
+                rovol = []
+        else : # error
+            raise AfsError("getVolGroup: error parsing intrenal vollist: %s" % vol)
+
+        self.Logger.debug("getVolGroup: got rwvol=%s,rovol=%s,bkvol=%s" % (rwvol,rovol,bkvol))
+        VolGroupDict["RW"] = self.getVolume(int(rwvol[0]["vid"]),serv=rwvol[0]["servername"],cached=False)   
+        VolGroupDict["RO"] = self.getVolume(int(rovol[0]["vid"]),cached=False)
+        #VolGroupDict["BK"] = self.getVolume(bkvol[0]["vid"])   
+        
+        return VolGroupDict
        
     """
     Retrieve Volume Information by Name or ID
-    Must be unique.
+    returns list of volume-objects.
     """
-    def getVolume(self, name_or_id, serv="", part="", _user="", cached=False):
+    def getVolume(self, name_or_id, serv=None, _user="", cached=True):
+        VolList=[]
         if cached :
             if serv != "" :
                 serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
@@ -68,21 +107,24 @@ class VolService (BaseService):
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id)
                 else :
                     vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
-            vol.ExtAttr=self.getExtVolAttr(vol.vid)
-            return vol
-        vdict = self._volDAO.getVolume(name_or_id, serv, part, _cfg=self._CFG, _user=_user)
-        if vdict == None :
-            return None
-        vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
-        vdict.pop("serv")
-        self.Logger.debug("getVolume: vdict=%s" % vdict)
-        vol = None
-        if vdict:
+            if vol != None :
+                for v in vol :
+                    v.ExtAttr=self.getExtVolAttr(v.vid)
+                    VolList.append(v)
+                return vol
+        vdictList = self._volDAO.getVolume(name_or_id, serv, _cfg=self._CFG, _user=_user)
+        for vdict in vdictList :
+            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
+            vdict.pop("serv")
+            self.Logger.debug("getVolume: vdict=%s" % vdict)
             vol = Volume()
             vol.setByDict(vdict)
-            if self._CFG.DB_CACHE :
-                self.DBManager.setIntoCache(Volume,vol,vid = vol.vid)
-        return vol
+            # this doesnot work, since RO are not unique.  
+            # we would need to write a setListIntoCache method for this
+            #if self._CFG.DB_CACHE :
+            #    self.DBManager.setIntoCache(Volume,vol,vid = vol.vid)
+            VolList.append(vol)
+        return VolList
 
     def getExtVolAttr(self,vid) :
         cachedObj=self.DBManager.getFromCache(ExtVolAttr,vid=vid)

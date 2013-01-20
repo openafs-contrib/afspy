@@ -22,60 +22,134 @@ class OSDVolService (VolService):
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["vol","osdvol","fs"])
 
+    """
+    Retrieve Volume Group.
+    Returns dict "RW": RWVolObj, "RO": [ROVolObj1, ROVolObj2, ...]
+    Overridden from VolumeService
+    """
+
+    def getVolGroup(self, id, _user="", cached=True):
+        self.Logger.debug("getVolGroup: entering with id=%s" % id) 
+        VolGroupDict={"RW" : [], "RO" : [], "BK": []}
+        if cached :
+            VolList=self.DBManager.getFromCache(Volume,vid=id,mustBeUnique=False)
+            if VolList != None :
+                parentID=VolList[0].parentID
+                VolList=self.DBManager.getFromCache(Volume,parentID=parentID,mustBeUnique=False)
+                for v in VolList :
+                    if v.type == "RW" :
+                        VolGroupDict["RW"].append(v)  
+                    elif v.type == "RO" : 
+                        VolGroupDict["RO"].append(v)  
+                    elif v.type == "BK" :
+                        VolGroupDict["BK"].append(v) 
+                    else :
+                        raise AfsError("getVolGroup: invalid volume type encountered: %s" % v.type)
+                return VolGroupDict 
+
+        vol = self._osdvolDAO.getVolume(id, _cfg=self._CFG, _user=_user)
+        if vol == None : 
+            self.Logger.debug("getVolGroup: returning live: None")
+            return None
+        self.Logger.debug("getVolGroup: got vol=%s" % vol)
+        if vol[0]["vid"] == vol[0]["parentID"] : # is RW
+            rwvol = vol
+            try :
+                rovol = self._osdvolDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
+            except : 
+                rovol = []
+            try :           
+                bkvol = self._osdvolDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+            except :
+                bkvol = []
+        elif vol[0]["vid"] == vol[0]["cloneID"] : # is RO
+            rovol = vol
+            try :
+                rwvol = self._osdvolDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+            except :
+                rwvol = []
+            try :
+                bkvol = self._osdvolDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+            except :
+                bkvol = []
+        elif vol[0]["vid"] == vol[0]["backupID"] : # is RO
+            bkvol = vol
+            try :
+                rwvol = self._osdvolDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+            except :
+                rwvol = []
+            try :           
+                rovol = self._osdvolDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
+            except :
+                rovol = []
+        else : # error
+            raise AfsError("getVolGroup: error parsing intrenal vollist: %s" % vol)
+
+        self.Logger.debug("getVolGroup: got rwvol=%s,rovol=%s,bkvol=%s" % (rwvol,rovol,bkvol))
+        VolGroupDict["RW"] = self.getVolume(int(rwvol[0]["vid"]),serv=rwvol[0]["servername"],cached=False)
+        VolGroupDict["RO"] = self.getVolume(int(rovol[0]["vid"]),cached=False)
+        #VolGroupDict["BK"] = self.getVolume(bkvol[0]["vid"])   
+        return VolGroupDict
+        
 
     """
     Retrieve Volume Information by Name or ID
     Overridden from VolService.
     """
-    def getVolume(self, name_or_id, serv="", part="", _user="", cached=False):
-        self.Logger.debug("Entering with name_or_id=%s, serv=%s, part=%s,cached=%s",name_or_id, serv, part,  cached) 
+    def getVolume(self, name_or_id, serv=None,  _user="", cached=False):
+        self.Logger.debug("Entering with name_or_id=%s, serv=%s, cached=%s" % (name_or_id, serv, cached) )
+        VolList = []
         if cached :
-            if serv != "" :
+            if serv != None :
                 serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG,cached=True)
                 # need function in util name_or_ip and name_or_id?
                 if afsutil.isName(name_or_id) :
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
                 else :
                     vol=self.DBManager.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
+                VolList.append(vol)
             else :
                 if afsutil.isName(name_or_id) :
-                    vol=self.DBManager.getFromCache(Volume,name=name_or_id)
+                    VolList=self.DBManager.getFromCache(Volume,name=name_or_id,mustBeUnique=False)
                 else :
-                    vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
-            vol.ExtAttr=self.getExtVolAttr(vol.vid)
-            vol.OsdAttr=self.DBManager.getFromCache(ExtVolAttr_OSD,vid=vol.vid)
-            return vol
+                    VolList=self.DBManager.getFromCache(Volume,vid=name_or_id,mustBeUnique=False)
+                self.Logger.debug("OSDgetVolume: VolList=%s" % VolList)
+            for vol in VolList :
+                vol.ExtAttr=self.getExtVolAttr(vol.vid)
+                vol.OsdAttr=self.DBManager.getFromCache(ExtVolAttr_OSD,vid=vol.vid)
+            return VolList
         osdExtAttr=ExtVolAttr_OSD()
         odict=osdExtAttr.getDict()
-        vdict = self._osdvolDAO.getVolume(name_or_id, serv, part, _cfg=self._CFG, _user=_user)
-        self.Logger.debug("getVolume: vdict=%s" % vdict)
-        if not vdict :
-            return None
-        StorageUsage=self.getStorageUsage([serv,],vdict["vid"])
-        vdict["blocks_osd_on"]=StorageUsage["storageUsage"]["online"]["Data"]
-        vdict["blocks_osd_off"]=StorageUsage["storageUsage"]["archival"]["Data"]
-        vdict["blocks_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
-        vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG,cached=False)
-        vdict.pop("serv")
-        self.Logger.debug("getVolume: vdict=%s" % vdict)
-        # move stuff to OSD-dict
-        for k in vdict.keys() :
-            if k in odict.keys() : 
-                odict[k] = vdict[k] 
-                if k == "vid" : continue
-                vdict.pop(k)
-        vol = Volume()
-        # XXX: we need this to ignore the OsdAttr and ExtAttr in the copy-operation.
-        vdict["ignAttrList"]=vol.ignAttrList
-        vol.setByDict(vdict)
-        if odict['osdPolicy'] != 0 : 
-            vol.OsdAttr=odict
-            osdExtAttr.setByDict(odict)
-        if self._CFG.DB_CACHE :
-            self.DBManager.setIntoCache(Volume,vol,vid=vol.vid) 
+        vdictList = self._osdvolDAO.getVolume(name_or_id, serv=serv, _cfg=self._CFG, _user=_user)
+        self.Logger.debug("OSDgetVolume: vdictList=%s" % vdictList)
+        for vdict in vdictList :
+            StorageUsage=self.getStorageUsage([serv,],vdict["vid"])
+            vdict["blocks_osd_on"]=StorageUsage["storageUsage"]["online"]["Data"]
+            vdict["blocks_osd_off"]=StorageUsage["storageUsage"]["archival"]["Data"]
+            vdict["blocks_fs"]=StorageUsage["storageUsage"]["fileserver"]["Data"]
+            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(vdict["serv"],self._CFG,cached=False)
+            vdict.pop("serv")
+            self.Logger.debug("getVolume: vdict=%s" % vdict)
+            # move stuff to OSD-dict
+            for k in vdict.keys() :
+                if k in odict.keys() : 
+                    odict[k] = vdict[k] 
+                    if k == "vid" : continue
+                    vdict.pop(k)
+            vol = Volume()
+            # XXX: we need this to ignore the OsdAttr and ExtAttr in the copy-operation.
+            vdict["ignAttrList"]=vol.ignAttrList
+            vol.setByDict(vdict)
             if odict['osdPolicy'] != 0 : 
-                self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
-        return vol
+                vol.OsdAttr=odict
+                osdExtAttr.setByDict(odict)
+
+            if self._CFG.DB_CACHE :
+                self.DBManager.setIntoCache(Volume,vol,vid=vol.vid,serv_uuid=serv_uuid,part=vol.part) 
+                if odict['osdPolicy'] != 0 : 
+                    self.DBManager.setIntoCache(ExtVolAttr_OSD,osdExtAttr,vid=osdExtAttr.vid) 
+            VolList.append(vol) 
+        return VolList
 
     def saveExtVolAttr_OSD(self,Obj):
         cachedObj=self.DBManager.setIntoCache(ExtVolAttr_OSD,Obj,vid=Obj.vid)

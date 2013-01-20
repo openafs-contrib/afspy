@@ -291,19 +291,6 @@ def setupDbMappers(conf=None):
     from afs.model.ExtendedVolumeAttributes import ExtVolAttr
     safeMapping(ExtVolAttr,tbl_extvolattr)
   
-    # Volume Group Table
-    #################################################
-    tbl_volgroup = Table('tbl_volgroup',metadata,
-          Column('id' ,Integer,  primary_key=True ),
-          Column('RW_js' ,TEXT,),
-          Column('RO_js' , TEXT),
-          Column('BK_js' , TEXT),
-          Column('name' , String(255)),
-          )
-    #Mapping Table
-    from afs.model.VolumeGroup import VolumeGroup
-    safeMapping(VolumeGroup,tbl_volgroup)
-
  
     #  Project Table
     ##################################################
