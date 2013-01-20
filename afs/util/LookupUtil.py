@@ -123,14 +123,11 @@ class LookupUtil :
                 self.Logger.debug("looking up FSUUID in DB_Cache for serv=%s" % name_or_ip)
                 DNSInfo=self.getDNSInfo(name_or_ip)
                 thisDBManager=DBManager(self._CFG)
-                list=thisDBManager.getFromCacheByListElement(FileServer,FileServer.servernames_js,DNSInfo["names"][0])         
-                if list != None :
-                    if len(list) > 1 :
-                        raise LookupUtilError("DB_Cache error. Got more than one entry for server %s" % name_or_ip) 
-                    if len(list) == 1  :
-                        # store it in localCache 
-                        self.localCache["FSUUIDs"][name_or_ip] = list[0].uuid                  
-                        return list[0].uuid
+                fs=thisDBManager.getFromCacheByListElement(FileServer,FileServer.servernames_js,DNSInfo["names"][0])         
+                if fs != None :
+                    # store it in localCache 
+                    self.localCache["FSUUIDs"][name_or_ip] = fs.uuid                  
+                    return fs.uuid
 
         # not found in local cache and not in DB Cache, get it from live-system
             
@@ -139,7 +136,10 @@ class LookupUtil :
         DNSInfo=self.getDNSInfo(name_or_ip)
         uuid=""
         _vlDAO=VLDbDAO()
-        uuid=_vlDAO.getFsUUID(DNSInfo["names"][0],_user=_user,_cfg=self._CFG)
+        try :
+            uuid=_vlDAO.getFsUUID(DNSInfo["names"][0],_user=_user,_cfg=self._CFG)
+        except :
+            return None
         # store it in localCache 
         self.localCache["FSUUIDs"][name_or_ip] = uuid                  
         return uuid
@@ -148,6 +148,8 @@ class LookupUtil :
         """
         returns hostname of a fileserver by uuid
         """
+        self.Logger.debug("called with %s, cached=%s" % (uuid,cached))
+        self.Logger.debug("self._CFG=%s" % (self._CFG))
         if cached :
             # local Cache first
             for hn in self.localCache["FSUUIDs"] :
@@ -158,24 +160,22 @@ class LookupUtil :
                 from DBManager import DBManager
                 from afs.model.FileServer import FileServer
                 thisDBManager=DBManager(self._CFG)
-                list=thisDBManager.getFromCacheByListElement(FileServer,FileServer.uuid,uuid)
+                fs=thisDBManager.getFromCache(FileServer,uuid=uuid)
                 self.Logger.debug("looking up hostname in DB_Cache for uuid=%s" % uuid)
-                if list != None :
-                    if len(list) > 1 :
-                        raise LookupUtilError("DB_Cache error. Got more than one entry for fs-uuid %s" % uuid)
-                    if len(list) == 1 :
-                        self.localCache["FSUUIDs"][list[0].servernames[0]] = list[0].uuid                  
-                        return list[0].servernames[0]
+                if fs != None :
+                    self.localCache["FSUUIDs"][fs.servernames[0]] = fs.uuid                  
+                    return fs.servernames[0]
 
         # not found in local cache and not in DB Cache, or cacheing disabled.
         # get it from live-system
         from afs.dao.VLDbDAO import VLDbDAO
-        self.Logger.debug("called with %s" % uuid)
         _vlDAO=VLDbDAO()
-        name_or_ip=""
+        name_or_ip=None
         for fs in _vlDAO.getFsServList(_cfg=self._CFG,_user="" ) :
             if fs['uuid'] == uuid :
                name_or_ip = fs['name_or_ip']
+        if name_or_ip == None :
+            raise LookupUtilError("No Server with uuid=%s registered in live-system" % uuid)
         # store it in localCache 
         self.Logger.debug("getHostnameByFSUUID: got name_or_ip =%s from live-system" % name_or_ip)
         name_or_ip=self.getDNSInfo(name_or_ip)["names"][0]
