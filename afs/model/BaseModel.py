@@ -43,7 +43,9 @@ class BaseModel(object):
                     cmplxAttrs[attr[:-3]]= '""'
                 else :
                     cmplxAttrs[attr[:-3]]=json.loads(value)
+                Logger.debug("updateAppRepr: complxAttr=%s" % (cmplxAttrs[attr[:-3]]))
         for attr,value in cmplxAttrs.iteritems() :
+            Logger.debug("updateAppRepr: setting %s=%s, type=%s" % (attr,value,type(value)))
             setattr(self,attr,value)
         return
 
@@ -73,12 +75,13 @@ class BaseModel(object):
             setattr(self,attr,value)
         return
  
-    def copyObj(self, obj):
+    def copyObj(self, newObj):
         """
         copies one object onto another.
         """
-        dict=obj.getDict()
-        self.setByDict(dict)
+        Logger.debug("Copying newObj=%s to onto self." % newObj)
+        ObjDict=newObj.getDict()
+        self.setByDict(ObjDict)
         return
     
     def getJson(self):
@@ -107,6 +110,7 @@ class BaseModel(object):
             elif isinstance(value,decimal.Decimal) :
                 res[attr] = long(value)
             elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,UnicodeType,DictType,ListType,NoneType] :
+                Logger.debug("getDict: attr=%s, value=%s, type(value)=%s" % (attr,value,type(value)))
                 res[attr] = value
             else : # ignore anything else
                 Logger.warn("getDict: ignoring attr %s with type(value)=%s" % (attr,type(value)) )
