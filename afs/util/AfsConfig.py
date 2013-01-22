@@ -35,9 +35,6 @@ def parseDefaultConfig(myParser=None):
     if os.path.exists(BASE_CFG_DIR + "afspy.cfg") :
         afs.defaultConfig=loadAfsConfig(afs.defaultConfig, BASE_CFG_DIR + "afspy.cfg")
 
-    # we need to deal with that one later
-    afs.defaultConfig.Token=None
-
     # parse hosts and ignore_IP
     afs.defaultConfig.hosts={}
     for h in afs.defaultConfig.hostmap :
