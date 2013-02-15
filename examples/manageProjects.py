@@ -74,6 +74,7 @@ Commands=myParser.add_mutually_exclusive_group(required=True)
 Commands.add_argument('--dumpPrj', action='store_true')
 Commands.add_argument('--importPrj', action='store_true')
 Commands.add_argument('--addPrj', action='store_true')
+Commands.add_argument('--rmPrj', action='store_true')
 Commands.add_argument('--modifyPrj', action='store_true')
 Commands.add_argument('--showFSList', action='store_true')
 Commands.add_argument('--updateVolumeMappings', action='store_true')
@@ -155,7 +156,7 @@ elif afs.defaultConfig.importPrj == True :
             line=input[count].strip()
             tokens=line.split(":")
             tokens=map(string.strip,tokens)
-            thisPrj["name"]=tokens[0]
+            thisPrj["name"]=tokens[1]
             count +=1
             continue
         tokens=line.split(":")
@@ -177,6 +178,14 @@ elif afs.defaultConfig.addPrj == True :
     PrjObj.setByDict(PrjDict)
     print "PrjObj: %s " % PrjObj
     PS.saveProject(PrjObj)
+elif afs.defaultConfig.rmPrj == True :
+    if afs.defaultConfig.prjname == "" :
+        name=raw_input("Name of project: ")
+    else :
+        name=afs.defaultConfig.prjname
+    if PS.getProjectByName(name) == None :
+        print "Found no project with name '%s'" % name
+    PS.deleteProject(name)
 elif afs.defaultConfig.modifyPrj == True :
     if afs.defaultConfig.prjname == "" :
         name=raw_input("Name of project: ")
