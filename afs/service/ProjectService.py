@@ -31,6 +31,20 @@ class ProjectService(BaseService):
         """
         thisProject=self.DBManager.getFromCache(Project,name=name)
         return thisProject
+   
+    def deleteProject(self,name_or_obj) :
+        """
+        remove on project from the database. 
+        take name as string or ProjectObject
+        """
+        if  isinstance(name_or_obj, basestring) :
+            PrjName = name_or_obj
+        else :
+            try :
+                PrjName = name_or_obj.name
+            except :
+                raise AfsError("Name of prj (string) or Project instance required.") 
+        return self.DBManager.deleteFromCache(Project,name=PrjName)
         
     def getProjectsByVolumeName(self, volname):
         """
