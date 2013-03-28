@@ -26,7 +26,7 @@ class LookupUtil :
         self.Logger=logging.getLogger("afs.util.%s" % self.__class__.__name__)
         self.Logger.setLevel(numericLogLevel)
         self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, conf))      
-        
+        # fast class-local Lookup cache 
         self.localCache = {
             "DNSInfo" : {},
             "FSUUIDs" : {}
@@ -40,7 +40,7 @@ class LookupUtil :
         returns dict{"names" : [], "ipaddrs" : []}
         """
         self.Logger.debug("getDNSInfo: entering with name_or_ip=%s" % (name_or_ip))
-        if not isName : # check for matching ipaddress
+        if not isName(name_or_ip) : # check for matching ipaddress
             for hn in afs.defaultConfig.hosts :
                 if name_or_ip in afs.defaultConfig.hosts[hn] :
                     self.Logger.debug("%s is hard-mapped to (%s,%s)" % (name_or_ip, [hn,],afs.defaultConfig.hosts[hn]))
@@ -71,7 +71,12 @@ class LookupUtil :
             servernames=[DNSInfo[0]]+DNSInfo[1]
             ipaddrs=DNSInfo[2]
         except :
-            raise LookupUtilError("Cannot resolve %s" % name_or_ip)
+            if isName(name_or_ip) :
+                raise LookupUtilError("Cannot resolve %s" % name_or_ip)
+            else :
+                self.Logger.warn("Cannot resolve %s" % name_or_ip)
+                return {"names": [], "ipaddrs" : [name_or_ip,]}
+
 
         self.Logger.debug("%s resolves to %s" % (name_or_ip,DNSInfo)) 
         # check if resolved ip-address matches (if hostalias was used)
@@ -108,12 +113,13 @@ class LookupUtil :
         returns UUID of a fileserver, which is used as key for server-entries
         in other tables. This does not silently update the Cache
         """
+        self.Logger.debug("getFSUUID: called with %s" % name_or_ip)
         if cached :
         # local Cache first
             if name_or_ip in self.localCache["FSUUIDs"].keys() :
                 return self.localCache["FSUUIDs"][name_or_ip]
             else :
-                name_or_ip =self.getDNSInfo(name_or_ip)["names"][0] 
+                name_or_ip = self.getDNSInfo(name_or_ip)["names"][0] 
                 if name_or_ip in self.localCache["FSUUIDs"].keys() :
                     return self.localCache["FSUUIDs"][name_or_ip]
         # then DB
@@ -126,13 +132,13 @@ class LookupUtil :
                 fs=thisDBManager.getFromCacheByListElement(FileServer,FileServer.servernames_js,DNSInfo["names"][0])         
                 if fs != None :
                     # store it in localCache 
-                    self.localCache["FSUUIDs"][name_or_ip] = fs.uuid                  
+                    self.localCache["FSUUIDs"][fs.servernames[0]] = fs.uuid                  
+                    self.localCache["FSUUIDs"][fs.ipaddrs[0]] = fs.uuid                  
                     return fs.uuid
 
         # not found in local cache and not in DB Cache, get it from live-system
             
         from afs.dao.VLDbDAO import VLDbDAO
-        self.Logger.debug("getFSUUID: called with %s" % name_or_ip)
         DNSInfo=self.getDNSInfo(name_or_ip)
         uuid=""
         _vlDAO=VLDbDAO()
@@ -142,6 +148,7 @@ class LookupUtil :
             return None
         # store it in localCache 
         self.localCache["FSUUIDs"][name_or_ip] = uuid                  
+        self.localCache["FSUUIDs"][DNSInfo["names"][0]] = uuid                  
         return uuid
     
     def getHostnameByFSUUID(self,uuid,_user="",cached=True) :
@@ -149,11 +156,12 @@ class LookupUtil :
         returns hostname of a fileserver by uuid
         """
         self.Logger.debug("called with %s, cached=%s" % (uuid,cached))
-        self.Logger.debug("self._CFG=%s" % (self._CFG))
         if cached :
             # local Cache first
             for hn in self.localCache["FSUUIDs"] :
+                if not isName(hn) : continue
                 if self.localCache["FSUUIDs"][hn] == uuid :
+                    self.Logger.debug("returning from local cache: %s" % hn)
                     return hn
             # then DB 
             if self._CFG.DB_CACHE:
