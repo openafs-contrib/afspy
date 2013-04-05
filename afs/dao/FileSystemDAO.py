@@ -13,9 +13,20 @@ class FileSystemDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
 
+
     @execwrapper
-    def makeMountpoint(self, path, target, _cfg=None) :
-        CmdList=[_cfg.binaries["fs"],  "makemount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.CELL_NAME ]
+    def copyACL(self, fromdir, todir, clear=False,  _cfg=None) :
+        CmdList=[_cfg.binaries["fs"],  "copyacl" , "-fromdir" , "%s" % fromdir, "-todir", "%s" % todir ]
+        if clear :
+            CmdList.append("-clear")
+        return CmdList,PM.copyACL
+
+
+    @execwrapper
+    def makeMountpoint(self, path, target, toRW=False, _cfg=None) :
+        CmdList=[_cfg.binaries["fs"],  "mkmount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.CELL_NAME ]
+        if toRW :
+            CmdList.append("-rw")
         return CmdList,PM.makeMountpoint
         
     @execwrapper
