@@ -31,7 +31,8 @@ class VolService (BaseService):
         VolGroupDict={"RW" : None, "RO" : [], "BK": None}
         if cached :
             VolList=self.DBManager.getFromCache(Volume,vid=id,mustBeUnique=False)
-            if VolList != None :
+            self.Logger.debug("VolList=%s" % VolList)
+            if VolList != [] :
                 parentID=VolList[0].parentID
                 VolList=self.DBManager.getFromCache(Volume,parentID=parentID,mustBeUnique=False)
                 for v in VolList :
@@ -44,6 +45,7 @@ class VolService (BaseService):
                     else :
                         raise AfsError("getVolGroup: invalid volume type encountered: %s" % v.type)
                 return VolGroupDict 
+            self.Logger.info("found no VolumeGroup for name_or_id %s in cache. Trying live-system." % id) 
         vol = self._volDAO.getVolume(id, _cfg=self._CFG, _user=_user)
         if vol == None : 
             self.Logger.debug("getVolGroup: returning live: None")
@@ -112,9 +114,9 @@ class VolService (BaseService):
                     v.ExtAttr=self.getExtVolAttr(v.vid)
                     VolList.append(v)
                 return vol
-        vdictList = self._volDAO.getVolume(name_or_id, serv, _cfg=self._CFG, _user=_user)
+        vdictList = self._volDAO.getVolume(name_or_id, serv=serv, _cfg=self._CFG, _user=_user)
         for vdict in vdictList :
-            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
+            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(vdict["serv"],self._CFG)
             vdict.pop("serv")
             self.Logger.debug("getVolume: vdict=%s" % vdict)
             vol = Volume()
@@ -133,11 +135,3 @@ class VolService (BaseService):
     def saveExtVolAttr(self, Obj):
         cachedObj=self.DBManager.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
         return cachedObj
-
-    ################################################
-    # AFS-operations
-    ################################################
- 
-    def release(self, id) :
-        #Check before the call (must be RW)
-        pass

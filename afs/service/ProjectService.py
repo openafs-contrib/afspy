@@ -90,6 +90,28 @@ class ProjectService(BaseService):
             FsName=afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
             ROList.append((FsName,part),)
         return RWList,ROList
+
+
+    def getProjectsOnServer(self, name_or_obj, cached = True) :
+        """
+        return dict[Partition] of lists of [ProjectNames] for a fileserver
+        """
+        ProjectList=self.getProjectList()
+        if isinstance(name_or_obj, basestring) :
+            FSName = name_or_obj
+        else :
+            try :
+                FSName = name_or_obj.hostnames[0]
+            except :
+                raise AfsError("Name of server (string) or Fileserver-Instance required.")
+        FSUUID=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(FSName)
+        if cached :
+            resDict={}
+            for p in self._FS.getPartitions(FSName) :
+                resDict[p]=[]
+                for prj in self.DBManager.getFromCache(ProjectSpread, mustBeUnique=False, serv_uuid=FSUUID, part=p) :
+                    resDict[p].append(prj)
+            return resDict
  
     def getServerSpread(self, prjname, cached = True):
         """
@@ -177,17 +199,68 @@ class ProjectService(BaseService):
         conn = self._CFG.DB_ENGINE.connect()
         transa = conn.begin()
         RegEx="\\\[({0}|.*, {0}|{0},.*|.*, {0},.*)\\\]".format(thisProject.id)
+        # osd volumes
         for field in ["files_fs","files_osd","blocks_fs","blocks_osd_on","blocks_osd_off"] :
             rawsql='SELECT SUM(EOSD.%s) FROM tbl_extvolattr AS E JOIN tbl_extvolattr_osd AS EOSD on E.vid = EOSD.vid WHERE E.projectIDs_js REGEXP "%s";' % (field,RegEx)
             self.Logger.debug("Executing %s" % rawsql)
             res = conn.execute(rawsql).fetchall()
             self.Logger.debug("got res=%s" % res)
-            if len(res) == 1 :
+            try : 
                 resDict[field] = res[0][0]
-            else :
-                resDict[field] = -1
+            except :
+                resDict[field] = 0
+            if resDict[field] == None : resDict[field] = 0
+        # openafs volumes
+        # this is not very efficient
+        # for external RO we need the list of vids
+        # get VolIDs of osd volumes first.
+        rawsql='SELECT E.vid  FROM tbl_extvolattr AS E JOIN tbl_extvolattr_osd AS EOSD on E.vid = EOSD.vid WHERE E.projectIDs_js REGEXP "%s";' % (RegEx)
+        self.Logger.debug("Executing %s" % rawsql)
+        res = conn.execute(rawsql).fetchall()
+        self.Logger.debug("got res=%s" % res)
+        OSD_VolIDs=[]
+        for vid in res :
+            OSD_VolIDs.append(vid[0])
+        
+        # all vids
+        rawsql='SELECT E.vid FROM tbl_extvolattr AS E JOIN tbl_volume AS VOL on E.vid = VOL.vid WHERE E.projectIDs_js REGEXP "%s";' % (RegEx)
+        self.Logger.debug("Executing %s" % rawsql)
+        res = conn.execute(rawsql).fetchall()
+        self.Logger.debug("got res=%s" % res)
+        VolIDs=[]
+        for vid in res :
+            if not vid[0] in OSD_VolIDs :   # do not add OSD-Volumes
+                VolIDs.append(vid[0])
+        
+        self.Logger.debug("VolIDs=%s,OSD_VolIDs=%s" % (VolIDs,OSD_VolIDs))
+        resDict["diskused"]=0  
+        resDict["filecount"]=0  
+       
+        for vid in VolIDs :
+            for field in ["diskused","filecount"] :
+                rawsql='SELECT %s FROM tbl_volume  WHERE vid="%s";' % (field,vid)
+                self.Logger.debug("Executing %s" % rawsql)
+                res = conn.execute(rawsql).fetchall()
+                self.Logger.debug("got res=%s" % res)
+                try :
+                    resDict[field] += res[0][0]
+                except :
+                    resDict[field] = 0
+                if resDict[field] == None : resDict[field] = 0
+
+            for field in ["diskused","filecount"] :
+                rawsql='SELECT SUM(VOL.%s) FROM tbl_volume AS Vol2 JOIN tbl_volume AS VOL on Vol2.vid = VOL.parentID WHERE Vol2.vid="%s" AND VOL.servername != Vol2.servername;' % (field,vid)
+                self.Logger.debug("Executing %s" % rawsql)
+                res = conn.execute(rawsql).fetchall()
+                self.Logger.debug("got res=%s" % res)
+                try :
+                    resDict[field] += res[0][0]
+                except :
+                    pass
         transa.commit()
         conn.close()  
+        resDict["blocks_fs"] += resDict["diskused"]*1024 # XXX diskused is in Kbytes, osd stuff in bytes!    
+        resDict["files_fs"] += resDict["filecount"]    
         self.Logger.debug("getStorageUsage: returning %s" % resDict) 
         return resDict
         
@@ -206,42 +279,101 @@ class ProjectService(BaseService):
         self.DBManager.setIntoCache(Project,prjObj,name=prjObj.name)
         return 
 
-    def getNewVolumeLocation(self, prjname, VolType) :
+    def getNewVolumeLocation(self, prjname, VolObj, reservedSpace={}) :
         """
-        get a new volume location for this project.
+        get a new volume location for a volume in the given project.
         Has to be called separately for RW and external RO.
-        For now, only choose on size, but we should also take the number of accessed Volumes 
-        into account !?
+        If volume already exists, return alternate location.
+        For now, only choose on size.
+        reservedSpace is substracted from the current free space of fileservers, 
+        so that parallel transfers/creations are possible.
+        must be of form {"serv_uuid" : {"partname" : reservedSpace/kB } }
         """
+        self.Logger.debug("called with Prj=%s, VolObj=%s"  % (prjname,VolObj))
         thisProject = self.getProjectByName(prjname)
         if not thisProject : return None
 
-        if VolType == "RW" :
+        if VolObj.type == "RW" :
             sps = thisProject.rw_serverparts 
-        elif VolType == "RO" :
+        elif VolObj.type == "RO" :
             sps = thisProject.ro_serverparts
         else :
-            raise RuntimeError("Invalid Voltype : %s" % VolType)    
+            raise RuntimeError("Invalid Voltype : %s" % VolObj.type)    
 
-        # get Partinfos from livesystem
+
+        # get locations of Volume
+        # check if we're dealing with an existing Volume
+        ## XXX does it work with RO, where the RW has been deleted ??
+       
+        try :
+            existingVol = self._VS.getVolume(VolObj.name, cached=False)
+        except :
+            existingVol = []
+
+        if len(existingVol) > 0 :
+            existingVol = self._VS.getVolume(VolObj.name, cached=False)[0]
+            RWVolLocation = (existingVol.serv_uuid,existingVol.part)
+        else :
+            self.Logger.debug("Volume of name %s doesn't exist" % VolObj.name)
+            RWVolLocation=()
+            if VolObj.type != "RW" :
+                raise AfsError("RW-Volume %s does not exist. Cannot create non-RW volumes for that name." % VolObj.name)
+
+        ROVolLocations=[]
+        try :
+            existingROVols=self._VS.getVolume("%s.readonly" % VolObj.name, cached=False)
+        except :
+            existingROVols=[]
+
+        for v in existingROVols :
+            ROVolLocations.append((v.serv_uuid,v.part)) 
+        # get PartInfos from livesystem
 
         PartInfos={}
         for serv_uuid, thisPart in sps :
-            thisFsName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
-            if not thisFSName in PartInfos :
+            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            if not serv_uuid in PartInfos : 
+                PartInfos[serv_uuid] = {}
                 for p in self._fsDAO.getPartList(thisFSName) :
-                    PartInfos[thisFsName] = { p["name"] : p["free"]} 
+                    PartInfos[serv_uuid][p["name"]] = p["free"] 
+        # XXX partinfo contains now all partitions    
+        self.Logger.debug("PartInfos of Prj %s: %s" % (thisProject.name,PartInfos)) 
         self.Logger.debug("ServerPartitions of Prj %s: %s" % (thisProject.name,sps)) 
+        self.Logger.debug("VolumeLocations: RW: %s  RO:%s" % (RWVolLocation, ROVolLocations)) 
         # find one with most Free size        
-        # we need to iterate over sps again, since we might have more parttions
+        # we need to iterate over sps again, since we might have more partitions
         # than belonging to this project
         maxFree = -1
         FsName = Part = None
         for serv_uuid, thisPart in sps :
-            thisFsName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
-            if PartInfos[thisFsName][part] > maxFree : 
-                maxFree = PartInfos[thisFsName][thisPart]
-                FsName = thisFsName
+            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            if not thisPart in PartInfos[serv_uuid].keys() :
+                raise AfsError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,thisFSName,thisPart)) 
+            if VolObj.type == "RW" :
+                # ignore the original SP
+                if (serv_uuid, thisPart) == RWVolLocation : continue
+                haveVolonOtherPart=False
+                # if Vol already on dst Server, just consider the corresponding partition
+                for o_serv_uuid,o_part in ROVolLocations :
+                    if o_serv_uuid == serv_uuid and o_part != thisPart : 
+                        haveVolonOtherPart = True
+                if haveVolonOtherPart : continue
+            elif VolObj.type == "RO" :
+                # ignore the original SP
+                if (serv_uuid, thisPart) in ROVolLocations : continue
+                # if we have a single RW on this SP, ignore other partitions 
+                if serv_uuid == RWVolLocation[0] and thisPart != RWVolLocation[1] : continue
+            else :
+                 raise AfsError("Internal Error. Got invalid volume-type %s" % VolObj.type)
+            # substract reservedSpace
+            try :
+                effectiveSpace = PartInfos[serv_uuid][thisPart] - reservedSpace[serv_uuid][thisPart]
+            except :
+                effectiveSpace = PartInfos[serv_uuid][thisPart]
+            # leave at least 100 GB free on destination server
+            if effectiveSpace > maxFree and effectiveSpace > 1024*1024*100 : 
+                maxFree = PartInfos[serv_uuid][thisPart]
+                FsName = thisFSName
                 Part = thisPart
         return FsName, Part
 
@@ -254,17 +386,18 @@ class ProjectService(BaseService):
         Projects=self.getProjectList()
         for prj in Projects :
             self.Logger.debug("Updating Project %s" % prj.name)
-            regEXSQL='AND ( name REGEXP ("%s")' % prj.volnameRegEx[0]
-            if len (prj.volnameRegEx) > 1 :
-                for i in range(1,len(prj.volnameRegEx)) :
-                    regEXSQL += 'OR name REGEXP ("%s") ' %  prj.volnameRegEx[1]
-            rawSQL='SELECT vid,name FROM tbl_volume WHERE type="RW" %s );'  % regEXSQL
-            for vid,name in self.DBManager.executeRaw(rawSQL).fetchall() :
-                if name in prj.excludedVolnames : continue
-                if RWVols.has_key(vid) :
-                    RWVols[vid].append(prj.id)
-                else :
-                    RWVols[vid]=[prj.id,]
+            if len(prj.volnameRegEx) > 0 :
+                regEXSQL='AND ( name REGEXP ("%s")' % prj.volnameRegEx[0]
+                if len (prj.volnameRegEx) > 1 :
+                    for i in range(1,len(prj.volnameRegEx)) :
+                        regEXSQL += 'OR name REGEXP ("%s") ' %  prj.volnameRegEx[1]
+                rawSQL='SELECT vid,name FROM tbl_volume WHERE type="RW" %s );'  % regEXSQL
+                for vid,name in self.DBManager.executeRaw(rawSQL).fetchall() :
+                    if name in prj.excludedVolnames : continue
+                    if RWVols.has_key(vid) :
+                        RWVols[vid].append(prj.id)
+                    else :
+                        RWVols[vid]=[prj.id,]
             # additional volumes 
             for name in prj.additionalVolnames :
                 if len(name) == 0 : continue
