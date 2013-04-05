@@ -14,7 +14,12 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
             splits = output[i].split()
             server['uuid'] = splits[1]
             i = i + 1
-            DNSInfo=afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(output[i])
+            try :
+                DNSInfo=afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(output[i])
+            except :
+                server['name_or_ip'] = output[i]
+                Logger.warn("Cannot resolv name_or_ip %s. Leaving it as it is." % output[i]  )
+                continue
             if noresolve :
                 server['name_or_ip'] = DNSInfo["ipaddrs"][0]
             else :
@@ -98,7 +103,7 @@ def setaddrs(rc,output,outerr,parseParamList,Logger) :
 def addsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+    return 
 
 def remsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
