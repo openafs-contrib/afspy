@@ -7,8 +7,9 @@ import afs
 useRXOSD=True
 # log-level is set in AfsConfig
 Logger=logging.getLogger("afs.util")
-SizeUnit=['kB','MB','GB','TB','PB']
+SizeUnit=['K', 'M','G','T','P']
 PartRX=re.compile("/?(?:vicep)?([a-z][a-z]?)")
+HumanSizeRX=re.compile("(\d+)([KMGTP]?)")
 
 
 class utilError(Exception):
@@ -25,6 +26,26 @@ def humanReadableSize(Size) :
     for s in range(len(SizeUnit)) :
         if float(Size) / (1024**(s+1)) < 1 : break
     return "%3.2f %s" % (float(Size) / (1024**s),SizeUnit[s])  
+
+def parseHumanWriteableSize(Size) :
+    """
+    return absolute Value of sth like 100M
+    base 1024 used.
+    """ 
+    MObj=HumanSizeRX.match(Size)
+    if not MObj:
+	raise utilError("Cannot parse value %s. Should be an integer with an optional size-unit of [K,M,G,T,P]")  
+    number,su=MObj.groups()
+    number=int(number)
+    multi=1
+    if len(su) != 0 : 
+        for s in range(len(SizeUnit)) :
+            if su == SizeUnit[s] :
+                multi = 1024**(s+1)
+                break
+
+    return multi*number            
+
 
 def canonicalizePartition(part) :
     if type(part) == types.StringType :

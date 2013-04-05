@@ -92,42 +92,26 @@ class OSDFsService (FsService):
         #rawsql='LOCK TABLES tbl_volume WRITE;'
         #res = conn.execute(rawsql)
         # scan  server/partition for volids to insert/update
-        updates={}
-        deletes=[]
-        rawsql = 'SELECT vid,cdate FROM tbl_volume WHERE serv_uuid="%s" AND part="%s"' % (serv_uuid,part)
-        for _vid in conn.execute(rawsql).fetchall() :
-            if _vid[0] in vids :
-                updates[_vid[0]]=_vid[1]
-            else :
-                deletes.append(_vid[0])
+        # delete all entries of this server-partition, then recreate them. 
+        rawsql = 'SELECT vid FROM tbl_volume WHERE serv_uuid="%s" AND part="%s"' % (serv_uuid,part)
+        for vid in conn.execute(rawsql).fetchall() :
+            rawsql='DELETE FROM tbl_extvolattr WHERE vid="%s"' % (vid[0])
+            res = conn.execute(rawsql)
+            rawsql='DELETE FROM tbl_extvolattr_osd WHERE vid="%s"' % (vid[0])
+            res = conn.execute(rawsql)
+            rawsql='DELETE FROM tbl_volume WHERE serv_uuid="%s" AND part="%s" AND vid="%s"' % (serv_uuid,part,vid[0])
+            self.Logger.debug("rawsql=%s" % rawsql)
+            res = conn.execute(rawsql)
+
         for v in vols :
             self.Logger.debug("processing v=%s" %v)
             if v == None : 
                 self.Logger.warn("got a None in vols=%s" % vols)
                 continue
-            if v["vid"] in updates :
-                rawsql='UPDATE tbl_volume SET vid="%s", name="%s",  serv_uuid="%s",part="%s",servername="%s",parentID="%s",backupID="%s",cloneID="%s",inUse="%s",needsSalvaged="%s",destroyMe="%s",type="%s",creationDate="%s",accessDate="%s",updateDate="%s",backupDate="%s",copyDate="%s",flags="%s",diskused="%s",maxquota="%s",minquota="%s",status="%s",filecount="%s",dayUse="%s",weekUse="%s",spare2="%s",spare3="%s", udate="%s", cdate="%s" WHERE serv_uuid="%s" AND part="%s" AND vid = "%s"' % (v['vid'], v['name'], serv_uuid, part, v['servername'], v['parentID'],v['backupID'],v['cloneID'], v['inUse'], v['needsSalvaged'], v['destroyMe'], v['type'], v['creationDate'], v['accessDate'], v['updateDate'], v['backupDate'], v['copyDate'], v['flags'], v['diskused'], v['maxquota'], minquota, v['status'], v['filecount'], v['dayUse'], v['weekUse'], spare2, spare3, udate, updates[v["vid"]], serv_uuid, part, v['vid'])
-                self.Logger.debug("Updating: %s" % v['vid'])
-            else : 
-                rawsql='INSERT INTO tbl_volume (vid,name,serv_uuid,part,servername,parentID,backupID,cloneID,inUse,needsSalvaged,destroyMe,type,creationDate,accessDate,updateDate,backupDate,copyDate,flags,diskused,maxquota,minquota,status,filecount,dayUse,weekUse,spare2,spare3, udate, cdate) VALUES ("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s");' % (v['vid'], v['name'],serv_uuid, part, v['servername'], v['parentID'], v['backupID'],v['cloneID'], v['inUse'], v['needsSalvaged'], v['destroyMe'], v['type'], v['creationDate'], v['accessDate'], v['updateDate'], v['backupDate'], v['copyDate'], v['flags'], v['diskused'], v['maxquota'], minquota, v['status'], v['filecount'], v['dayUse'], v['weekUse'], spare2, spare3, udate, cdate)
-                self.Logger.debug("Inserting: %s" % v['vid'])
+            rawsql='INSERT INTO tbl_volume (vid,name,serv_uuid,part,servername,parentID,backupID,cloneID,inUse,needsSalvaged,destroyMe,type,creationDate,accessDate,updateDate,backupDate,copyDate,flags,diskused,maxquota,minquota,status,filecount,dayUse,weekUse,spare2,spare3, udate, cdate) VALUES ("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s");' % (v['vid'], v['name'],serv_uuid, part, v['servername'], v['parentID'], v['backupID'],v['cloneID'], v['inUse'], v['needsSalvaged'], v['destroyMe'], v['type'], v['creationDate'], v['accessDate'], v['updateDate'], v['backupDate'], v['copyDate'], v['flags'], v['diskused'], v['maxquota'], minquota, v['status'], v['filecount'], v['dayUse'], v['weekUse'], spare2, spare3, udate, cdate)
+            self.Logger.debug("rawsql=%s" % rawsql)
             res = conn.execute(rawsql)
-            self.Logger.debug("res=%s" %res)
-        for vid in deletes :
-            self.Logger.debug("DELETING: %s" % vid)
-            try :
-                rawsql='DELETE FROM tbl_volume WHERE serv_uuid="%s" AND part="%s" AND vid="%s"' % (serv_uuid,part,vid)
-                res = conn.execute(rawsql)
-            except sqlalchemy.exc.IntegrityError:  # we are deleting the last entry, scratch extended tables
-                rawsql='DELETE FROM tbl_extvolattr WHERE vid="%s"' % (vid)
-                res = conn.execute(rawsql)
-                rawsql='DELETE FROM tbl_extvolattr_osd WHERE vid="%s"' % (vid)
-                res = conn.execute(rawsql)
-                rawsql='DELETE FROM tbl_volume WHERE serv_uuid="%s" AND part="%s" AND vid="%s"' % (serv_uuid,part,vid)
-                res = conn.execute(rawsql)
-
-            self.Logger.debug("res=%s" %res)
-
+            self.Logger.debug("res=%s" % res)
         rawsql='UNLOCK TABLES'
         res = conn.execute(rawsql)
       
@@ -158,10 +142,12 @@ class OSDFsService (FsService):
             blocks_fs=odict["storageUsage"]["fileserver"]["Data"] 
             blocks_osd_on=odict["storageUsage"]["online"]["Data"] 
             blocks_osd_off=odict["storageUsage"]["archival"]["Data"] 
+            self.Logger.debug("got odict=%s" % odict)
             if v["vid"] in updates :
                 rawsql='UPDATE tbl_extvolattr_osd SET vid="%s", filequota="%s", files_fs="%s", files_osd="%s", blocks_fs="%s", blocks_osd_on="%s", blocks_osd_off="%s", osdPolicy="%s", udate="%s", cdate="%s" WHERE vid = "%s"' % (v['vid'], v['filequota'], files_fs,files_osd,blocks_fs,blocks_osd_on,blocks_osd_off,v['osdPolicy'],udate, updates[v['vid']],v['vid'])
             else :
                 rawsql='INSERT into tbl_extvolattr_osd (vid, filequota, files_fs, files_osd, blocks_fs, blocks_osd_on, blocks_osd_off, osdPolicy, udate, cdate) VALUES("%s", "%s","%s","%s","%s","%s","%s","%s","%s","%s")' % (v['vid'], v['filequota'], files_fs,files_osd,blocks_fs,blocks_osd_on,blocks_osd_off,v['osdPolicy'],udate, cdate)
+            self.Logger.debug("Executing rawsql: %s" % rawsql)
             res = conn.execute(rawsql)
 
         t.commit()

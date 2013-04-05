@@ -39,9 +39,13 @@ class CellService(BaseService):
             self.Logger.debug("getCellInfo: Cell.FileServers=%s" % cell.FileServers)
             cell.numRW = cell.numRO = cell.numBK = cell.numOffline = 0
             numVolDict=self.bulk_getNumVolumes()
+            removedServers=[]
             for f in cell.FileServers :
                 self.Logger.debug("getCellInfo: f=%s" % f)
-                uuid = afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(f)
+                try :
+                    uuid = afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(f)
+                except :
+                    self.Logger.error("Cannot get uuid for %s. Ignore it here. Will be removed on next live-update" % f )
                 if numVolDict.has_key(uuid) :
                     cell.numRW += numVolDict[uuid].get("RW",0)
                     cell.numRO += numVolDict[uuid].get("RO",0)

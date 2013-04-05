@@ -2,6 +2,7 @@ import re,sys,string
 from datetime import datetime
 from afs.exceptions.VolError import VolError
 from afs.util import afsutil
+from afs.model.Volume import Volume
 
 def create(rc,output,outerr,parseParamList,Logger) :
     if rc:
@@ -10,15 +11,16 @@ def create(rc,output,outerr,parseParamList,Logger) :
 
 def getVolume(rc,output,outerr,parseParamList,Logger) : 
     """
-    returns list of Volumes matching name_or_id
+    returns list of Volume-Objects matching name_or_id
     """
        
     if rc:
         raise VolError("Error", outerr)
     name_or_id=parseParamList["args"][0]
     serv=parseParamList["kwargs"]["serv"]
+    Logger.debug("getVolume: parseParamList=%s" % parseParamList)
 
-    Logger.debug("getVolume: got=%s" % output)
+    Logger.debug("getVolume: output=%s" % output)
 
     line_no = 0
     line = output[line_no]
@@ -30,7 +32,7 @@ def getVolume(rc,output,outerr,parseParamList,Logger) :
     
     # first line gives Name, ID, Type, Used and Status 
     find = False    
-    vol  = []
+    VolObjs = []
     instanceNo = -1
     i = 0
     while i < len(output):
@@ -39,66 +41,69 @@ def getVolume(rc,output,outerr,parseParamList,Logger) :
         if splits[0] == "name":
             Logger.debug("Reading line: %s" % output[i])
             instanceNo += 1
-            vol.append({})
+            VolObjs.append(Volume())
             line1 = output[i].split()
             line2 = output[i+1].split()
             line3 = output[i+2].split()
             line4 = output[i+3].split()
+            Logger.debug("comparing: %s == %s or %s == %s" % (line1[1], str(name_or_id) ,line2[1], str(name_or_id)))
+            Logger.debug("comparing: %s == %s or %s == %s or %s == %s" % (line3[1], serv,line3[2],serv,serv, None))
             if ((line1[1] == str(name_or_id) or line2[1] == str(name_or_id) ) and \
                 (line3[1] == serv or line3[2] == serv or serv == None)) :
+                Logger.debug("found match!" )
                 find = True
                 splits = output[i].split()
-                vol[instanceNo]['name']     = splits[1]
+                VolObjs[instanceNo].name   = splits[1]
                 splits = output[i+1].split()
-                vol[instanceNo]['vid']      = int(splits[1])
+                VolObjs[instanceNo].vid      = int(splits[1])
                 splits = output[i+2].split()
-                vol[instanceNo]['serv']     = splits[1]
+                VolObjs[instanceNo].servername   = splits[1]
                 if len(splits) > 2:
-                    vol[instanceNo]['servername']     = splits[2]
+                    VolObjs[instanceNo].servername     = splits[2]
                 splits = output[i+3].split()
-                vol[instanceNo]['part']     = afsutil.canonicalizePartition(splits[1])
+                VolObjs[instanceNo].part     = afsutil.canonicalizePartition(splits[1])
                 splits = output[i+4].split()
-                vol[instanceNo]['status']     = splits[1]
+                VolObjs[instanceNo].status     = splits[1]
                 splits = output[i+5].split()
-                vol[instanceNo]['backupID'] = int(splits[1])
+                VolObjs[instanceNo].backupID = int(splits[1])
                 splits = output[i+6].split()
-                vol[instanceNo]['parentID'] = int(splits[1])
+                VolObjs[instanceNo].parentID = int(splits[1])
                 splits = output[i+7].split()
-                vol[instanceNo]['cloneID']  = int(splits[1])
+                VolObjs[instanceNo].cloneID  = int(splits[1])
                 splits = output[i+8].split()
-                vol[instanceNo]['inUse']    = splits[1]
+                VolObjs[instanceNo].inUse    = splits[1]
                 splits = output[i+9].split()
-                vol[instanceNo]['needsSalvaged'] = splits[1]
+                VolObjs[instanceNo].needsSalvaged = splits[1]
                 splits = output[i+10].split()
-                vol[instanceNo]['destroyMe']     = splits[1]
+                VolObjs[instanceNo].destroyMe     = splits[1]
                 splits = output[i+11].split()
-                vol[instanceNo]['type']          = splits[1]
+                VolObjs[instanceNo].type          = splits[1]
                 splits = output[i+12].split()
-                vol[instanceNo]['creationDate']  =  datetime.fromtimestamp(float(splits[1]))
+                VolObjs[instanceNo].creationDate  =  datetime.fromtimestamp(float(splits[1]))
                 splits = output[i+13].split()
-                vol[instanceNo]['accessDate']  =  datetime.fromtimestamp(float(splits[1]))
+                VolObjs[instanceNo].accessDate  =  datetime.fromtimestamp(float(splits[1]))
                 splits = output[i+14].split()
-                vol[instanceNo]['updateDate']    = datetime.fromtimestamp(float(splits[1]))
+                VolObjs[instanceNo].updateDate    = datetime.fromtimestamp(float(splits[1]))
                 splits = output[i+15].split()
-                vol[instanceNo]['backupDate']     = datetime.fromtimestamp(float(splits[1]))
+                VolObjs[instanceNo].backupDate     = datetime.fromtimestamp(float(splits[1]))
                 splits = output[i+16].split()
-                vol[instanceNo]['copyDate']      = datetime.fromtimestamp(float(splits[1]))
+                VolObjs[instanceNo].copyDate      = datetime.fromtimestamp(float(splits[1]))
                 splits = output[i+17].split()
-                vol[instanceNo]['flags']         = splits[1]
+                VolObjs[instanceNo].flags         = splits[1]
                 splits = output[i+18].split()
-                vol[instanceNo]['diskused']      = int(splits[1])
+                VolObjs[instanceNo].diskused      = int(splits[1])
                 splits = output[i+19].split()
-                vol[instanceNo]['maxquota']      = int(splits[1])
+                VolObjs[instanceNo].maxquota      = int(splits[1])
                 splits = output[i+20].split()
-                vol[instanceNo]['filecount']     = int(splits[1])
+                VolObjs[instanceNo].filecount     = int(splits[1])
                 splits = output[i+21].split()
-                vol[instanceNo]['dayUse']        = int(splits[1])
+                VolObjs[instanceNo].dayUse        = int(splits[1])
                 splits = output[i+22].split()
-                vol[instanceNo]['weekUse']       = int(splits[1])
+                VolObjs[instanceNo].weekUse       = int(splits[1])
                 splits = output[i+23].split()
-                vol[instanceNo]['osdPolicy']        = int(splits[1])
+                VolObjs[instanceNo].osdPolicy        = int(splits[1])
                 splits = output[i+24].split()
-                vol[instanceNo]['filequota']        = int(splits[1])
+                VolObjs[instanceNo].filequota        = int(splits[1])
                 i += 25
             else:
                 Logger.debug("Dismissing because of :")
@@ -111,8 +116,8 @@ def getVolume(rc,output,outerr,parseParamList,Logger) :
             i += 1
     if not find :
         Logger.info("Did not find volume %s" % name_or_id)
-        vol = None
-    return vol
+        VolObjs = None
+    return VolObjs
 
 def traverse(rc,output,outerr,parseParamList,Logger) :
     if rc or "AFSVolTraverse failed" in string.join(outerr) :

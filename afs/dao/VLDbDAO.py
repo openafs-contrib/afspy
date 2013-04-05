@@ -76,7 +76,7 @@ class VLDbDAO(BaseDAO) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.addsite
     
     @execwrapper

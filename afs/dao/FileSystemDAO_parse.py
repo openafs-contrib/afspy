@@ -1,5 +1,8 @@
 from afs.exceptions.FSError import FSError
 
+def copyACL(rc,output,outerr,parseParamList,Logger):
+    return
+
 def makeMountpoint(rc,output,outerr,parseParamList,Logger):
     return
         

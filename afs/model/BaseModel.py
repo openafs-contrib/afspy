@@ -113,7 +113,7 @@ class BaseModel(object):
                 Logger.debug("getDict: attr=%s, value=%s, type(value)=%s" % (attr,value,type(value)))
                 res[attr] = value
             else : # ignore anything else
-                Logger.warn("getDict: ignoring attr %s with type(value)=%s" % (attr,type(value)) )
+                Logger.debug("getDict: ignoring attr %s with type(value)=%s" % (attr,type(value)) )
                 pass
         Logger.debug("getDict: returning : %s" % res)
         return res
