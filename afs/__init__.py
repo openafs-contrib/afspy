@@ -1,5 +1,8 @@
-# Init 
-
+"""
+The module afs provides high- and low-level acess to openAFS.
+It mostly deals with the server-side (volumes).
+A database can be used as transparent cache towards the live system.
+"""
 __all__=["dao","exceptions","factory","model","orm","service","util"]
 import orm
 import dao
