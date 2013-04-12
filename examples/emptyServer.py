@@ -5,6 +5,7 @@ import time,logging
 import argparse, string,datetime,sys
 import afs
 from afs.util.AfsConfig import parseDefaultConfig
+from afs.util.afsutil import parseHumanWriteableSize
 from afs.service.OSDVolService import OSDVolService
 from afs.service.OSDCellService import OSDCellService
 from afs.service.OSDFsService import OSDFsService
@@ -27,6 +28,7 @@ group.add_argument("--ignoreproject", dest="ignoreProjects", action="append", he
 group.add_argument("--onlyproject", dest="onlyProjects", action="append", help="only move volumes of given project.")
 myParser.add_argument("--dryrun",action="store_true", help="Just print out what would be done, but don't do it.")
 myParser.add_argument("--maxnum", default = 0, type=int, help="max number of Volumes to move.")
+myParser.add_argument("--untilfree", default = "0", help="move until # is free on spart.")
 myParser.add_argument("--rwvols", dest="moveRWVols", default=False, action="store_true", help="move rwvols with their accompanying ROs.")
 myParser.add_argument("--solitaryrovols", dest="moveSolitaryROVols", default=False, action="store_true", help="move isolitary rovols.")
 
@@ -37,6 +39,10 @@ PS=ProjectService()
 VS=OSDVolService()
 VD=VolumeDAO()
 VlD=VLDbDAO()
+
+if not afs.defaultConfig.moveRWVols and not afs.defaultConfig.moveSolitaryROVols :
+    sys.stderr.write("If you want to nmake me do anything, specify --rwvols and/or --solitaryrovols\n")
+    sys.exit(1)
 
 if afs.defaultConfig.ignoreRX != None :
     ignoreRX=[]
@@ -80,13 +86,16 @@ if afs.defaultConfig.dsrv != None :
             sys.stderr.write("Partition %s does not exist on server %s\n" % (afs.defaultConfig.dpart, afs.defaultConfig.dsrv))
             sys.exit(2)
         else :
-            dstPart=afs.defaultConfig.dpart  
+            reqDstPart=afs.defaultConfig.dpart  
     else :
-        dstPart=None
+        reqDstPart=None
 else :
     dstFS=None
     if afs.defaultConfig.dpart != None :
         sys.stderr.write("Warning: ignoring given dpart=%s, because no dsrv has been specified.\n" % afs.defaultConfig.dpart)
+
+
+untilFree=parseHumanWriteableSize(afs.defaultConfig.untilfree)
 
 
 VolObj = Volume()
@@ -148,13 +157,15 @@ for srcP in srcParts :
                     continue
             else :
                 dstSrv = dstFS.servernames[0]
-                if dstPart == None :
+                parts=FS.getPartitions(dstSrv)
+                if reqDstPart == None :
                     maxFree=0
-                    parts=FS.getPartitions(dstSrv)
                     for p in parts :
                         if parts[p]["free"] > maxFree :
                             dstP=p
                             maxFree=parts[p]["free"] 
+                else :
+                    dstP=reqDstPart      
             print "moving volume %s from %s %s to %s %s" % (v["name"],srcFS.servernames[0],srcP,dstSrv,dstP)
             if not afs.defaultConfig.dryrun : 
                 VD.move(v["name"],srcFS.servernames[0],srcP,dstSrv,dstP)
@@ -172,8 +183,7 @@ for srcP in srcParts :
                 except : # there is no RO, so just skip this.
                     continue 
             print "Moving accompanying RO to  %s %s" % (dstSrv,dstP)
-            print "Skipping this..."
-            if not afs.defaultConfig.dryrun and 1 == 0 :
+            if not afs.defaultConfig.dryrun  :
                 VlD.addsite(v["name"],dstSrv,dstP)
                 VD.release(v["name"])
                 # only remove accompanying RO from srcSRV if we are sure there is one!
@@ -185,6 +195,11 @@ for srcP in srcParts :
             if movedVolcount > afs.defaultConfig.maxnum and afs.defaultConfig.maxnum > 0 :
                 print "moved %d volumes. Terminating." % afs.defaultConfig.maxnum
                 sys.exit(0)
+            # check if partition is freed enough
+            parts=FS.getPartitions(afs.defaultConfig.ssrv)
+            if parts[srcP]["free"] > untilFree and untilFree > 0 :
+                print "%s Bytes free on spart %s."
+                continue
     if afs.defaultConfig.moveSolitaryROVols :
         for v in solitaryROVols :
             # remove osd-attributes from dict.
@@ -216,6 +231,8 @@ for srcP in srcParts :
                 skip_it = False
             if skip_it  : continue
             if dstFS == None :
+                # get actual stuff from live
+                #Vol=VS.getVolume(v["name"],cached=False)
                 minNestingLevel=-1 # NestingLevel should be "spezifizitaet"
                 for p in PS.getProjectsByVolumeName(RWVolName) :
                     if p.NestingLevel <  minNestingLevel or  minNestingLevel == -1 :
@@ -227,13 +244,28 @@ for srcP in srcParts :
                     continue
             else :
                 dstSrv = dstFS.servernames[0]
-                if dstPart == None :
+                if reqDstPart == None :
+                    dstP=None
                     maxFree=0
                     parts=FS.getPartitions(dstSrv)
                     for p in parts :
                         if parts[p]["free"] > maxFree :
                             dstP=p
                             maxFree=parts[p]["free"]
+              
+                    if dstP == None :
+                        sys.stderr.write("found no appropriate partition on server %s for %s. Skipping\n" % (dstSrv,VolObj.name))
+                        continue
+                else :
+                    # check if requested destination is ok
+                    dstP=reqDstPart 
+                    skip_it= False
+                    for rov in VS.getVolGroup(VolObj.name,cached=False)["RO"] :
+                        if rov.serv_uuid == dstFS.uuid : 
+                            print "Found one existing RO-copy of %s on server %s. Skipping." % (VolObj.name,dstSrv)
+                            skip_it = True 
+                    if skip_it : continue
+                         
             # XXX only move RO, if we don't have enough of them -> auto-healing
             # get RO-Sites of the Volume :
             # the most specific project for this volums counts
@@ -246,4 +278,10 @@ for srcP in srcParts :
             if movedVolcount > afs.defaultConfig.maxnum and afs.defaultConfig.maxnum > 0 :
                 print "moved %d volumes. Terminating." % afs.defaultConfig.maxnum
                 sys.exit(0)
+
+            # check if partition is freed enough
+            parts=FS.getPartitions(afs.defaultConfig.ssrv)
+            if parts[srcP]["free"] > untilFree and untilFree > 0 :
+                print "%s Bytes free on spart %s."
+                continue
 
