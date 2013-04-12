@@ -104,6 +104,9 @@ def getVolume(rc,output,outerr,parseParamList,Logger) :
                 VolObjs[instanceNo].osdPolicy        = int(splits[1])
                 splits = output[i+24].split()
                 VolObjs[instanceNo].filequota        = int(splits[1])
+                # redundant line for RW-id and RO-id 
+                splits = output[i+27].split()
+                VolObjs[instanceNo].cloneID  = int(splits[3])
                 i += 25
             else:
                 Logger.debug("Dismissing because of :")
