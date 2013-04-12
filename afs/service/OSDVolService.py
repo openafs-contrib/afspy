@@ -47,48 +47,49 @@ class OSDVolService (VolService):
                         raise AfsError("getVolGroup: invalid volume type encountered: %s" % v.type)
                 return VolGroupDict 
 
-        vol = self._osdvolDAO.getVolume(id, _cfg=self._CFG, _user=_user)
-        if vol == None : 
+        VolList = self._osdvolDAO.getVolume(id, _cfg=self._CFG, _user=_user)
+        if VolList == None : 
             self.Logger.debug("getVolGroup: returning live: None")
             return None
-        self.Logger.debug("getVolGroup: got vol=%s" % vol)
-        if vol[0]["vid"] == vol[0]["parentID"] : # is RW
-            rwvol = vol
+        self.Logger.debug("getVolGroup: got VolList=%s" % VolList)
+        self.Logger.debug("vid=%s, parentID=%s, cloneID=%si, backupID=%s" % (VolList[0].vid,VolList[0].parentID,VolList[0].cloneID,VolList[0].backupID))
+        if VolList[0].vid == VolList[0].parentID : # given id points to RW
+            rwvol = VolList
             try :
-                rovol = self._osdvolDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
+                rovol = self._osdvolDAO.getVolume(VolList[0].cloneID, _cfg=self._CFG, _user=_user)
             except : 
                 rovol = []
             try :           
-                bkvol = self._osdvolDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+                bkvol = self._osdvolDAO.getVolume(VolList[0].backupID, _cfg=self._CFG, _user=_user)  
             except :
                 bkvol = []
-        elif vol[0]["vid"] == vol[0]["cloneID"] : # is RO
-            rovol = vol
+        elif VolList[0].vid == VolList[0].cloneID : # given id points to RO
+            rovol = VolList
             try :
-                rwvol = self._osdvolDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+                rwvol = self._osdvolDAO.getVolume(VolList[0].parentID, _cfg=self._CFG, _user=_user)
             except :
                 rwvol = []
             try :
-                bkvol = self._osdvolDAO.getVolume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+                bkvol = self._osdvolDAO.getVolume(VolList[0].backupID, _cfg=self._CFG, _user=_user)  
             except :
                 bkvol = []
-        elif vol[0]["vid"] == vol[0]["backupID"] : # is RO
-            bkvol = vol
+        elif VolList[0].vid == VolList[0].backupID : # given id points to BK
+            bkvol = VolList
             try :
-                rwvol = self._osdvolDAO.getVolume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+                rwvol = self._osdvolDAO.getVolume(VolList[0].parentID, _cfg=self._CFG, _user=_user)
             except :
                 rwvol = []
             try :           
-                rovol = self._osdvolDAO.getVolume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
+                rovol = self._osdvolDAO.getVolume(VolList[0].cloneID, _cfg=self._CFG, _user=_user)  
             except :
                 rovol = []
         else : # error
-            raise AfsError("getVolGroup: error parsing intrenal vollist: %s" % vol)
+            raise AfsError("getVolGroup: error parsing internal vollist: %s" % VolList)
 
         self.Logger.debug("getVolGroup: got rwvol=%s,rovol=%s,bkvol=%s" % (rwvol,rovol,bkvol))
-        VolGroupDict["RW"] = self.getVolume(int(rwvol[0]["vid"]),serv=rwvol[0]["servername"],cached=False)
-        VolGroupDict["RO"] = self.getVolume(int(rovol[0]["vid"]),cached=False)
-        #VolGroupDict["BK"] = self.getVolume(bkvol[0]["vid"])   
+        VolGroupDict["RW"] = self.getVolume(int(rwvol[0].vid),serv=rwvol[0].servername,cached=False)
+        VolGroupDict["RO"] = self.getVolume(int(rovol[0].vid),cached=False)
+        #VolGroupDict["BK"] = self.getVolume(bkvol.vid)   
         return VolGroupDict
         
 
