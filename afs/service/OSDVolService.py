@@ -122,6 +122,9 @@ class OSDVolService (VolService):
         osdExtAttr=ExtVolAttr_OSD()
         VolList = self._osdvolDAO.getVolume(name_or_id, serv=serv, _cfg=self._CFG, _user=_user)
         self.Logger.debug("OSDgetVolume: VolList=%s" % VolList)
+        if VolList == None  :
+            return VolList
+ 
         for vol in VolList :
             vol.serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(vol.servername,self._CFG,cached=False)
             StorageUsage=self.getStorageUsage([serv,],vol.vid)
