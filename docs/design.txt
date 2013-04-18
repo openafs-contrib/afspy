@@ -4,6 +4,7 @@ General
 =======
 
  * use lowercase_with_underscore coding style now every where
+  * use pylint with the configuration file given here to validate this.
 
  * the application has to run with sufficient token.
 
