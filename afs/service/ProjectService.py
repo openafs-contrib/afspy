@@ -362,6 +362,7 @@ class ProjectService(BaseService):
         maxFree = -1
         FsName = Part = None
         for serv_uuid, thisPart in sps :
+            self.Logger.debug("serv_uuid =%s, thisPart = %s" % (serv_uuid,thisPart)) 
             thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
             if not thisPart in PartInfos[serv_uuid].keys() :
                 raise AfsError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,thisFSName,thisPart)) 
@@ -375,10 +376,18 @@ class ProjectService(BaseService):
                         haveVolonOtherPart = True
                 if haveVolonOtherPart : continue
             elif VolObj.type == "RO" :
-                # ignore the original SP
-                if (serv_uuid, thisPart) in ROVolLocations : continue
+                # ignore servers having alread one RO
+                skip_it = False
+                for ro_srv_uuid, ro_srv_part in ROVolLocations :
+                    if serv_uuid == ro_srv_uuid :
+                        self.Logger.debug("Have already on RO on this server, ignore it.")
+                        skip_it = True
+                if skip_it :
+                    continue
                 # if we have a single RW on this SP, ignore other partitions 
-                if serv_uuid == RWVolLocation[0] and thisPart != RWVolLocation[1] : continue
+                if serv_uuid == RWVolLocation[0] and thisPart != RWVolLocation[1] : 
+                    self.Logger.debug("this SP is a different Partition on the RW-Server, ignore it.")
+                    continue
             else :
                  raise AfsError("Internal Error. Got invalid volume-type %s" % VolObj.type)
             # substract reservedSpace
@@ -391,6 +400,7 @@ class ProjectService(BaseService):
                 maxFree = PartInfos[serv_uuid][thisPart]
                 FsName = thisFSName
                 Part = thisPart
+                self.Logger.debug("best bet so far: srv %s, part %s, max_free: %s" % (FsName,Part,maxFree) )
         return FsName, Part
 
     def updateVolumeMappings(self) :
