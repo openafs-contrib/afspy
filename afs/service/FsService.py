@@ -50,7 +50,8 @@ class FsService (BaseService):
 
         DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
         if DNSInfo["ipaddrs"][0] in self._CFG.ignoreIPList :
-            return None
+            self.Logger.warn("getFileServer: ignored request for %s" % name_or_ip )
+            return None  
         if uuid != "" :
             if uuid != afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached) :
                 uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached)

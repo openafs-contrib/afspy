@@ -30,7 +30,9 @@ myParser.add_argument("--dryrun",action="store_true", help="Just print out what 
 myParser.add_argument("--maxnum", default = 0, type=int, help="max number of Volumes to move.")
 myParser.add_argument("--untilfree", default = "0", help="move until # is free on spart.")
 myParser.add_argument("--rwvols", dest="moveRWVols", default=False, action="store_true", help="move rwvols with their accompanying ROs.")
-myParser.add_argument("--solitaryrovols", dest="moveSolitaryROVols", default=False, action="store_true", help="move isolitary rovols.")
+myParser.add_argument("--solitaryrovols", dest="moveSolitaryROVols", default=False, action="store_true", help="move solitary rovols.")
+myParser.add_argument("--minsize", dest="minVolumeUsage", default="0", help="only move volumes with minimalsize of")
+myParser.add_argument("--osdvolumes", dest="moveOSDVOlumes", default=False, action="store_true", help="also move OSD-Volumes")
 
 
 parseDefaultConfig(myParser)
@@ -94,14 +96,18 @@ else :
     if afs.defaultConfig.dpart != None :
         sys.stderr.write("Warning: ignoring given dpart=%s, because no dsrv has been specified.\n" % afs.defaultConfig.dpart)
 
-
-untilFree=parseHumanWriteableSize(afs.defaultConfig.untilfree)
-
-
+# XXX we should handle everything internally with bytes
+untilFree=parseHumanWriteableSize(afs.defaultConfig.untilfree)/1024
+minUsage=parseHumanWriteableSize(afs.defaultConfig.minVolumeUsage)/1024
 VolObj = Volume()
 movedVolcount=0
 for srcP in srcParts :
     print "Processing Partition %s...." % srcP
+    # check if partition is freed enough
+    parts=FS.getPartitions(afs.defaultConfig.ssrv)
+    if parts[srcP]["free"] > untilFree and untilFree > 0 :
+        print "already %s Bytes free on spart %s." % (afs.util.afsutil.humanReadableSize(parts[srcP]["free"]/1024),srcP )
+        continue
     # get list of volumes to move
     srcVolList=FS.getVolList(srcFS.servernames[0],srcP,cached=False)
     # get RW Volumes :
@@ -120,6 +126,14 @@ for srcP in srcParts :
                 if isSolitary : solitaryROVols.append(v)
     if afs.defaultConfig.moveRWVols :
         for v in RWVols :
+            # check for moving osd-volumes
+            if v.get("osdPolicy",0) != 0 :
+                if not afs.defaultConfig.moveOSDVOlumes : continue
+            # check for minSize
+            if minUsage != -1 :
+                if int(v.get("diskused")) < minUsage : continue
+           
+            # check for name with given regex, these checks are mutually exclusive.
             skip_it=False
             if afs.defaultConfig.ignoreRX != None :
                 skip_it=False
@@ -139,8 +153,9 @@ for srcP in srcParts :
                 volProjects=PS.getProjectsByVolumeName(v["name"])
                 for prj in volProjects :
                     if prj.name in afs.defaultConfig.ignoreProjects : skip_it = True
+            
             if skip_it  : continue
-            # remove osd-attributes from dict.
+            # remove osd-attributes from dict, create Obj
             v.pop("filequota")
             v.pop("osdPolicy")
             v["serv_uuid"]=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(v["servername"])
@@ -198,15 +213,17 @@ for srcP in srcParts :
             # check if partition is freed enough
             parts=FS.getPartitions(afs.defaultConfig.ssrv)
             if parts[srcP]["free"] > untilFree and untilFree > 0 :
-                print "%s Bytes free on spart %s."
+                print "%s bytes free on spart %s." % (afs.util.afsutil.humanReadableSize(parts[srcP]["free"]/1024),srcP )
                 continue
     if afs.defaultConfig.moveSolitaryROVols :
         for v in solitaryROVols :
-            # remove osd-attributes from dict.
-            v.pop("filequota")
-            v.pop("osdPolicy")
-            v["serv_uuid"]=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(v["servername"])
-            VolObj.setByDict(v)
+            # check for moving osd-volumes
+            if v.get("osdPolicy",0) != 0 :
+                if not afs.defaultConfig.moveOSDVOlumes : continue
+            # check for minSize
+            if minUsage != -1 :
+                if int(v.get("diskused")) < minUsage : continue
+           
             # get RWVolName
             RWVolName=v['name'][:-len(".readonly")]
             if afs.defaultConfig.ignoreRX != None :
@@ -230,6 +247,13 @@ for srcP in srcParts :
             else :
                 skip_it = False
             if skip_it  : continue
+
+            # remove osd-attributes from dict, create object
+            v.pop("filequota")
+            v.pop("osdPolicy")
+            v["serv_uuid"]=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(v["servername"])
+            VolObj.setByDict(v)
+
             if dstFS == None :
                 # get actual stuff from live
                 #Vol=VS.getVolume(v["name"],cached=False)
@@ -282,6 +306,6 @@ for srcP in srcParts :
             # check if partition is freed enough
             parts=FS.getPartitions(afs.defaultConfig.ssrv)
             if parts[srcP]["free"] > untilFree and untilFree > 0 :
-                print "%s Bytes free on spart %s."
+                print "%s bytes free on spart %s." % (afs.util.afsutil.humanReadableSize(parts[srcP]["free"]/1024),srcP )
                 continue
 

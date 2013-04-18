@@ -44,6 +44,7 @@ class DBManager :
             self.Logger.warn("executeRaw: statement=%s failed." % (rawsql))
             t.rollback()
             res=None
+        t.close()
         return res
         
 
@@ -77,12 +78,14 @@ class DBManager :
         use hand-craftet query to search for a single element
         in a json-encoded list.
         """
+      
         if type(Elem) == StringType :
             RegEx="\[.*\"{0}\".*\]".format(Elem)
         else :
             RegEx="\[({0}|.*, {0}|{0},.*|.*, {0},.*)\]".format(Elem)
         
         emptyObj=Class()
+        self.Logger.debug("getFromCacheByListElement: using regexp=%s" % RegEx)
         cachedObjList=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
         if len(cachedObjList) == 0 :
             self.Logger.debug("getFromCacheByListElement: returning None")

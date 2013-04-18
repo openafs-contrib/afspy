@@ -175,18 +175,30 @@ class ProjectService(BaseService):
                     self.DBManager.setIntoCache(ProjectSpread, thisPrjSPObj, vol_type=vol_type, project_id=thisPrjSPObj.project_id, serv_uuid=thisPrjSPObj.serv_uuid, part=thisPrjSPObj.part)
         return ResDict
 
-    def getVolumeIDs(self,prjname) :
+    def getVolumeIDs(self,prjname,servers=None) :
         """
-        return list of Volume IDs part of this project
+        return list of Volume IDs part of this project.
+        servers is an optional list of server_uuids to be used. 
         """
+        self.Logger.debug("Entering with prjname=%s and servers=%s" % (prjname,servers))
         thisProject=self.getProjectByName(prjname)
-        if not thisProject : return None
+        if not thisProject : 
+            self.Logger.debug("Invalid project-name %s given.", prjname)
+            return None
         list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id,mustBeUnique=False)
         if list == None :
+            self.Logger.debug("Results[10] from DB: %s" % list )
             return []
+        self.Logger.debug("Results[10] from DB: %s" % list[10] )
         VolIDList=[]
         for l in list :
-            VolIDList.append(l.vid) 
+            if servers == None :
+                VolIDList.append(l.vid) 
+            else  :
+                for v in self._VS.getVolume(l.vid,cached=True) :
+                    self.Logger.debug("Comparing '%s' to '%s'" % (v.serv_uuid,servers))
+                    if v.serv_uuid in servers :
+                        VolIDList.append(l.vid)
         return VolIDList
 
     def getStorageUsage(self,prjname) :
@@ -320,8 +332,12 @@ class ProjectService(BaseService):
                 raise AfsError("RW-Volume %s does not exist. Cannot create non-RW volumes for that name." % VolObj.name)
 
         ROVolLocations=[]
+        if VolObj.name[-9:] != ".readonly" :
+            use_vol_name = "%s.readonly" % VolObj.name
+        else :
+            use_vol_name = VolObj.name
         try :
-            existingROVols=self._VS.getVolume("%s.readonly" % VolObj.name, cached=False)
+            existingROVols=self._VS.getVolume(use_vol_name, cached=False)
         except :
             existingROVols=[]
 
