@@ -146,9 +146,11 @@ class LookupUtil :
             uuid=_vlDAO.getFsUUID(DNSInfo["names"][0],_user=_user,_cfg=self._CFG)
         except :
             return None
-        # store it in localCache 
-        self.localCache["FSUUIDs"][name_or_ip] = uuid                  
-        self.localCache["FSUUIDs"][DNSInfo["names"][0]] = uuid                  
+        if uuid != None :
+            # store it in localCache, if we got sth useful 
+            self.localCache["FSUUIDs"][name_or_ip] = uuid                  
+            self.localCache["FSUUIDs"][DNSInfo["names"][0]] = uuid                  
+            self.Logger.debug("returning uuid=%s" % uuid)
         return uuid
     
     def getHostnameByFSUUID(self,uuid,_user="",cached=True) :
