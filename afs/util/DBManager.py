@@ -59,8 +59,8 @@ class DBManager :
         self.Logger.debug("getFromCache: got fromDB: %s" % (cachedObjList))
         for r in cachedObjList :
             r.updateAppRepr()
-            # the ignAttrList is not stored in DB, thus add it here explictly.
-            r.ignAttrList=emptyObj.ignAttrList
+            # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
+            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         if mustBeUnique :
@@ -92,8 +92,8 @@ class DBManager :
             return None
         for r in cachedObjList :
             r.updateAppRepr()
-            # the ignAttrList is not stored in DB, thus add it here explictly.
-            r.ignAttrList=emptyObj.ignAttrList
+            # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
+            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("getFromCacheByListElement: returning: %s" % (cachedObjList))
@@ -122,8 +122,8 @@ class DBManager :
             return None
         for r in cachedObjList :
             r.updateAppRepr()
-            # the ignAttrList is not stored in DB, thus add it here explictly.
-            r.ignAttrList=emptyObj.ignAttrList
+            # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
+            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("getFromCacheByDictKey: returning: %s" % (cachedObjList))
@@ -152,8 +152,8 @@ class DBManager :
             return None
         for r in cachedObjList :
             r.updateAppRepr()
-            # the ignAttrList is not stored in DB, thus add it here explictly.
-            r.ignAttrList=emptyObj.ignAttrList
+            # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
+            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("getFromCacheByDictValue : returning: %s" % (cachedObjList))
@@ -182,8 +182,8 @@ class DBManager :
             return None
         for r in cachedObjList :
             r.updateAppRepr()
-            # the ignAttrList is not stored in DB, thus add it here explictly.
-            r.ignAttrList=emptyObj.ignAttrList
+            # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
+            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
         self.Logger.debug("getFromCacheByDictKeyValuePair: returning: %s" % (cachedObjList))
         if mustBeUnique :
             if len(cachedObjList) > 1 :

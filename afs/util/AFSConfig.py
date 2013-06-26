@@ -12,7 +12,7 @@ import types
 import afs
 from afs.exceptions.AfsError import AfsError
 import afs.util.LookupUtil
-import afs.orm.DbMapper
+import afs.orm.DBMapper
 
 def parse_configs(my_parser=None):
     """
@@ -136,10 +136,10 @@ def parse_configs(my_parser=None):
     # setup DB_CACHE
     if afs.CONFIG.DB_CACHE :
         import sqlalchemy
-        afs.CONFIG.DB_ENGINE = afs.orm.DbMapper.createDbEngine(\
+        afs.CONFIG.DB_ENGINE = afs.orm.DBMapper.create_db_engine(\
             afs.CONFIG)
-        afs.orm.DbMapper.setupDbMappers(afs.CONFIG)
-        afs.DbSessionFactory = sqlalchemy.orm.sessionmaker(\
+        afs.orm.DBMapper.setup_db_mappings(afs.CONFIG)
+        afs.DBSessionFactory = sqlalchemy.orm.sessionmaker(\
             bind = afs.CONFIG.DB_ENGINE)
 
     # setup binary-pathes

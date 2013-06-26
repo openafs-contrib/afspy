@@ -1,72 +1,86 @@
-#!/usr/bin/python
+"""
+collection of small functions use everywhere
+"""
+import logging
+import re
+import types
 
-import re,types, socket, logging,string
-import afs
-
-
-useRXOSD=True
+USE_RXOSD = True
 # log-level is set in AfsConfig
-Logger=logging.getLogger("afs.util")
-SizeUnit=['K', 'M','G','T','P']
-PartRX=re.compile("/?(?:vicep)?([a-z][a-z]?)")
-HumanSizeRX=re.compile("(\d+)([KMGTP]?)")
+LOGGER = logging.getLogger("afs.util")
+BASE1024_UNITS = ['', 'K', 'M', 'G', 'T', 'P']
+PARTITION_RX = re.compile("/?(?:vicep)?([a-z][a-z]?)")
+BASE1024_UNITS_RX = re.compile("(\d+)([KMGTP]?)")
 
-
-class utilError(Exception):
-    def __init__(self, message, Errors=[]):
+class UtilError(Exception):
+    """
+    custom exception for utility functions
+    """
+    def __init__(self, message, Errors = None):
         Exception.__init__(self, message)
         # Now for your custom code...
-        self.Errors = Errors
-  
-    def __str__(self):
-      #FIXME parse build a complete message with stack
-      return repr(self.message)
+        self.errors = Errors
 
-def humanReadableSize(Size) :
-    for s in range(len(SizeUnit)) :
-        if float(Size) / (1024**(s+1)) < 1 : break
-    return "%3.2f %s" % (float(Size) / (1024**s),SizeUnit[s])  
+def convert_to_base1024_unit_number(number) :
+    """
+    take a number and translate it to a stirng using base 1024 units 
+    """
+    best_unit = 0 
+    for unit in range(len(BASE1024_UNITS)) :
+        if float(number) / (1024 ** (unit + 1)) < 1 : 
+            best_unit = unit 
+            break
+    return "%3.2f %s" % (float(number) / (1024 ** best_unit), \
+         BASE1024_UNITS[best_unit])
 
-def parseHumanWriteableSize(Size) :
+def parse_number_with_base1024_unit(number_unit) :
     """
     return absolute Value of sth like 100M
     base 1024 used.
     """ 
-    MObj=HumanSizeRX.match(Size)
-    if not MObj:
-	raise utilError("Cannot parse value %s. Should be an integer with an optional size-unit of [K,M,G,T,P]")  
-    number,su=MObj.groups()
-    number=int(number)
-    multi=1
-    if len(su) != 0 : 
-        for s in range(len(SizeUnit)) :
-            if su == SizeUnit[s] :
-                multi = 1024**(s+1)
+    match_object = BASE1024_UNITS_RX.match(number_unit)
+    if not match_object:
+        raise UtilError("Cannot parse value %s. Should be an integer with " +
+            "an optional unit of %s" % BASE1024_UNITS)  
+    number, unit = match_object.groups()
+    number = int(number)
+    multiplicator = 1
+    if len(unit) != 0 : 
+        for _unit in range(len(BASE1024_UNITS)) :
+            if unit == BASE1024_UNITS[_unit] :
+                multiplicator = 1024**(_unit)
                 break
+    return multiplicator * number            
 
-    return multi*number            
-
-
-def canonicalizePartition(part) :
+def canonicalize_partition(part) :
+    """
+    reduce given representation of a partition
+    like /vicepa or vicepbb to the one-or-two-letter 
+    representation "a" or "bb"
+    """
     if type(part) == types.StringType :
-       if part.isdigit() :
-           part=int(part)
+        if part.isdigit() :
+            part = int(part)
     if type(part) == types.IntType : 
-       firstLetter=part/26
-       secondLetter=part%26
-       partition=""
-       if firstLetter != 0 :
-           partition += chr(ord("a")+firstLetter) 
-       partition += chr(ord("a")+secondLetter) 
+        first_letter  = part / 26
+        second_letter = part % 26
+        partition = ""
+        if first_letter != 0 :
+            partition += chr(ord("a") + first_letter) 
+        partition += chr(ord("a") + second_letter) 
     else :
-       MObj=PartRX.match(part)
-       if not MObj :
-           raise utilError("Cannot canonicalize \"%s\"" % part)
-       partition=MObj.groups()[0] 
+        match_object = PARTITION_RX.match(part)
+        if not match_object :
+            raise UtilError("Cannot canonicalize \"%s\"" % part)
+        partition = match_object.groups()[0] 
     return partition
  
  
-def canonicalizeVolume(volname):
+def canonicalize_volume(volname):
+    """
+    remove well-known suffices .readonly and .backup
+    from a volume-name, if presetn 
+    """
     
     if volname.endswith(".readonly"):
         return volname[0:len(volname)-9]
@@ -74,21 +88,17 @@ def canonicalizeVolume(volname):
     if volname.endswith(".backup"):
         return volname[0:len(volname)-6]
 
-def isName(ambiguous) :
+def is_name(ambiguous) :
     """
     checks if name_or_ip or name_or_id is acutally the name or an numerical ID
     """
     # first, convert to string 
     ambiguous = "%s" % ambiguous    
-    ambiguous=ambiguous.strip()
+    ambiguous = ambiguous.strip()
     if len(ambiguous) == 0 :
-        raise utilError("isName called with empty string!")
-    Logger.debug("isName: got '%s'" % ambiguous)
-    if ambiguous[0] in string.digits : 
+        raise UtilError("isName called with empty string!")
+    LOGGER.debug("isName: got '%s'" % ambiguous)
+    if ambiguous[0].isdigit() : 
         return False
     else :
         return True
-
-if __name__ == "__main__"  :
-   print "Some basic methods used for afspy"
-   print humanReadableSize(32768*29+2342)
