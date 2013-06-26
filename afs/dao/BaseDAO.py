@@ -1,166 +1,178 @@
-import logging,inspect
-import string,os,sys
-import subprocess,types
-import tempfile
+"""
+base class for all DAOs :
+initializes logging.
+declares decorators.
+deals with actual execution of commands
+"""
 import afs
-from afs.exceptions.AfsError import AfsError
+import inspect
+import logging
+import subprocess
 
+class ExecError(BaseException):
+    """custom exception for executing shell commands."""
 
-class ExecError( BaseException):
-    def __init__(self, message, stack=[]):
+    def __init__(self, message, stack = None):
         BaseException.__init__(self, message)
         self.message   = message
-        self.stack = stack
+        if stack != None :
+            self.stack = stack
+        else :
+            self.stack = []
 
     def __str__(self):
-      #FIXME parse build a complete message with stack
-      return repr(self.message)
-       
+        return repr(self.message)
 
-def execwrapper(fn) :
+
+def exec_wrapper(func) :
     """
     This decorator is intended for all DAO-methods.
-    The method itself is just compiling the CMDList to execute,
-    and returns the appropriate parsing function and all Info this
+    The DAO-method itself is just compiling the CMDList to execute,
+    and returns the appropriate parsing function and all info this
     parsing function needs.
-    Hooks for Auth checking are in place.
+    Hooks for Auth checking are in place, but unused.
+    Warning: if the interpreter complains
+    got multiple values for keyword argument _cfg, then you're
+    passing a positional argument, which should not be there.
     """
-    def wrapped(self,*args,**kwargs):
+
+    def wrapped(self, *args, **kwargs):
+        """actual wrapper code"""
+
+        self.logger.debug("%s: entering with  self=%s, args=%s, kwargs=%s" \
+            % (self, func.__name__, args, kwargs))
+
         # kwarg  _user is not passed to DAO
         if not kwargs.has_key("_user") :
-            _user=""
+            _user = ""
         else :
-            _user=kwargs["_user"]
+            _user = kwargs["_user"]
             kwargs.pop("_user")
+
         # kwarg _cfg must be passed to DAO
         if not kwargs.has_key("_cfg") :
-            kwargs["_cfg"]=afs.defaultConfig
-        else : 
-            _cfg=kwargs["_cfg"]
-        self.Logger.debug("should check auth of user=%s for method %s in class %s" % (_user,fn.__name__,self.__class__.__name__))
+            self.logger.debug("injecting default config.")
+            kwargs["_cfg"] = afs.CONFIG
+
+        # here we should check the authorisation
+        self.logger.debug(\
+            "should check auth of user=%s for method %s in class %s"\
+             % (_user, func.__name__, self.__class__.__name__))
+
         # get cmdlist and parsefunction from method
-        self.Logger.debug("%s: entering with  self=%s, args=%s, kwargs=%s" % (self,fn.__name__,args,kwargs))
-        # ParseFct is parsing the output of the executed function
-        # ParseInfo are any info the ParseFct requires beside rc, outout and outerr 
-        parseParamList={"args" : args, "kwargs" : kwargs } 
-        argspec=inspect.getargspec(fn)
+        # parse_fct is parsing the output of the executed function
+        # ParseInfo are any info the parse_fct requires beside ret,
+        # outout and outerr
+        parse_parameterlist = {"args" : args, "kwargs" : kwargs }
+        argspec = inspect.getargspec(func)
+
+        self.logger.debug("argspec=%s" % (argspec,))
+
         count = 0
-        self.Logger.debug("argspec=%s" % (argspec,))
-        self.Logger.debug("args=%s" % (args,))
-        self.Logger.debug("kwargs=%s" % (kwargs,))
-        if argspec[3] != None : 
-            for k in argspec[0][-len(argspec[3]):] :
-                v = argspec[3][count]
+        if argspec[3] != None :
+            for key in argspec[0][-len(argspec[3]):] :
+                self.logger.debug("checking argspec key=%s" % key)
+                value = argspec[3][count]
+                self.logger.debug("value=%s" % value)
                 count += 1
-                if not parseParamList["kwargs"].has_key(k) :
-                    parseParamList["kwargs"][k]=v
-        CmdList,ParseFct=fn(self, *args, **kwargs) 
-        if self.Implementation == "childprocs" :
-            rc,output,outerr=self.execute(CmdList)
-        elif self.Implementation == "detached" :
-            jobinfo=self.execute_detached(CmdList)
-            self.Logger.debug("should put jobinfo %s into jobmanager" % jobinfo)
-        self.Logger.debug("calling ParseFct %s with rc=%s, output=%s,outerr=%s,parseParamList=%s" % (ParseFct.__name__,rc,output[:10],outerr[:10],parseParamList))
-        result=ParseFct(rc,output,outerr,parseParamList,self.Logger)
-        self.Logger.debug("%s: returning %s..." % (fn.__name__,result))
+                if not parse_parameterlist["kwargs"].has_key(key) :
+                    parse_parameterlist["kwargs"][key] = value
+
+        self.logger.debug("args=%s" % (args,))
+        self.logger.debug("kwargs=%s" % (kwargs,))
+        self.logger.debug("parse_parameterlist=%s" % (parse_parameterlist,))
+
+        cmd_list, parse_fct = func(self, *args, **kwargs)
+
+        # do really execute the call
+        if self.implementation == "childprocs" :
+            ret, output, outerr = self.execute(cmd_list)
+        elif self.implementation == "detached" :
+            job_handle = self.execute_detached(cmd_list)
+            self.logger.debug("should put job_handle %s into job_manager" \
+                % job_handle)
+
+        # parse the result
+        self.logger.debug(\
+        "calling parse_fct %s with %s, %s, %s, %s" \
+            % (parse_fct.__name__, ret, output[:10],\
+               outerr[:10], parse_parameterlist))
+        result = parse_fct(ret, output, outerr, \
+            parse_parameterlist, self.logger)
+        self.logger.debug("%s: returning %s..." % (func.__name__, result))
         return result
+
     return wrapped
- 
+
 class BaseDAO(object) :
-    
     """
     The mother of all DAOs
     """
-    
-    def __init__(self, Implementation="childprocs" ) :
-        # LOG INIT
-        classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
-        numericLogLevel = getattr(logging,classLogLevel, 0)
-        self.Logger=logging.getLogger("afs.dao.%s" % self.__class__.__name__)   
-        self.Logger.setLevel(numericLogLevel)
-        self.Logger.debug("initializing %s-Object" % (self.__class__.__name__))
-        self.Implementation=Implementation
-        return
-        
-    def execute(self,CmdList,  env={}, Input="", stdout=None, stderr=None) :
-        self.Logger.info("executing command: '%s'" % string.join(CmdList, " "))
-        if stdout == None :
-            stdout=subprocess.PIPE
-        if stderr == None :
-            stderr = subprocess.PIPE
 
-        if Input == "" :
-            pipo=subprocess.Popen(CmdList,stdout=stdout,stderr=stderr, env=env)
-            _output,_outerr=pipo.communicate()
+    def __init__(self, implementation="childprocs") :
+        """initializes logger and sets implementation"""
+
+        class_loglevel = getattr(afs.CONFIG,"loglevel_%s" \
+            % self.__class__.__name__, "").upper()
+        numeric_loglevel = getattr(logging, class_loglevel, 0)
+        self.logger = logging.getLogger("afs.dao.%s" % self.__class__.__name__)
+        self.logger.setLevel(numeric_loglevel)
+        self.logger.debug("initializing %s-Object" % (self.__class__.__name__))
+        self.implementation = implementation
+        return
+
+    def execute(self, cmd_list, stdin = "") :
+        """executes shell command as subprocess"""
+
+        self.logger.info("executing command: '%s'" % ' '.join(cmd_list))
+
+        if stdin == "" :
+            pipo = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, \
+                 stderr = subprocess.PIPE)
+            _output, _outerr = pipo.communicate()
         else :
-            pipo=subprocess.Popen(CmdList,stdin=subprocess.PIPE, stdout=stdout,stderr=stderr, env=env)
-            _output,_outerr=pipo.communicate(Input)
+            pipo = subprocess.Popen(cmd_list, stdin = subprocess.PIPE, \
+                stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            _output, _outerr = pipo.communicate(stdin)
+
         if pipo.returncode != 0 :
             if pipo.returncode == 13 : # permission denied
                 return 13, "","Permission denied"
             for line in _output + _outerr :
                 if "not authorized" in line.lower() :
                     return 13, "","Permission denied"
-            raise ExecError("cmd: \"%s\" failed with rc=%d and stderr=%s\n" % (string.join(CmdList),pipo.returncode, _outerr))
-    
+            raise ExecError("cmd: \"%s\" failed with ret=%d and stderr=%s\n" % \
+                (' '.join(cmd_list), pipo.returncode, _outerr))
+
         # get rid of whitespace
-        _output=map(self.safeStrip,_output.split("\n"))
-        _outerr=map(self.safeStrip,_outerr.split("\n"))
-    
-        output=[]
-        for line in _output :
-            if line == "" : continue
+        output = []
+        for line in _output.split("\n") :
+            line = line.strip()
+            if line == "" :
+                continue
             output.append(line)
-    
-        outerr=[]
-        for line in _outerr :
+
+        outerr = []
+        for line in _outerr.split("\n") :
+            line = line.strip()
             if line == "" : continue
             outerr.append(line)
-        # XXX magic constant here
-        self.Logger.debug("returning (truncateed to 10 lines in output, outerr) %s" % ( (pipo.returncode, output[:10], outerr[:10]), ))
-        return pipo.returncode,output,outerr
 
-    def execute_detached(self,CmdList, SpoolDir, env={}, Input="") :
-        self.Logger.info("executing detached command: '%s'" % string.join(CmdList, " "))
-        outFile=tempfile.NamedTemporaryFile(prefix=SpoolDir, delete=False)
-        errFile=file(outFile.name, "w+")
-        self.Logger.info("detaching and redirecting to file '%s' and '%s.err'" % (outFile.name, errFile.name) )
-        
-        ## partly from {{{ http://code.activestate.com/recipes/66012/ (r1)
-        ## and stuff from comments.
-        ## the second fork is done in execute() itself.
-        # do the UNIX double-fork magic, see Stevens' "Advanced 
-        # Programming in the UNIX Environment" for details (ISBN 0201563177)
-        try: 
-            pid = os.fork() 
-            if pid > 0:
-                # exit first parent,close Files here
-                outFile.close()
-                errFile.close()
-                sys.exit(0) 
-        except OSError, e: 
-            errFile.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror) )
-            sys.exit(1)
+        self.logger.debug(\
+             "returning (ret, output[:10], outerr[:10] to 10 lines ) %s" %\
+             ((pipo.returncode, output[:10], outerr[:10]), ))
 
-        # decouple from parent environment
-        os.chdir(SpoolDir) 
-        os.setsid() 
-        os.umask(127) 
-        
-        # flush and redirect i/o-streams
-        dev_null = file('/dev/null', 'r')
-        sys.stdout.flush()
-        sys.stderr.flush()
-        os.dup2(outFile.fileno(), sys.stdout.fileno())
-        os.dup2(errFile.fileno(), sys.stderr.fileno())
-        os.dup2(dev_null.fileno(), sys.stdin.fileno())
-        ## end of http://code.activestate.com/recipes/66012/ }}}
-   
-        rc, output, outerr=self.execute(CmdList, env=env, Input=Input, stdout=outFile, stderr=errFile)
-        self.Logger.debug("returning %s" % ( (rc, output, outerr), ))
-        return rc,output,outerr
+        return pipo.returncode, output, outerr
 
-    def safeStrip(self,Thing) :
-        if type(Thing) == types.StringType :
-            return Thing.strip()
-        return  
+    def execute_detached(self, job_sissy, cmd_list, stdin = "") :
+        """
+        executes shell command using pyJobSissy
+        to be implemented.
+        returns handle for getting information about the job
+        """
+
+        self.logger.info(\
+        "sending command: '%s' with and sdtin=%s to job_sissy at %s" % \
+        (' '.join(cmd_list), stdin, job_sissy))
+        job_handle = None
+        return job_handle

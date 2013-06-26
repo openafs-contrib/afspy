@@ -1,6 +1,8 @@
-from afs.exceptions.AfsError import AfsError
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import DNSconfDAO_parse as PM
+"""
+get configuration about AFS-cell from DNS
+"""
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import afs.dao.ParseDNSconfDAO as PM
 
 class DNSconfDAO(BaseDAO):
     """
@@ -11,10 +13,10 @@ class DNSconfDAO(BaseDAO):
         BaseDAO.__init__(self)
         return
 
-    @execwrapper
-    def getDBServList(self, _cfg=None):
+    @exec_wrapper
+    def get_db_serverlist(self, _cfg = None) :
         """
         Returns the dbservers from AFSDB records
         """
-        CmdList=[_cfg.binaries["dig"], "AFSDB", _cfg.CELL_NAME]
-        return CmdList,PM.getDBServList
+        cmd_list = [_cfg.binaries["dig"], "AFSDB", _cfg.cell]
+        return cmd_list, PM.get_db_serverlist

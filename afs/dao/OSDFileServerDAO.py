@@ -1,7 +1,7 @@
-from afs.dao.BaseDAO import execwrapper
+from afs.dao.BaseDAO import exec_wrapper
 from afs.dao.FileServerDAO import FileServerDAO
 from afs.util import afsutil
-import OSDFileServerDAO_parse as PM
+import ParseOSDFileServerDAO as PM
 
 class OSDFileServerDAO(FileServerDAO) :
     """
@@ -12,7 +12,7 @@ class OSDFileServerDAO(FileServerDAO) :
         FileServerDAO.__init__(self)
         return
 
-    @execwrapper   
+    @exec_wrapper   
     def getVolList(self, serv, part, _cfg=None) :
         """
         List Volume entry via vos listvol from vol-server. 
@@ -24,7 +24,7 @@ class OSDFileServerDAO(FileServerDAO) :
         return CmdList,PM.getVolList   
         
         
-    @execwrapper   
+    @exec_wrapper   
     def getIdVolList(self, server, part, _cfg=None):
         """
         return  Volumes in partition

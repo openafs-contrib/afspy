@@ -1,7 +1,7 @@
 from afs.exceptions.UbikError import UbikError
-from afs.dao.BaseDAO import BaseDAO,execwrapper
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
 from afs.util import afsutil
-import UbikPeerDAO_parse as PM
+import ParseUbikPeerDAO as PM
 
 
 class UbikPeerDAO(BaseDAO):
@@ -14,7 +14,7 @@ class UbikPeerDAO(BaseDAO):
         BaseDAO.__init__(self)
         return
     
-    @execwrapper 
+    @exec_wrapper 
     def getLongInfo(self,name_or_ip,port,_cfg=None) : 
         """
         return dict containing all info from a udebug -long
@@ -22,7 +22,7 @@ class UbikPeerDAO(BaseDAO):
         CmdList=[_cfg.binaries["udebug"],"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
         return CmdList,PM.parse_getLongInfo
  
-    @execwrapper 
+    @exec_wrapper 
     def getShortInfo(self,name_or_ip,port,_cfg=None) :
         """
         return dict containing all info from a simple udebug

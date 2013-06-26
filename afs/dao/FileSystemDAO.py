@@ -1,6 +1,6 @@
 import types,string
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import FileSystemDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseFileSystemDAO as PM
 
 class FileSystemDAO(BaseDAO) :
     """
@@ -14,7 +14,7 @@ class FileSystemDAO(BaseDAO) :
         return
 
 
-    @execwrapper
+    @exec_wrapper
     def copyACL(self, fromdir, todir, clear=False,  _cfg=None) :
         CmdList=[_cfg.binaries["fs"],  "copyacl" , "-fromdir" , "%s" % fromdir, "-todir", "%s" % todir ]
         if clear :
@@ -22,14 +22,14 @@ class FileSystemDAO(BaseDAO) :
         return CmdList,PM.copyACL
 
 
-    @execwrapper
+    @exec_wrapper
     def makeMountpoint(self, path, target, toRW=False, _cfg=None) :
         CmdList=[_cfg.binaries["fs"],  "mkmount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.CELL_NAME ]
         if toRW :
             CmdList.append("-rw")
         return CmdList,PM.makeMountpoint
         
-    @execwrapper
+    @exec_wrapper
     def removeMountpoint(self, pathlist, _cfg=None) :
         if type(pathlist) == types.ListType :
             pathes = string.join(pathlist)
@@ -38,7 +38,7 @@ class FileSystemDAO(BaseDAO) :
         CmdList=[_cfg.binaries["fs"],  "rmmount" , "-dir" , "%s" % pathes ]
         return CmdList,PM.removeMountpoint
         
-    @execwrapper
+    @exec_wrapper
     def listMountpoint(self, pathlist, _cfg=None):
         """
         Return target volume of a mount point
@@ -50,7 +50,7 @@ class FileSystemDAO(BaseDAO) :
         CmdList=[_cfg.binaries["fs"],  "lsmount" , "-dir" , "%s" % pathes ]
         return CmdList,PM.listMountpoint
         
-    @execwrapper
+    @exec_wrapper
     def getCellByPath(self, path, _cfg=None):
         """
         Returns the cell to which a file or directory belongs
@@ -58,7 +58,7 @@ class FileSystemDAO(BaseDAO) :
         CmdList=[_cfg.binaries["fs"],  "whichcell" , "-path" , "%s" % path ]
         return CmdList,PM.getCellByPath
         
-    @execwrapper
+    @exec_wrapper
     def setQuota(self, path, quota, _cfg=None):
         """
         Set a volume-quota by path
@@ -66,7 +66,7 @@ class FileSystemDAO(BaseDAO) :
         CmdList=[_cfg.binaries["fs"],  "setquota" , "-path" , "%s" % path, "-max", "%s" % quota ]
         return CmdList,PM.setQuota
         
-    @execwrapper
+    @exec_wrapper
     def listQuota(self, path, _cfg=None):
         """
         list a volume quota by path
@@ -74,7 +74,7 @@ class FileSystemDAO(BaseDAO) :
         CmdList=[_cfg.binaries["fs"],  "listquota" , "-path" , "%s" % path ]
         return CmdList,PM.listQuota
     
-    @execwrapper
+    @exec_wrapper
     def returnVolumeByPath(self, pathlist, _cfg=None):
         """
         Basically a fs examine

@@ -1,7 +1,7 @@
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import PTDbDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParsePTDBDAO as PM
 
-class PTDbDAO(BaseDAO) :
+class PTDBDAO(BaseDAO) :
     """
     Provides low-level acces to the Protection Database
     """

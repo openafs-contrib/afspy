@@ -1,5 +1,5 @@
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import CacheManagerDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseCacheManagerDAO as PM
 
 class CacheManagerDAO(BaseDAO):
     """
@@ -10,7 +10,7 @@ class CacheManagerDAO(BaseDAO):
         BaseDAO.__init__(self)
         return
 
-    @execwrapper 
+    @exec_wrapper 
     def getWSCell(self, _cfg=None):
         """
         Returns the name of the cell to which a machine belongs
@@ -18,7 +18,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "wscell"]
         return CmdList,PM.parse_getWsCell
         
-    @execwrapper 
+    @exec_wrapper 
     def flushall(self, _cfg=None):
         """
         Force the AFS Cache Manager to discard all data
@@ -26,7 +26,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "flushall"]
         return CmdList,PM.parse_flushall
     
-    @execwrapper 
+    @exec_wrapper 
     def flushvolume(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard cached data from a volume
@@ -34,7 +34,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "flushvolume", "%s" % path]
         return CmdList,PM.parse_flushvolume
     
-    @execwrapper 
+    @exec_wrapper 
     def flushmount(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard a mount point
@@ -42,7 +42,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "flushmount", "-path", "%s"%path]
         return CmdList,PM.parse_flushmount
         
-    @execwrapper 
+    @exec_wrapper 
     def flush(self, path, _cfg=None):
         """
         Forces the Cache Manager to discard a cached file or directory
@@ -50,7 +50,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "flush", "-path", "%s" % path]
         return CmdList,PM.parse_flush
     
-    @execwrapper 
+    @exec_wrapper 
     def getCellAliases(self, _cfg=None):
         """
         list defined Cell aliases
@@ -58,7 +58,7 @@ class CacheManagerDAO(BaseDAO):
         CmdList=[_cfg.binaries["fs"] , "listaliases"]
         return CmdList,PM.parse_getCellAliases
         
-    @execwrapper 
+    @exec_wrapper 
     def newCellAlias(self, alias, _cfg=None):
         """
         set a new Cell alias

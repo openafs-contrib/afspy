@@ -1,9 +1,8 @@
-from afs.dao.BaseDAO import BaseDAO
-from afs.dao.BaseDAO import execwrapper
-import VLDbDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseVLDBDAO as PM
 import string
 
-class VLDbDAO(BaseDAO) :
+class VLDBDAO(BaseDAO) :
     """
     Provides low-level acces to the Volume Location Database
     """
@@ -12,7 +11,7 @@ class VLDbDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
     
-    @execwrapper
+    @exec_wrapper
     def getFsServList(self, noresolve=False, _cfg=None):
         """
         get list of dicts of all fileservers registered in the VLDB
@@ -22,13 +21,13 @@ class VLDbDAO(BaseDAO) :
             CmdList.append("-noresolve")
         return CmdList,PM.getFsServList
 
-    @execwrapper
+    @exec_wrapper
     def getFsUUID(self, name_or_ip, _cfg=None) :
         CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.CELL_NAME ]
 
         return CmdList,PM.getFsUUID
 
-    @execwrapper
+    @exec_wrapper
     def getVolumeList(self, name_or_ip, part="", noresolve=False, _cfg=None) :
         """
         Return list of volumes on a server
@@ -40,7 +39,7 @@ class VLDbDAO(BaseDAO) :
             CmdList.append("-noresolve")
         return CmdList,PM.getVolumeList
 
-    @execwrapper
+    @exec_wrapper
     def syncVLDb(self, name_or_ip, part="", volume="",_cfg=None):
         """
         Check that volumes residing at given Fileserver/partition have a correct  VLDB entries.
@@ -52,7 +51,7 @@ class VLDbDAO(BaseDAO) :
             CmdList += [ "-volume", "%s" % volume]
         return CmdList,PM.syncVLDB
         
-    @execwrapper
+    @exec_wrapper
     def syncServ(self, name_or_ip, part="",_cfg=None):
         """
         Verifies VLDB that entries pointing to a specified site are really on that Fileserver/Partition
@@ -62,7 +61,7 @@ class VLDbDAO(BaseDAO) :
             CmdList += [ "-part", "%s" % part]
         return CmdList,PM.syncServ
     
-    @execwrapper
+    @exec_wrapper
     def setaddrs(self, UUID, hostlist, _cfg=None): 
         """
         set the list of IP address for a given UUID in the VLDB
@@ -71,7 +70,7 @@ class VLDbDAO(BaseDAO) :
         CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % string.join(hostlist," "),  "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.setaddrs
         
-    @execwrapper
+    @exec_wrapper
     def addsite(self,VolName,DstServer,DstPartition, _cfg=None) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
@@ -79,7 +78,7 @@ class VLDbDAO(BaseDAO) :
         CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.addsite
     
-    @execwrapper
+    @exec_wrapper
     def remsite(self,VolName,Server,Partition, _cfg=None) :
         """
         removes entry for a RO-Volume in VLDB
@@ -87,7 +86,7 @@ class VLDbDAO(BaseDAO) :
         CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.remsite
         
-    @execwrapper
+    @exec_wrapper
     def lock(self,ID, _cfg=None) :
         """
         locks volume in VLDB
@@ -95,7 +94,7 @@ class VLDbDAO(BaseDAO) :
         CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
         return CmdList,PM.lock
     
-    @execwrapper
+    @exec_wrapper
     def unlock(self,ID, _cfg=None) :
         """
         unlocks volume in VLDB

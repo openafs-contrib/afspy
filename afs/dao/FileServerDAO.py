@@ -1,5 +1,5 @@
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import FileServerDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseFileServerDAO as PM
 from afs.util import afsutil
 
 class FileServerDAO(BaseDAO) :
@@ -11,7 +11,7 @@ class FileServerDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
 
-    @execwrapper    
+    @exec_wrapper    
     def getVolList(self, serv, part, _cfg=None): 
         """
         List Volume entry via vos listvol from vol-server. 
@@ -21,7 +21,7 @@ class FileServerDAO(BaseDAO) :
         CmdList = [_cfg.binaries["vos"],"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  _cfg.CELL_NAME]
         return CmdList,PM.getVolList
         
-    @execwrapper    
+    @exec_wrapper    
     def getIdVolList(self, server, part, _cfg=None):
         """
         return  Volumes in partition
@@ -31,7 +31,7 @@ class FileServerDAO(BaseDAO) :
         return CmdList,PM.getIdVolList
  
 
-    @execwrapper    
+    @exec_wrapper    
     def getPartList(self,  serv, _cfg=None) :
         """
         return list  of  Partitions-dicts

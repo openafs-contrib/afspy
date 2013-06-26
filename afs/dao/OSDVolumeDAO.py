@@ -1,8 +1,8 @@
 import types,string
 from afs.util import afsutil
 from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.BaseDAO import execwrapper
-import OSDVolumeDAO_parse as PM
+from afs.dao.BaseDAO import exec_wrapper
+import ParseOSDVolumeDAO as PM
 
 class OSDVolumeDAO(VolumeDAO) :
     """
@@ -14,7 +14,7 @@ class OSDVolumeDAO(VolumeDAO) :
         VolumeDAO.__init__(self)
         return
 
-    @execwrapper
+    @exec_wrapper
     def create(self,VolName,Server,Partition, MaxQuota, MaxFiles,osdpolicy, _cfg=None) :
         """
         create a Volume
@@ -24,7 +24,7 @@ class OSDVolumeDAO(VolumeDAO) :
                  "-filequota", "%s" % MaxFiles ,"-osdpolicy" ,osdpolicy, "-cell",  "%s" % _cfg.CELL_NAME]
         return CmdList,PM.create
     
-    @execwrapper
+    @exec_wrapper
     def getVolume(self, name_or_id, serv=None, _cfg=None) :
         """
         Volume entry via vos examine from vol-server. 
@@ -32,7 +32,7 @@ class OSDVolumeDAO(VolumeDAO) :
         CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.CELL_NAME]
         return CmdList,PM.getVolume
   
-    @execwrapper 
+    @exec_wrapper 
     def traverse(self,Servers, name_or_id, _cfg=None) :
         if type(Servers) == types.ListType :
             Servers = string.join(Servers," ")

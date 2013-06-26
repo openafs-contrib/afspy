@@ -1,5 +1,5 @@
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import RxOsdDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseRxOsdDAO as PM
 from afs.exceptions.RxOsdError import RxOsdError
 
 class RxOsdDAO(BaseDAO):
@@ -11,7 +11,7 @@ class RxOsdDAO(BaseDAO):
     def __init__(self) :
         BaseDAO.__init__(self)
         return
-    @execwrapper  
+    @exec_wrapper  
     def examine(self, osd_id, fid,_cfg=None):
         """
         examine an object 
@@ -19,7 +19,7 @@ class RxOsdDAO(BaseDAO):
         CmdList=[_cfg.binaries["osd"], "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.parse_examine
         
-    @execwrapper  
+    @exec_wrapper  
     def getFetchQueue(self, osd_id=-1,  _cfg=None ):
         """
         query fetchqueues of archival osd.
@@ -29,7 +29,7 @@ class RxOsdDAO(BaseDAO):
             CmdList += ["-name" , "%s" % osd_id]
         return CmdList,PM.parse_getFetchQueue
     
-    @execwrapper  
+    @exec_wrapper  
     def getListOfServerSettings(self,osd_id,_cfg=None):
         """
         query Servers for its tuneables
@@ -37,7 +37,7 @@ class RxOsdDAO(BaseDAO):
         CmdList=[_cfg.binaries["osd"], "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.parse_getListOfServerSettings
  
-    @execwrapper  
+    @exec_wrapper  
     def getServerSetting(self,osd_id,key,_cfg=None):
         """
         query Servers for it tuneables
@@ -45,7 +45,7 @@ class RxOsdDAO(BaseDAO):
         CmdList=[_cfg.binaries["osd"], "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.parse_getServerSetting
    
-    @execwrapper  
+    @exec_wrapper  
     def setServerSetting(self,osd_id,key,value,_cfg=None) :
         """
         set Server tunable. Verifies result
@@ -53,7 +53,7 @@ class RxOsdDAO(BaseDAO):
         CmdList=[_cfg.binaries["osd"], "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.parse_setServerSetting
 
-    @execwrapper  
+    @exec_wrapper  
     def getObjectsofVolumeByOsd(self,osd_id,vid,lun,_cfg=None) :
         """
         get all objects of a given volume on an RxOsd. 
@@ -64,7 +64,7 @@ class RxOsdDAO(BaseDAO):
             CmdList += ["-lun" , "%s" % lun]
         return CmdList,PM.parse_getObjectsofVolumeByOsd
 
-    @execwrapper  
+    @exec_wrapper  
     def getStatistics(self,osd_id,extended=False,_cfg=None) :
         """
         get RPC-statistics of RxOsd-sever
@@ -74,7 +74,7 @@ class RxOsdDAO(BaseDAO):
             CmdList += ["-verbose" ]
         return CmdList,PM.parse_getStatistics
 
-    @execwrapper  
+    @exec_wrapper  
     def resetStatistics(self,osd_id,_cfg=None) :
         """
         reset RPC-statistics of a RxOsd-sever
@@ -82,7 +82,7 @@ class RxOsdDAO(BaseDAO):
         CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % _cfg.CELL_NAME ]
         return CmdList,PM.parse_resetStatistics
 
-    @execwrapper  
+    @exec_wrapper  
     def getActiveThreads(self,osd_id,extended=False,_cfg=None) :
         """
         get list of active threads of a RxOsd-sever
@@ -92,7 +92,7 @@ class RxOsdDAO(BaseDAO):
             CmdList += ["-verbose" ]
         return CmdList,PM.parse_getActiveThreads
    
-    @execwrapper  
+    @exec_wrapper  
     def getWipeCandidates(self,osd_id,_cfg=None,lun=-1,maxNum=100,criteria="atime",minSizeMB=0) :
         CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-max" , "%s" % maxNum, "-minMB", "%s" % minSizeMB, "-cell",  "%s" % _cfg.CELL_NAME ]
         if lun != -1 :

@@ -1,14 +1,24 @@
-# Init 
-__all__=["BNodeDAO","CacheManagerDAO","FileServerDAO","FileSystemDAO","OsdDbDAO","PTDbDAO","RxDAO","RxOsdDAO","RXPeerDAO","UbikPeerDAO","VLDbDAO","VolumeDAO","OSDVolumeDAO","OSDFileServerDAO"]
+"""
+dao : direct  access object.
+used for filling up objects from a live afs-cell
+"""
+from afs.dao import BNodeDAO,  CacheManagerDAO, FileServerDAO,  FileSystemDAO, \
+    PTDBDAO, RXPeerDAO,  UbikPeerDAO,  VLDBDAO,  VolumeDAO
 
-def setupOptions():   
+# Init
+__all__ = ["BNodeDAO", "CacheManagerDAO", "FileServerDAO", "FileSystemDAO", \
+     "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolumeDAO"]
+
+def setup_options():
     """
     add logging options to cmd-line,
     but surpress them, so that they don't clobber up the help-messages
     """
     import argparse
-    argParser=argparse.ArgumentParser(add_help=False)
-    argParser.add_argument("--LogLevel_DAO", default="", help=argparse.SUPPRESS)
-    for d in __all__ :
-        argParser.add_argument("--LogLevel_%s" %d , default="", help=argparse.SUPPRESS)
-    return argParser
+    my_argparser = argparse.ArgumentParser(add_help = False)
+    my_argparser.add_argument("--LogLevel_DAO", default = "", \
+        help = argparse.SUPPRESS)
+    for submodule in __all__ :
+        my_argparser.add_argument("--LogLevel_%s" % submodule, default = "", \
+            help = argparse.SUPPRESS)
+    return my_argparser

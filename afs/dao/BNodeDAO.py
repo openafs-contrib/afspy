@@ -1,6 +1,6 @@
 import string, types
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import BNodeDAO_parse as PM
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import ParseBNodeDAO as PM
 from afs.exceptions.BNodeError import BNodeError
 
 
@@ -13,7 +13,7 @@ class BNodeDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
 
-    @execwrapper    
+    @exec_wrapper    
     def getRestartTimes(self, servername, _cfg=None):
         """
         return dict telling the restart times
@@ -21,7 +21,7 @@ class BNodeDAO(BaseDAO) :
         CmdList=[_cfg.binaries["bos"],"getrestart","-server", "%s"  % servername]
         return CmdList,PM.getRestartTimes
 
-    @execwrapper    
+    @exec_wrapper    
     def setRestartTimes(self, servername, time, restarttype, _cfg=None) :
         if restarttype == "general" :
             option = "-general"
@@ -33,7 +33,7 @@ class BNodeDAO(BaseDAO) :
         CmdList=[_cfg.binaries["bos"],"setrestart","-server", "%s"  % servername, "-time",  "%s" % time,  "%s" % option ]
         return CmdList,PM.setRestartTimes
 
-    @execwrapper    
+    @exec_wrapper    
     def addUser(self, servername, userlist, _cfg=None) :
         if type(userlist) == types.ListType :
             usernames = string.join(userlist)
@@ -42,7 +42,7 @@ class BNodeDAO(BaseDAO) :
         CmdList=[_cfg.binaries["bos"],"adduser","-server", "%s"  % servername, "-user",  "%s" % usernames ]
         return CmdList,PM.addUser
     
-    @execwrapper    
+    @exec_wrapper    
     def removeUser(self, servername, userlist, _cfg=None) :
         if type(userlist) == types.ListType :
             usernames = string.join(userlist)
@@ -51,12 +51,12 @@ class BNodeDAO(BaseDAO) :
         CmdList=[_cfg.binaries["bos"],"removeuser","-server", "%s"  % servername, "-user",  "%s" % usernames ]
         return CmdList,PM.removeUser
     
-    @execwrapper    
+    @exec_wrapper    
     def getUserList(self, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"listuser","-server", "%s"  % servername ]
         return CmdList,PM.getUserList
     
-    @execwrapper    
+    @exec_wrapper    
     def getFileDate(self, servername, filelist, destdir="", _cfg=None) :
         if type(filelist) == types.ListType :
             filenames = string.join(filelist)
@@ -67,57 +67,57 @@ class BNodeDAO(BaseDAO) :
             CmdList += ["-dir", "%s" % destdir]
         return CmdList,PM.getFileDate
     
-    @execwrapper    
+    @exec_wrapper    
     def cmd(self, servername, cmd, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"cmd","-server", "%s"  % servername ]
         return CmdList,PM.cmd
     
-    @execwrapper    
+    @exec_wrapper    
     def getLog(self, servername, logfile,_cfg=None) :
         CmdList=[_cfg.binaries["bos"],"getlog","-server", "%s"  % servername ]
         return CmdList,PM.getLog
     
-    @execwrapper    
+    @exec_wrapper    
     def prune(self, type, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"prune","-server", "%s"  % servername ]
         return CmdList,PM.pruneLog
 
-    @execwrapper    
+    @exec_wrapper    
     def runRestart(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"restart","-server", "%s"  % servername ]
         return CmdList,PM.runRestart
     
-    @execwrapper    
+    @exec_wrapper    
     def runStart(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"start","-server", "%s"  % servername ]
         return CmdList,PM.runStart
     
-    @execwrapper    
+    @exec_wrapper    
     def runShutdown(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"shutdown","-server", "%s"  % servername ]
         return CmdList,PM.runShutdown
     
-    @execwrapper    
+    @exec_wrapper    
     def runStartup(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"startup","-server", "%s"  % servername ]
         return CmdList,PM.runStartup
     
-    @execwrapper    
+    @exec_wrapper    
     def runStop(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"stop","-server", "%s"  % servername ]
         return CmdList,PM.runStop
 
-    @execwrapper    
+    @exec_wrapper    
     def salvage(self, vid, part, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"salvageXXX","-server", "%s"  % servername ]
         return CmdList,PM.salvage
     
-    @execwrapper    
+    @exec_wrapper    
     def status(self, process, servername, _cfg=None) :
         CmdList=[_cfg.binaries["bos"],"status","-server", "%s"  % servername ,"-long"]
         return CmdList,PM.status
 
-    @execwrapper    
+    @exec_wrapper    
     def getDBServList(self,servername, _cfg=None) :
         """
         get list of all database-servers known to a given AFS-server
