@@ -2,3 +2,4 @@
 *.pyc
 afspy.e4p
 afspy.cfg
+build/.*
