@@ -1,4 +1,3 @@
-from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
 class Cell_OSD(BaseModel) : 
@@ -11,9 +10,9 @@ class Cell_OSD(BaseModel) :
         The attributes 'DBServers','FSServers' are lists of Server objects
         for convenience
         """
+        BaseModel.__init__(self)
+
         ## Database definitions
-        ## DB - ID
-        self.id = None
         ## Cellname
         self.Name=""
         ## OSDDB-Version
@@ -49,10 +48,3 @@ class Cell_OSD(BaseModel) :
         ## "vos traverse"
         self.StorageUsage=None
         self.StorageUsage_js=''
-        ## Creation date 
-        self.cdate = datetime.now()
-        ## update date 
-        self.udate = datetime.now()
-        ## list of attributes not to put into the DB
-        self.ignAttrList= []
-        return

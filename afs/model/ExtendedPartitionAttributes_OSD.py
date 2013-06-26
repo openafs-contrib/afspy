@@ -1,7 +1,7 @@
-
-from datetime import datetime
+"""
+Declares model object of extra attributes for an osd-partition
+"""
 from afs.model.BaseModel import BaseModel
-
 
 class ExtPartAttr_OSD(BaseModel):
     """
@@ -13,8 +13,8 @@ class ExtPartAttr_OSD(BaseModel):
         """
         initialize an empty object
         """
-        ## DB internal id
-        self.id       = None
+        BaseModel.__init__(self)
+
         ##  (serv_uuid,name) is foreign key to partition-table
         self.name=name
         self.serv_uuid=serv_uuid
@@ -24,9 +24,3 @@ class ExtPartAttr_OSD(BaseModel):
         self.blocks_osd_on  = blocks_osd_on
         ## number of off-line blocks
         self.blocks_osd_off = blocks_osd_off
-        ## creation date of this object
-        self.cdate         = datetime.now()
-        ## update date of this object
-        self.udate         = datetime.now()
-        ## list of attributes not to put into the DB
-        self.ignAttrList= []

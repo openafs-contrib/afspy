@@ -1,6 +1,7 @@
-from datetime import datetime
+"""
+Declares model object of extra attributes for an osd-volume
+"""
 from afs.model.BaseModel import BaseModel
-
 
 class ExtVolAttr_OSD(BaseModel):
     """
@@ -11,6 +12,8 @@ class ExtVolAttr_OSD(BaseModel):
         """
         initialize an empty object
         """
+        BaseModel.__init__(self)
+
         ## ID of Volume, foreign key to volume-table
         self.vid            = vid
         ## file-quota number of files allowed in this volume
@@ -27,9 +30,3 @@ class ExtVolAttr_OSD(BaseModel):
         self.blocks_osd_off = blocks_osd_off
         ## osd policy
         self.osdPolicy     = osdPolicy
-        ## creation date of this object
-        self.cdate         = datetime.now()
-        ## last update of this object
-        self.udate         = datetime.now()
-        ## list of attributes not to put into the DB
-        self.ignAttrList= []

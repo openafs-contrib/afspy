@@ -1,31 +1,28 @@
-from datetime import datetime
+"""
+Declares model object of the live-data of a partition
+"""
 from afs.model.BaseModel import BaseModel
-
 
 class Partition(BaseModel):
     """
     Model object of the live-data of a partition
     """
-       
-    def __init__(self, id='', serv_uuid='', name='', free=-1, size=-1, used=-1 ):
+
+    def __init__(self):
         """
         initialize an empty object
         """
-        ## DB - ID
-        self.id = None
+        BaseModel.__init__(self)
+
         ## UUID of fileserver
-        self.serv_uuid = serv_uuid
+        self.serv_uuid = ""
         ## canonicalized partition name e.g "ad" for "/vicepad"
-        self.name = name
+        self.name = ""
         ## free size in Kbytes
-        self.free   = free
+        self.free_kb = -1
         ## total size in Kbytes
-        self.size   = size
+        self.size_kb = -1
         ## used size in Kbytes
-        self.used = used
-        ## creation date of this object
-        self.cdate         = datetime.now()
-        ## update date of this object
-        self.udate         = datetime.now()
+        self.used_kb = -1
         ## list of attributes not to put into the DB
-        self.ignAttrList= ["ExtAttr"]
+        self.unmapped_attributes_list = [ "ExtAttr" ]

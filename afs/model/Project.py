@@ -1,6 +1,7 @@
-from datetime import datetime
+"""
+Declares model object of  a project
+"""
 from afs.model.BaseModel import BaseModel
-
 
 class Project(BaseModel):
     """
@@ -11,53 +12,47 @@ class Project(BaseModel):
     contact person, owner(organisation), on which server partition-pairs
     the volumes should reside.
     """
-       
-    def __init__(self, id='',  name=''):
+
+    def __init__(self) :
         """
         initialize an empty object
         """
-        ## DB - ID
-        self.id = None
+        BaseModel.__init__(self)
+
         ## name
-        self.name   = ""
+        self.name = ""
         ## list of regexes, json encoded
-        self.volnameRegEx_js=""
-        self.volnameRegEx=""
+        self.volname_regex_js = "[]"
+        self.volname_regex = []
         ## list of additional Volumenames, json encoded
-        self.additionalVolnames_js=""
-        self.additionalVolnames=""
+        self.additional_volnames_js = "[]"
+        self.additional_volnames = []
         ## list of excluded Volumenames , json encoded
-        self.excludedVolnames_js=""
-        self.excludedVolnames=""
+        self.excluded_volnames_js = "[]"
+        self.excluded_volnames = []
         ## minimum Size for a Volume
-        self.minSize_kB=-1
+        self.min_size_kb = -1
         ## maximum Size for a volume
-        self.maxSize_kB=-1
-        ## is this a retention project
-        self.NestingLevel=0
-        ## contact 
+        self.max_size_kb = -1
+        ## specificity can be used for project hierachies
+        self.specificity = 0
+        ## contact
         self.contact = ""
-        ## owner 
+        ## owner
         self.owner = ""
         ## list of locationIDs for RW-Volumes, json encoded
-        self.rw_locations_js=""
-        self.rw_locations=[]
+        self.rw_locations_js = "[]"
+        self.rw_locations = []
         ## list of locationIDs for RO-Volumes, json encoded
-        self.ro_locations_js=""
-        self.ro_locations=[]
+        self.ro_locations_js = "[]"
+        self.ro_locations = []
         ## list of "server-uuid,partition" pairs for RW-Volumes, json encoded
-        self.rw_serverparts_js=""
-        self.rw_serverparts=[[]]
+        self.rw_serverparts_js = "[]"
+        self.rw_serverparts = []
         ## list of "server-uuid,partition" pairs for RO-Volumes, json encoded
-        self.ro_serverparts_js=""
-        self.ro_serverparts=[[]]
+        self.ro_serverparts_js = ""
+        self.ro_serverparts = []
         ## free form description
-        self.description=""
+        self.description = ""
         ## minimum number of RO-replicas
-        self.minnum_ro=2
-        ## creation date in database
-        self.cdate   = datetime.now()
-        ## update date in database
-        self.udate   = datetime.now()
-        ## list of attributes not to put into the DB
-        self.ignAttrList= []
+        self.min_num_ro = 1
