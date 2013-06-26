@@ -1,48 +1,51 @@
-import sys, os,argparse
+"""
+Base class for other unit-test.
+Deals with reading the configuration
+and setting up some variables.
+"""
+import sys, os, argparse
 from ConfigParser import ConfigParser
 
-from afs.util.AfsConfig import parseDefaultConfig
+from afs.util.AFSConfig import parse_configs
 import afs
 
 
-class basicTestSetup :
+class BasicTestSetup :
     """
-    class to read in Test.cfg 
-    and set up the general options
+    super class for all unit-tests here.  
     """
-    
-    def setUp(self):
-        self.TestCfg=ConfigParser()
-        self.TestCfg.read(afs.defaultConfig.setup)
-        self.Cell=self.TestCfg.get("general", "Cell")
-        afs.defaultConfig.AFSCell=self.Cell
-        self.User=self.TestCfg.get("general", "User")
-        self.Pass=self.TestCfg.get("general", "Pass")
-        self.minUbikDBVersion=self.TestCfg.get("general","minUbikDBVersion")
-        if afs.defaultConfig.DB_CACHE :
+
+    def setUp(self) :
+        """parse test.configuration file"""
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.afs_cell = self.test_config.get("general", "cell")
+        self.all_dbservers = self.test_config.get("general", \
+            "allDBServs").split(",")
+        self.all_dbservers.sort()
+        afs.CONFIG.afs_cell = self.afs_cell
+        self.user = self.test_config.get("general", "user")
+        self.password = self.test_config.get("general", "password")
+        self.min_ubikdb_version = self.test_config.get(\
+            "general", "min_ubikdb_version")
+        if afs.CONFIG.DB_CACHE :
             from sqlalchemy.orm import sessionmaker
-            self.DbSession= sessionmaker(bind=afs.defaultConfig.DB_ENGINE)
-        return
-    
-
-
-class TestDataBaseSetup :
-    
-    def __init__(self):
-        
-        return
-        
-class TestDataBaseTearDown :
-    
-    def __init__(self):
+            self.db_session = sessionmaker(\
+                bind = afs.CONFIG.DB_ENGINE)
         return
 
-def parseCMDLine():
-    myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False,epilog=afs.argParser.epilog)
-    myParser.add_argument("--setup", default="./Test.cfg", help="path to Testconfig")
-    parseDefaultConfig(myParser)
-    if not os.path.exists(afs.defaultConfig.setup) :
-        sys.stderr.write("Test setup file %s does not exist.\n" %afs.defaultConfig.setup)
+def parse_commandline():
+    """
+    general function for parsing command line args given to the unit-test.
+    """
+    my_parser = argparse.ArgumentParser(parents = [afs.ARGPARSER], \
+        add_help = False,epilog = afs.ARGPARSER.epilog)
+    my_parser.add_argument("--setup", default="./Test.cfg", \
+        help="path to Testconfig")
+    parse_configs(my_parser)
+    if not os.path.exists(afs.CONFIG.setup) :
+        sys.stderr.write("Test setup file %s does not exist.\n" % \
+            afs.CONFIG.setup)
         sys.exit(2)
     return
 

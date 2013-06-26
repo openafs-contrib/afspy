@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+"""
+unit test for retrieving AFS-cell configuration from DNS
+"""
 
 import unittest
-from BaseTest import parseCMDLine, basicTestSetup
+from afs.tests.BaseTest import parse_commandline, BasicTestSetup
 from afs.dao import DNSconfDAO
 import afs
 
-class TestDNSconfDAO(unittest.TestCase,basicTestSetup):
+class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
     """
     Tests DNSconfDAO Methods
     """
@@ -14,21 +17,21 @@ class TestDNSconfDAO(unittest.TestCase,basicTestSetup):
         """
         setup
         """
-        basicTestSetup.setUp(self)
-
-        self.DAO = DNSconfDAO.DNSconfDAO()
-        self.Cell=self.TestCfg.get("general","Cell")
-        self.allDBServs=self.TestCfg.get("general","allDBServs").split(",")
-        self.allDBServs.sort()
+        BasicTestSetup.setUp(self)
+        self.dao = DNSconfDAO.DNSconfDAO()
         return
 
-    def test_getDBServList(self):
-        DBServList=self.DAO.getDBServList(self.Cell, _cfg=afs.defaultConfig, _user="test")
-        DBServList.sort()
-        self.assertEqual(DBServList, self.allDBServs)
+    def test_get_db_serverlist(self):
+        """
+        test the retrieval of all afs database servers from DNS
+        for a given cell.
+        """
+        db_serverlist = self.dao.get_db_serverlist(_cfg = afs.CONFIG)
+        db_serverlist.sort()
+        self.assertEqual(db_serverlist, self.all_dbservers)
         return
 
 if __name__ == '__main__' :
-    parseCMDLine()
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestDNSconfDAO)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    parse_commandline()
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDNSconfDAO)
+    unittest.TextTestRunner(verbosity=2).run(SUITE)
