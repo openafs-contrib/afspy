@@ -15,7 +15,7 @@ class Partition(BaseModel):
         BaseModel.__init__(self)
 
         ## UUID of fileserver
-        self.serv_uuid = ""
+        self.fileserver_uuid = ""
         ## canonicalized partition name e.g "ad" for "/vicepad"
         self.name = ""
         ## free size in Kbytes

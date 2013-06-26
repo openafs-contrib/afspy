@@ -34,10 +34,10 @@ class Cell(BaseModel) :
         ## Number of groups in PTDB
         self.num_groups = -1
         ## Total number of volumes
-        self.num_rw_vols = -1
-        self.num_ro_vols = -1
-        self.num_bk_vols = -1
-        self.num_offline_vols = -1
+        self.num_vol_rw = -1
+        self.num_vol_ro = -1
+        self.num_vol_bk = -1
+        self.num_vol_offline = -1
         ## List of DBServers (hostnames only)
         self.db_servers = []
         self.db_servers_js = ""
@@ -48,9 +48,9 @@ class Cell(BaseModel) :
         self.projects = []
         self.projects_js = ""
         ## Total Size, etc
-        self.size = -1
-        self.used = -1
-        self.free = -1
-        self.allocated = -1
-        self.allocated_stale = -1
+        self.size_kb = -1
+        self.used_kb = -1
+        self.free_kb = -1
+        self.allocated_kb = -1
+        self.allocated_stale_kb = -1
         return

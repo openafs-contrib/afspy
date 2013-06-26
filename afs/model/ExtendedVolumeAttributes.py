@@ -18,8 +18,8 @@ class ExtVolAttr(BaseModel):
         ## ID of Volume, foreign key to volume-table
         ## SHOULD point to RWID
         self.vid = -1
-        ## num Volumes at least required.
-        self.min_num_copy = -1
+        ## number of RO required for this volume, overrrides project
+        self.num_min_copy = -1
         ## Owner of the volume (string)
         self.owner = ""
         ## json-encodedlist of projectIDs this Volume belongs to

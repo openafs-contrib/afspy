@@ -8,27 +8,26 @@ class BNode(BaseModel):
     Model object of a bosserver child process (bnode)
     """
 
-    def __init__(self, bnode_type = "N/A", bos_id = -1):
+    def __init__(self, bnode_type = "N/A", bos_db_id = -1):
         """
         initialize an empty object
         """
         BaseModel.__init__(self)
 
         ## DB-ID of bosserver
-        self.bos_id = bos_id
+        self.bos_db_id = bos_db_id
         self.bnode_type = bnode_type
         # FIXME : what to do with procs of type cron ?
         # Need to check, man pages dont say much
         self.commands = ''
         self.status = ''
-        self.startdate = ''
-        self.startcount = ''
-        self.exitdate = ''
+        self.start_date = ''
+        self.start_count = ''
+        self.last_exit_date = ''
         self.notifier = ''
-        self.state = ''
-        self.errorstop  = ''
+        self.error_stop  = ''
         self.core = ''
-        self.errorexitdate = ''
-        self.errorexitdue = ''
-        self.errorexitsignal = ''
-        self.errorexitcode = ''
+        self.error_exit_date = ''
+        self.error_exit_due = ''
+        self.error_exit_signal = ''
+        self.error_exit_code = ''

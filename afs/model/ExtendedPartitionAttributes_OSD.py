@@ -9,15 +9,15 @@ class ExtPartAttr_OSD(BaseModel):
     IN DB_CACHE, this is stored in an own table
     """
     
-    def __init__(self, serv_uuid="", name="", blocks_fs=-1,blocks_osd_on=-1,blocks_osd_off=-1):
+    def __init__(self, fileserver_uuid="", name="", blocks_fs=-1,blocks_osd_on=-1,blocks_osd_off=-1):
         """
         initialize an empty object
         """
         BaseModel.__init__(self)
 
-        ##  (serv_uuid,name) is foreign key to partition-table
+        ##  (fileserver_uuid,name) is foreign key to partition-table
         self.name=name
-        self.serv_uuid=serv_uuid
+        self.fileserver_uuid=fileserver_uuid
         ## number of blocks stored on Fileserver directly
         self.blocks_fs       = blocks_fs
         ## number of blocks which are on-line

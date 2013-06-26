@@ -15,7 +15,7 @@ class ExtPartAttr(BaseModel):
         """
         BaseModel.__init__(self)
 
-        ##  (serv_uuid,name) is foreign key to partition-table
+        ##  (fileserver_uuid,name) is foreign key to partition-table
         self.name = ""
         self.fileserver_uuid = ""
         ## Owner of the Partition (string)
@@ -32,7 +32,7 @@ class ExtPartAttr(BaseModel):
         ## number of volumes with unlimited quota
         self.unlimited_volumes = -1
         ## Total number of volumes
-        self.num_rw_vols = -1
-        self.num_ro_vols = -1
-        self.num_bk_vols = -1
-        self.num_offline_vols = -1
+        self.num_vol_rw = -1
+        self.num_vol_ro = -1
+        self.num_vol_bk = -1
+        self.num_vol_offline = -1

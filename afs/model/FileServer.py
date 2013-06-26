@@ -26,8 +26,7 @@ class FileServer(BaseModel):
         ## list of ipaddrs
         self.ipaddrs_js = '[]'
         self.ipaddrs = []
-        ## rxdebug version string and builddate
+        ## rxdebug version string 
         self.version = ""
-        self.build_date = ""
         ## list of attributes not to put into the DB
         self.unmapped_attributes_list = [ 'BNode', 'parts', 'ExtServAttr' ]

@@ -55,4 +55,4 @@ class Project(BaseModel):
         ## free form description
         self.description = ""
         ## minimum number of RO-replicas
-        self.min_num_ro = 1
+        self.num_min_ro = 1

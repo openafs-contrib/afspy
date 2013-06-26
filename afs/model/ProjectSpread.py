@@ -22,9 +22,11 @@ class ProjectSpread(BaseModel):
         self.fileserver_uuid = -1
         ## partition
         self.part = ""
-        ## Dict of kb on FileServer by type
-        self.used_kb_by_type_js = '{"RW" : -1,  "RO" : -1,  "BK" : -1 }'
-        self.used_kb_by_type = {"RW" : -1,  "RO" : -1,  "BK" : -1 }
-        ## Dict of number of Volumes of all types
-        self.num_vol_by_type_js = '{"RW" : -1,  "RO" : -1,  "BK" : -1 }'
-        self.num_vol_by_type = {"RW" : -1,  "RO" : -1,  "BK" : -1 }
+        ## type of volumes
+        self.vol_type = ""
+        self.num_vol = -1
+        self.used_kb = -1
+        ## osd - cruft
+        self.blocks_fs = -1
+        self.blocks_osd_on = -1
+        self.blocks_osd_off = -1

@@ -37,7 +37,6 @@ class Volume(BaseModel) :
         self.type = ""
         self.creation_date = datetime.fromtimestamp(0)
         self.access_date = datetime.fromtimestamp(0)
-        self.db_update_date = datetime.fromtimestamp(0)
         self.backup_date = datetime.fromtimestamp(0)
         self.copy_date = datetime.fromtimestamp(0)
         self.flags = 0
