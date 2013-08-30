@@ -6,7 +6,7 @@ from types import ListType
 
 import afs
 from afs.util.AfsConfig import parseDefaultConfig
-import afs.util.afsutil as afsutil
+from afs.util.afsutil import humanReadableSize
 from afs.util.DBManager import DBManager
 from afs.service.OSDVolService import OSDVolService
 from afs.service.CellService import CellService
@@ -41,7 +41,7 @@ def getProjDetailsFromKeyboard(defaultDict) :
                     defaultElement=""
                 if "serverparts" in key and defaultElement != "" :
                     uuid,part=defaultElement
-                    FsName=afsutil.getHostnameByFSUUID(uuid)
+                    FsName=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getHostnameByFSUUID(uuid)
                     defaultElement = "{0}_{1}".format(FsName,part)
                     
                 givenValue=raw_input("{0} [{1}] : ".format(key,defaultElement))
@@ -296,7 +296,11 @@ elif afs.defaultConfig.showProjectsOnServer == True :
     for f in CellInfo.FileServers :
         if name == "*" or name in f :
             print "%s :" % f
-            print PS.getProjectsOnServer(f)        
+            fs_info=PS.getProjectsOnServer(f)
+            for part in fs_info :
+                print "part : %s" % part 
+                for prj_info in fs_info[part] :
+                    print "%s : fileserver: %s, osd-online %s, osd-offline %s" % (prj_info["project"].name,humanReadableSize(prj_info["spread"].blocks_fs),humanReadableSize(prj_info["spread"].blocks_osd_on),humanReadableSize(prj_info["spread"].blocks_osd_off))
 elif afs.defaultConfig.showVolumes == True :
     print "Show volumes of a project on server(s)"
     if afs.defaultConfig.srv_name == "" :
