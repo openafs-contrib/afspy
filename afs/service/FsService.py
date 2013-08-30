@@ -57,9 +57,9 @@ class FsService (BaseService):
                 uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached)
         else :
             uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG, cached)
-           if uuid == None : 
-               self.Logger.warn("getFileServer: could not lookup uuid for server %s" % name_or_ip )
-               return None
+            if uuid == None : 
+                self.Logger.warn("getFileServer: could not lookup uuid for server %s" % name_or_ip )
+                return None
          
         if cached :
             this_FileServer=self.DBManager.getFromCache(FileServer,uuid=uuid)
