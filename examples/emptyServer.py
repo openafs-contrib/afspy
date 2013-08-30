@@ -126,16 +126,6 @@ for srcP in srcParts :
                 if isSolitary : solitaryROVols.append(v)
     if afs.defaultConfig.moveRWVols :
         for v in RWVols :
-            # check for moving osd-volumes
-            if v.get("osdPolicy",0) != 0 :
-                if not afs.defaultConfig.moveOSDVOlumes : 
-                    print "Skipping %s, because it is an OSD-Volume" % v["name"]
-                    continue
-            # check for minSize
-            if minUsage != 0 :
-                if int(v.get("diskused")) < minUsage : 
-                    print "Skipping %s, because it is smaller than %s" % minUsage 
-                    continue
            
             # check for name with given regex, these checks are mutually exclusive.
             skip_it=False
@@ -157,8 +147,21 @@ for srcP in srcParts :
                 volProjects=PS.getProjectsByVolumeName(v["name"])
                 for prj in volProjects :
                     if prj.name in afs.defaultConfig.ignoreProjects : skip_it = True
-            
+
             if skip_it  : continue
+
+            # check for moving osd-volumes
+            if v.get("osdPolicy",0) != 0 :
+                if not afs.defaultConfig.moveOSDVOlumes : 
+                    print "Skipping %s, because it is an OSD-Volume" % v["name"]
+                    continue
+
+            # check for minSize
+            if minUsage != 0 :
+                if int(v.get("diskused")) < minUsage : 
+                    print "Skipping %s, because it is smaller than %s" % (v["name"], minUsage)
+                    continue
+            
             # remove osd-attributes from dict, create Obj
             v.pop("filequota")
             v.pop("osdPolicy")
@@ -231,7 +234,7 @@ for srcP in srcParts :
             # check for minSize
             if minUsage != 0 :
                 if int(v.get("diskused")) < minUsage : 
-                    print "Skipping %s, because it is smaller than %s" % minUsage 
+                    print "Skipping %s, because it is smaller than %s" % (v["name"], minUsage)
                     continue
            
             if afs.defaultConfig.ignoreRX != None :
