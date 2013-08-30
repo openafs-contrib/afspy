@@ -92,7 +92,7 @@ class ProjectService(BaseService):
         return RWList,ROList
 
 
-    def getProjectsOnServer(self, name_or_obj, cached = True) :
+    def getProjectsOnServer(self, name_or_obj) :
         """
         return dict[Partition] of lists of [ProjectNames] for a fileserver
         """
@@ -105,13 +105,12 @@ class ProjectService(BaseService):
             except :
                 raise AfsError("Name of server (string) or Fileserver-Instance required.")
         FSUUID=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(FSName)
-        if cached :
-            resDict={}
-            for p in self._FS.getPartitions(FSName) :
-                resDict[p]=[]
-                for prj in self.DBManager.getFromCache(ProjectSpread, mustBeUnique=False, serv_uuid=FSUUID, part=p) :
-                    resDict[p].append(prj)
-            return resDict
+        result_dict={}
+        for p in self._FS.getPartitions(FSName) :
+            result_dict[p]=[]
+            for prj_spread in self.DBManager.getFromCache(ProjectSpread, mustBeUnique=False, serv_uuid=FSUUID, part=p) :
+                result_dict[p].append({ "project"  : self.DBManager.getFromCache(Project,id=prj_spread.project_id), "spread" : prj_spread})
+        return result_dict
  
     def getServerSpread(self, prjname, cached = True):
         """
@@ -187,9 +186,12 @@ class ProjectService(BaseService):
             return None
         list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id,mustBeUnique=False)
         if list == None :
-            self.Logger.debug("Results[10] from DB: %s" % list )
+            self.Logger.debug("Results from DB: %s" % list )
             return []
-        self.Logger.debug("Results[10] from DB: %s" % list[10] )
+        elif len(list) > 0 :
+            self.Logger.debug("Results[:10] from DB: %s" % list[:min(10,len(list))] )
+        else :
+            self.Logger.debug("Results from DB: %s" % list)
         VolIDList=[]
         for l in list :
             if servers == None :
