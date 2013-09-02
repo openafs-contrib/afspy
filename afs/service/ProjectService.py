@@ -84,10 +84,10 @@ class ProjectService(BaseService):
         RWList = [] 
         ROList = []
         for serv_uuid,part in thisProject.rw_serverparts :
-            FsName=afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            FsName=afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
             RWList.append((FsName,part),)
         for serv_uuid,part in thisProject.ro_serverparts :
-            FsName=afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            FsName=afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
             ROList.append((FsName,part),)
         return RWList,ROList
 
@@ -104,7 +104,7 @@ class ProjectService(BaseService):
                 FSName = name_or_obj.hostnames[0]
             except :
                 raise AfsError("Name of server (string) or Fileserver-Instance required.")
-        FSUUID=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(FSName)
+        FSUUID=afs.LookupUtil[self._CFG.cell].getFSUUID(FSName)
         if cached :
             resDict={}
             for p in self._FS.getPartitions(FSName) :
@@ -331,7 +331,7 @@ class ProjectService(BaseService):
 
         PartInfos={}
         for serv_uuid, thisPart in sps :
-            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            thisFSName = afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
             if not serv_uuid in PartInfos : 
                 PartInfos[serv_uuid] = {}
                 for p in self._fsDAO.getPartList(thisFSName) :
@@ -346,7 +346,7 @@ class ProjectService(BaseService):
         maxFree = -1
         FsName = Part = None
         for serv_uuid, thisPart in sps :
-            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            thisFSName = afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
             if not thisPart in PartInfos[serv_uuid].keys() :
                 raise AfsError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,thisFSName,thisPart)) 
             if VolObj.type == "RW" :

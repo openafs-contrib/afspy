@@ -3,6 +3,7 @@ import logging
 from afs.exceptions.AfsError import AfsError
 
 import afs
+import sys
 
 class BaseService(object):
     """
@@ -15,10 +16,10 @@ class BaseService(object):
         if conf:
             self._CFG = conf
         else:
-            self._CFG = afs.defaultConfig
+            self._CFG = afs.CONFIG
         
         # LOG INIT
-        classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
+        classLogLevel = getattr(self._CFG,"LogLevel_%s" % self.__class__.__name__, "").upper()
         numericLogLevel = getattr(logging,classLogLevel, 0)
         self.Logger=logging.getLogger("afs.service.%s" % self.__class__.__name__)
         self.Logger.setLevel(numericLogLevel)

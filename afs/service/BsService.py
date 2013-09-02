@@ -18,7 +18,7 @@ class BsService (BaseService):
 
     def getBosServer(self, name_or_ip, cached=False) :
         self.Logger.debug("Entering getBosServer")
-        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(name_or_ip)
         if cached :
             this_BosServer=self.DBManager.getFromCache(BosServer,DNSInfo["names"][0])
             # XXX get BNodes
@@ -42,7 +42,7 @@ class BsService (BaseService):
         """
         Ask Bosserver about the restart times of the fileserver
         """
-        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(name_or_ip)
         self._bnodeDAO.setRestartTimes(name_or_ip, time, restarttype, _cfg=self._CFG, _user=_user)
         if self._CFG.DB_CACHE : 
             self.DBManager.setIntoCache(BosServer, DNSInfo["names"][0], ipaddr=DNSInfo["ipaddrs"][0])

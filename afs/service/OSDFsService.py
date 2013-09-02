@@ -50,7 +50,7 @@ class OSDFsService (FsService):
         This is probably sql-engine specific (locking!?)
         """
         self.Logger.debug("bulk_cacheVolumes: Entering with name_or_ip=%s,part=%s" % (name_or_ip,part) )
-        serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(name_or_ip,self._CFG,cached=True)
+        serv_uuid=afs.LookupUtil[self._CFG.cell].getFSUUID(name_or_ip,self._CFG,cached=True)
         if not self._CFG.DB_CACHE :
             raise AfsError("No DB_Cache defined.")
 

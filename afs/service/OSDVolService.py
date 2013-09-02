@@ -102,7 +102,7 @@ class OSDVolService (VolService):
         VolList = []
         if cached :
             if serv != None :
-                serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG,cached=True)
+                serv_uuid=afs.LookupUtil[self._CFG.cell].getFSUUID(serv,self._CFG,cached=True)
                 # need function in util name_or_ip and name_or_id?
                 if afsutil.isName(name_or_id) :
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
@@ -123,7 +123,7 @@ class OSDVolService (VolService):
         VolList = self._osdvolDAO.getVolume(name_or_id, serv=serv, _cfg=self._CFG, _user=_user)
         self.Logger.debug("OSDgetVolume: VolList=%s" % VolList)
         for vol in VolList :
-            vol.serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(vol.servername,self._CFG,cached=False)
+            vol.serv_uuid=afs.LookupUtil[self._CFG.cell].getFSUUID(vol.servername,self._CFG,cached=False)
             StorageUsage=self.getStorageUsage([serv,],vol.vid)
             if hasattr(vol,"filequota") :
                 osdExtAttr.filequota=vol.filequota

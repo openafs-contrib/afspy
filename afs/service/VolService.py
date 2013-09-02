@@ -99,7 +99,7 @@ class VolService (BaseService):
         VolList=[]
         if cached :
             if serv != "" :
-                serv_uuid=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(serv,self._CFG)
+                serv_uuid=afs.LookupUtil[self._CFG.cell].getFSUUID(serv,self._CFG)
                 if afsutil.isName(name_or_id) :
                     vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
                 else :
@@ -116,7 +116,7 @@ class VolService (BaseService):
                 return vol
         vdictList = self._volDAO.getVolume(name_or_id, serv=serv, _cfg=self._CFG, _user=_user)
         for vdict in vdictList :
-            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(vdict["serv"],self._CFG)
+            vdict["serv_uuid"]=afs.LookupUtil[self._CFG.cell].getFSUUID(vdict["serv"],self._CFG)
             vdict.pop("serv")
             self.Logger.debug("getVolume: vdict=%s" % vdict)
             vol = Volume()

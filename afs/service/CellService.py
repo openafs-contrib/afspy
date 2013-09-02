@@ -26,7 +26,7 @@ class CellService(BaseService):
         """
         return full Cellobject.
         """
-        if cellname == "" : cellname = self._CFG.CELL_NAME
+        if cellname == "" : cellname = self._CFG.cell
         self.Logger.debug("Using cellname : %s " % cellname)
         if cached :
             cell=self.DBManager.getFromCache(Cell,Name = cellname)
@@ -43,7 +43,7 @@ class CellService(BaseService):
             for f in cell.FileServers :
                 self.Logger.debug("getCellInfo: f=%s" % f)
                 try :
-                    uuid = afs.LookupUtil[self._CFG.CELL_NAME].getFSUUID(f)
+                    uuid = afs.LookupUtil[self._CFG.cell].getFSUUID(f)
                 except :
                     self.Logger.error("Cannot get uuid for %s. Ignore it here. Will be removed on next live-update" % f )
                 if numVolDict.has_key(uuid) :
@@ -85,7 +85,7 @@ class CellService(BaseService):
                 cell.Projects.append(p.name)
             cell.allocated,cell.allocated_stale = self.getAllocated()
             self.Logger.debug("Cell=%s" % Cell)
-            self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.CELL_NAME)
+            self.DBManager.setIntoCache(Cell,cell,Name=self._CFG.cell)
         return cell
 
     def refreshLiveData(self, cellname="") : 
@@ -93,7 +93,7 @@ class CellService(BaseService):
         update livedata for the cell :
         partition free and used space, DBVersions, list of Servers
         """
-        if cellname == "" : cellname = self._CFG.CELL_NAME
+        if cellname == "" : cellname = self._CFG.cell
         cell=Cell()
         cell.FileServers=self.getFileServers()
         cell.DBServers=self.getDBServers()
@@ -118,7 +118,7 @@ class CellService(BaseService):
             return FileServers
         self.Logger.debug("refreshing FileServers from live system")
         for na in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user,noresolve=True) :
-            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na['name_or_ip'])
+            DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(na['name_or_ip'])
             FileServers.append(DNSInfo['names'][0])
         self.Logger.debug("returning %s" % FileServers)
         return FileServers
@@ -150,7 +150,7 @@ class CellService(BaseService):
         
         # canonicalize DBServList 
         for na in DBServList :
-            DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(na)
+            DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(na)
             DBServers.append(DNSInfo['names'][0])
         self.Logger.debug("returning %s" % DBServers)
         return DBServers

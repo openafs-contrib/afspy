@@ -26,7 +26,7 @@ class DBsService(BaseService) :
 
         if not DBType in ["vldb","ptdb" ] : raise AfsError ("invalid DBType DB-Type %s. Valid DBTypes are vldb and ptdb." % DBType)
 
-        DNSInfo=afs.LookupUtil[self._CFG.CELL_NAME].getDNSInfo(name_or_ip)
+        DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(name_or_ip)
         mandIP=""
         if len(DNSInfo["ipaddrs"]) != 0 :
             for ip in DNSInfo["ipaddrs"] :
@@ -54,7 +54,7 @@ class DBsService(BaseService) :
         shortInfo=self._ubikDAO.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
         this_DBServer.isClone=shortInfo["isClone"]
         this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
-        this_DBServer.version,this_DBServer.builddate=self._rxDAO.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
+        this_DBServer.version,this_DBServer.build_date=self._rxDAO.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
 
         if self._CFG.DB_CACHE :
             self.DBManager.setIntoCache(DBServer,this_DBServer,ipaddr=this_DBServer.ipaddr,type=DBType)
