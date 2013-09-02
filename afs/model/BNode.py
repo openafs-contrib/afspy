@@ -13,7 +13,6 @@ class BNode(BaseModel):
         initialize an empty object
         """
         BaseModel.__init__(self)
-
         ## DB-ID of bosserver
         self.bos_db_id = bos_db_id
         self.bnode_type = bnode_type

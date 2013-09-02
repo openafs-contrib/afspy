@@ -13,7 +13,8 @@ class DBServer(BaseModel):
         initialize an empty object.
         """
         BaseModel.__init__(self)
-        
+        ## for db index
+        self.db_id = None
         ## list of DNS-hostnames
         self.servernames = None
         self.servernames_js = ""
@@ -27,5 +28,10 @@ class DBServer(BaseModel):
         self.local_afsdb_version = ""
         ## rxdebug version string 
         self.version = ""
+        self.build_date = ""
+        ## Date of object creation
+        self.db_creation_date   = datetime.now()
+        ## Date of last object update
+        self.db_update_date   = datetime.now()
         ## list of attributes not to put into the DB
-        self.unmapped_attributes_list = ['BNode','ExtServAttr']
+        self.unmapped_attributes_list= ['BNode', 'ExtServAttr' ]

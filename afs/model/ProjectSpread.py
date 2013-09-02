@@ -16,7 +16,7 @@ class ProjectSpread(BaseModel):
         """
         BaseModel.__init__(self)
 
-        ## DB ID of Project
+        ## DB ID of Project 
         self.project_id = -1
         ## UUID of FSServer
         self.fileserver_uuid = -1
@@ -24,7 +24,9 @@ class ProjectSpread(BaseModel):
         self.part = ""
         ## type of volumes
         self.vol_type = ""
+        ## number of volumes of that type
         self.num_vol = -1
+        ## total used kilobytes 
         self.used_kb = -1
         ## osd - cruft
         self.blocks_fs = -1

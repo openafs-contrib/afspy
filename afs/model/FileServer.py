@@ -5,7 +5,7 @@ from afs.model.BaseModel import BaseModel
 
 class FileServer(BaseModel):
     """
-    Model object of a fileserver
+    Model object of a fileserver 
     """
 
     def __init__(self):
@@ -16,8 +16,6 @@ class FileServer(BaseModel):
         """
         BaseModel.__init__(self)
 
-        ## for db index
-        self.db_id = None
         ## AFS Server UUID
         self.uuid = ""
         ## list of DNS-hostnames
@@ -28,5 +26,7 @@ class FileServer(BaseModel):
         self.ipaddrs = []
         ## rxdebug version string 
         self.version = ""
+        ## build-date of binary according to rxdebug
+        self.build_date = ""
         ## list of attributes not to put into the DB
         self.unmapped_attributes_list = [ 'BNode', 'parts', 'ExtServAttr' ]

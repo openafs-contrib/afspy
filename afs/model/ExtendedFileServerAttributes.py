@@ -15,9 +15,7 @@ class ExtFileServAttr(BaseModel):
         """
         initialize an empty object
         """
-
         BaseModel.__init__(self)
-
         ## id of server in DB Table tbl_servers
         self.server_db_id = None
         ## physical Location of the server (string)
@@ -26,5 +24,3 @@ class ExtFileServAttr(BaseModel):
         self.owner = ""
         ## custom description about HW etc.
         self.description = ""
-        ## builddate according to rxdebug
-        self.build_date = ""

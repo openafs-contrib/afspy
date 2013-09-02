@@ -24,4 +24,3 @@ class PTDB(BaseModel) :
         ## FIXME: add more attributes like e.g. num_groups
         ## DB-version
         self.ptdb_version = -1
-        return

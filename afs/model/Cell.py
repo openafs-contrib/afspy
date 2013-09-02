@@ -53,4 +53,3 @@ class Cell(BaseModel) :
         self.free_kb = -1
         self.allocated_kb = -1
         self.allocated_stale_kb = -1
-        return

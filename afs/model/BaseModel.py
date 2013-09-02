@@ -26,7 +26,7 @@ class BaseModel(object):
         ## list of attributes not to put into the DB
         ## overwrite in model definition if not empty
         self.unmapped_attributes_list = []
-        return
+        return 
 
     def update_app_repr(self) :
         """

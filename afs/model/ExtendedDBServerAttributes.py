@@ -15,7 +15,6 @@ class ExtDBServAttr(BaseModel):
         """
         initialize an empty object
         """
-
         BaseModel.__init__(self)
 
         ## id of server in DB Table tbl_dbserver

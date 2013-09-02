@@ -16,9 +16,9 @@ class Volume(BaseModel) :
         """
         BaseModel.__init__(self)
 
-        ## name of the Volume in the VLDB
+        ## name of the volume in the VLDB
         self.name = ''
-        ## numerical ID of the Volume, can be RW, RO or BK
+        ## numerical ID of the volume, can be RW, RO or BK
         self.vid = -1
         ## ServerUUID where this volume is stored
         self.fileserver_uuid = ""
