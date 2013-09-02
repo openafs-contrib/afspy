@@ -20,4 +20,5 @@ def setup_options():
     for service in __all__ :
         my_argparser.add_argument("--LogLevel_%s" % service, \
             help = argparse.SUPPRESS)
+            default = "", help = argparse.SUPPRESS)
     return my_argparser

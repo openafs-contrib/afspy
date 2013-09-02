@@ -1,11 +1,11 @@
 """
 module dealing with the object-realational mapping
 """
-__all__ = ["DBMapper", ]
+__all__ = ["DbMapper", ]
 
 from afs.orm import DBMapper
 
-def setup_options():
+def setup_options():   
     """
     add logging options to cmd-line,
     but surpress them, so that they don't clobber up the help-messages
@@ -36,5 +36,4 @@ def setup_options():
     my_argparser.add_argument("--LogLevel_DB_CACHE", default = "", \
         help = argparse.SUPPRESS)
     return my_argparser
-
 

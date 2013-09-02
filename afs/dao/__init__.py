@@ -1,15 +1,15 @@
-"""
+""" 
 dao : direct  access object.
 used for filling up objects from a live afs-cell
 """
 from afs.dao import BNodeDAO,  CacheManagerDAO, FileServerDAO,  FileSystemDAO, \
     PTDBDAO, RXPeerDAO,  UbikPeerDAO,  VLDBDAO,  VolumeDAO
 
-# Init
+# Init 
 __all__ = ["BNodeDAO", "CacheManagerDAO", "FileServerDAO", "FileSystemDAO", \
      "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolumeDAO"]
 
-def setup_options():
+def setup_options():   
     """
     add logging options to cmd-line,
     but surpress them, so that they don't clobber up the help-messages
