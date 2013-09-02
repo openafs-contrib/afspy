@@ -36,7 +36,7 @@ class TestVolServiceSetMethods(unittest.TestCase, SetupTest):
         return SetupTest.setUp(self) 
 
     def test_setExtendedVolumeAttributes(self):
-        if not afs.defaultConfig.DB_CACHE :
+        if not afs.CONFIG.DB_CACHE :
             self.assertEqual(None, None)
             return
         volExtAttrDict={
@@ -86,7 +86,7 @@ if __name__ == '__main__' :
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
-    if afs.defaultConfig.DB_CACHE :
+    if afs.CONFIG.DB_CACHE :
         suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceCachedMethods)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else :

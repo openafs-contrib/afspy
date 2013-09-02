@@ -29,27 +29,27 @@ class TestOSDVolumeDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_get_nonOSD_Volume(self) :
-        Volume=self.DAO.getVolume(self.VolumeID_nonOSD, self.FS_nonOSD, self.Part_nonOSD, _cfg=afs.defaultConfig, _user="test")
+        Volume=self.DAO.getVolume(self.VolumeID_nonOSD, self.FS_nonOSD, self.Part_nonOSD, _cfg=afs.CONFIG, _user="test")
         self.assertEqual(Volume['vid'],self.VolumeID_nonOSD)
         return
 
     def test_get_OSD_Volume(self) :
-        Volume=self.DAO.getVolume(self.VolumeID_OSD, self.FS_OSD, self.Part_OSD, _cfg=afs.defaultConfig, _user="test")
+        Volume=self.DAO.getVolume(self.VolumeID_OSD, self.FS_OSD, self.Part_OSD, _cfg=afs.CONFIG, _user="test")
         self.assertEqual(Volume['vid'],self.VolumeID_OSD)
         return
         
     def test_getVol_nonOSD_GroupList(self) :
-        VolGroupList=self.DAO.getVolGroupList(self.VolumeID_nonOSD, _cfg=afs.defaultConfig, _user="test")
+        VolGroupList=self.DAO.getVolGroupList(self.VolumeID_nonOSD, _cfg=afs.CONFIG, _user="test")
         self.assertEqual(len(VolGroupList),self.numVols_nonOSD)
         return
 
     def test_getVol_OSD_GroupList(self) :
-        VolGroupList=self.DAO.getVolGroupList(self.VolumeID_OSD, _cfg=afs.defaultConfig, _user="test")
+        VolGroupList=self.DAO.getVolGroupList(self.VolumeID_OSD, _cfg=afs.CONFIG, _user="test")
         self.assertEqual(len(VolGroupList),self.numVols_OSD)
         return
 
     def test_traverse_OSD(self) :
-        histogram_OSD=self.DAO.traverse(self.FS_OSD, self.VolumeID_OSD, _cfg=afs.defaultConfig, _user="test")
+        histogram_OSD=self.DAO.traverse(self.FS_OSD, self.VolumeID_OSD, _cfg=afs.CONFIG, _user="test")
         self.assertTrue(1)
         return
 

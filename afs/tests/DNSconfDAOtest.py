@@ -17,7 +17,7 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         """
         setup
         """
-        BasicTestSetup.setUp(self)
+        BasicTestSetup.__init__(self)
         self.dao = DNSconfDAO.DNSconfDAO()
         return
 
@@ -26,7 +26,8 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         test the retrieval of all afs database servers from DNS
         for a given cell.
         """
-        db_serverlist = self.dao.get_db_serverlist(_cfg = afs.CONFIG)
+        db_serverlist = self.dao.get_db_serverlist( _user = "test", \
+            _cfg = afs.CONFIG)
         db_serverlist.sort()
         self.assertEqual(db_serverlist, self.all_dbservers)
         return
