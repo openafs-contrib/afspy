@@ -21,7 +21,7 @@ class OSDVolumeDAO(VolumeDAO) :
         """
         id = 0
         CmdList=[_cfg.binaries["vos"], "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, 
-                 "-filequota", "%s" % MaxFiles ,"-osdpolicy" ,osdpolicy, "-cell",  "%s" % _cfg.CELL_NAME]
+                 "-filequota", "%s" % MaxFiles ,"-osdpolicy" ,osdpolicy, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.create
     
     @exec_wrapper
@@ -29,12 +29,12 @@ class OSDVolumeDAO(VolumeDAO) :
         """
         Volume entry via vos examine from vol-server. 
         """
-        CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.CELL_NAME]
+        CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.cell]
         return CmdList,PM.getVolume
   
     @exec_wrapper 
     def traverse(self,Servers, name_or_id, _cfg=None) :
         if type(Servers) == types.ListType :
             Servers = string.join(Servers," ")
-        CmdList=[_cfg.binaries["vos"], "traverse","-server", "%s" % Servers,"-id", "%s" % name_or_id,"-cell", "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "traverse","-server", "%s" % Servers,"-id", "%s" % name_or_id,"-cell", "%s" % _cfg.cell]
         return CmdList,PM.traverse

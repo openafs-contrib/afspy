@@ -33,7 +33,7 @@ def getVolList(rc, output, outerr, parseParamList, Logger) :
                     
                     splits = output[i+3].split()   
                     if  splits[0] == 'part':
-                         vol['part']     = afsutil.canonicalizePartition(splits[1]) 
+                         vol['part']     = afsutil.canonicalize_partition(splits[1]) 
                          
                     splits = output[i+4].split()
                     if  splits[0] == 'status':
@@ -65,7 +65,7 @@ def getVolList(rc, output, outerr, parseParamList, Logger) :
                        #Only ip is available 
                        vol['servername']     = splits[1] 
                     splits = output[i+4].split()
-                    vol['part']     = afsutil.canonicalizePartition(splits[1])
+                    vol['part']     = afsutil.canonicalize_partition(splits[1])
                     splits = output[i+5].split()
                     vol['status']     = splits[1]
                     if vol['status'] != "OK" : 
@@ -149,6 +149,6 @@ def getPartList(rc,output,outerr,parseParamList,Logger) :
         size=long(size)
         free=long(free)
         used = size-free
-        partitions.append({ "name" : afsutil.canonicalizePartition(part), "size" : size,  "used" : used,  "free" : free})
+        partitions.append({ "name" : afsutil.canonicalize_partition(part), "size" : size,  "used" : used,  "free" : free})
     Logger.debug("getPartList: returning %s" % partitions)
     return partitions

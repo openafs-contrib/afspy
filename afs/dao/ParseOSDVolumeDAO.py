@@ -61,7 +61,7 @@ def getVolume(rc,output,outerr,parseParamList,Logger) :
                 if len(splits) > 2:
                     VolObjs[instanceNo].servername     = splits[2]
                 splits = output[i+3].split()
-                VolObjs[instanceNo].part     = afsutil.canonicalizePartition(splits[1])
+                VolObjs[instanceNo].part     = afsutil.canonicalize_partition(splits[1])
                 splits = output[i+4].split()
                 VolObjs[instanceNo].status     = splits[1]
                 splits = output[i+5].split()

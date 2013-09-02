@@ -1,5 +1,6 @@
 from afs.dao.BaseDAO import BaseDAO, exec_wrapper
 import ParseVLDBDAO as PM
+import VLDbDAO_parse as PM
 import string
 
 class VLDBDAO(BaseDAO) :
@@ -16,14 +17,14 @@ class VLDBDAO(BaseDAO) :
         """
         get list of dicts of all fileservers registered in the VLDB
         """
-        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.cell]
         if noresolve :
             CmdList.append("-noresolve")
         return CmdList,PM.getFsServList
 
     @exec_wrapper
     def getFsUUID(self, name_or_ip, _cfg=None) :
-        CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.cell ]
 
         return CmdList,PM.getFsUUID
 
@@ -32,7 +33,7 @@ class VLDBDAO(BaseDAO) :
         """
         Return list of volumes on a server
         """
-        CmdList=[_cfg.binaries["vos"],"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"],"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % _cfg.cell ]
         if part != "" :
             CmdList += ["-part", "%s" % part]
         if noresolve :
@@ -44,7 +45,7 @@ class VLDBDAO(BaseDAO) :
         """
         Check that volumes residing at given Fileserver/partition have a correct  VLDB entries.
         """
-        CmdList=[_cfg.binaries["vos"], "syncvldb", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "syncvldb", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
         if part != "" :
             CmdList += [ "-part", "%s" % part]
         if volume != "" :
@@ -56,7 +57,7 @@ class VLDBDAO(BaseDAO) :
         """
         Verifies VLDB that entries pointing to a specified site are really on that Fileserver/Partition
         """
-        CmdList=[_cfg.binaries["vos"], "syncserv", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "syncserv", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
         if part != "" :
             CmdList += [ "-part", "%s" % part]
         return CmdList,PM.syncServ
@@ -67,7 +68,7 @@ class VLDBDAO(BaseDAO) :
         set the list of IP address for a given UUID in the VLDB
         Usage: vos setaddrs -uuid <uuid of server> -host <address of host>+ [-cell <cell name>] [-noauth] [-localauth] [-verbose] [-encrypt] [-noresolve] [-help]
         """
-        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % string.join(hostlist," "),  "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % string.join(hostlist," "),  "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.setaddrs
         
     @exec_wrapper
@@ -75,7 +76,7 @@ class VLDBDAO(BaseDAO) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.addsite
     
     @exec_wrapper
@@ -83,7 +84,7 @@ class VLDBDAO(BaseDAO) :
         """
         removes entry for a RO-Volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.remsite
         
     @exec_wrapper
@@ -91,7 +92,7 @@ class VLDBDAO(BaseDAO) :
         """
         locks volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.lock
     
     @exec_wrapper
@@ -99,6 +100,6 @@ class VLDBDAO(BaseDAO) :
         """
         unlocks volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "unlock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "unlock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.unlock
     

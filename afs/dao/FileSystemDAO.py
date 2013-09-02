@@ -24,7 +24,7 @@ class FileSystemDAO(BaseDAO) :
 
     @exec_wrapper
     def makeMountpoint(self, path, target, toRW=False, _cfg=None) :
-        CmdList=[_cfg.binaries["fs"],  "mkmount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["fs"],  "mkmount" , "-dir" , "%s" % path, "-vol", "%s" % target, "-cell",  "%s" % _cfg.cell ]
         if toRW :
             CmdList.append("-rw")
         return CmdList,PM.makeMountpoint

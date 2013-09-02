@@ -17,8 +17,8 @@ class FileServerDAO(BaseDAO) :
         List Volume entry via vos listvol from vol-server. 
         return list of dictionaries
         """
-        part = afsutil.canonicalizePartition(part)
-        CmdList = [_cfg.binaries["vos"],"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  _cfg.CELL_NAME]
+        part = afsutil.canonicalize_partition(part)
+        CmdList = [_cfg.binaries["vos"],"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  _cfg.cell]
         return CmdList,PM.getVolList
         
     @exec_wrapper    
@@ -26,8 +26,8 @@ class FileServerDAO(BaseDAO) :
         """
         return  Volumes in partition
         """
-        part = afsutil.canonicalizePartition(part)
-        CmdList=[_cfg.binaries["vos"],"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % _cfg.CELL_NAME]
+        part = afsutil.canonicalize_partition(part)
+        CmdList=[_cfg.binaries["vos"],"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % _cfg.cell]
         return CmdList,PM.getIdVolList
  
 
@@ -36,5 +36,5 @@ class FileServerDAO(BaseDAO) :
         """
         return list  of  Partitions-dicts
         """       
-        CmdList=[_cfg.binaries["vos"],"partinfo", "%s" % serv, "-cell","%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"],"partinfo", "%s" % serv, "-cell","%s" % _cfg.cell]
         return CmdList,PM.getPartList

@@ -122,5 +122,5 @@ class BNodeDAO(BaseDAO) :
         """
         get list of all database-servers known to a given AFS-server
         """
-        CmdList=[_cfg.binaries["bos"],"listhosts","-server", "%s"  % servername, "-cell" , "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["bos"],"listhosts","-server", "%s"  % servername, "-cell" , "%s" % _cfg.cell]
         return CmdList,PM.getDBServList

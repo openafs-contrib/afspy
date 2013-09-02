@@ -63,5 +63,5 @@ class CacheManagerDAO(BaseDAO):
         """
         set a new Cell alias
         """
-        CmdList=[_cfg.binaries["fs"] , "newaliases", "-alias" "%s"  % alias,"-name" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["fs"] , "newaliases", "-alias" "%s"  % alias,"-name" % _cfg.cell]
         return CmdList,PM.parse_newCellAlias

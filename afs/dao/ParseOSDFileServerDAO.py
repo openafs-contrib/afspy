@@ -31,7 +31,7 @@ def getVolList(rc,output,outerr,parseParamList,Logger) :
                     
                     splits = output[i+3].split()   
                     if  splits[0] == 'part':
-                         vol['part']     = afsutil.canonicalizePartition(splits[1]) 
+                         vol['part']     = afsutil.canonicalize_partition(splits[1]) 
                          
                     splits = output[i+4].split()
                     if  splits[0] == 'status':
@@ -66,7 +66,7 @@ def getVolList(rc,output,outerr,parseParamList,Logger) :
                        vol['servername']     = splits[1] 
                     splits = output[i+4].split()
                     Logger.debug("splits = %s" % splits)
-                    vol['part']     = afsutil.canonicalizePartition(splits[1])
+                    vol['part']     = afsutil.canonicalize_partition(splits[1])
                     splits = output[i+5].split()
                     Logger.debug("splits = %s" % splits)
                     vol['status']     = splits[1]

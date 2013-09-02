@@ -9,6 +9,7 @@ import inspect
 import logging
 import subprocess
 
+
 class ExecError(BaseException):
     """custom exception for executing shell commands."""
 
@@ -22,7 +23,7 @@ class ExecError(BaseException):
 
     def __str__(self):
         return repr(self.message)
-
+       
 
 def exec_wrapper(func) :
     """
@@ -31,7 +32,7 @@ def exec_wrapper(func) :
     and returns the appropriate parsing function and all info this
     parsing function needs.
     Hooks for Auth checking are in place, but unused.
-    Warning: if the interpreter complains
+    Warning: if the interpreter complains 
     got multiple values for keyword argument _cfg, then you're
     passing a positional argument, which should not be there.
     """
@@ -62,14 +63,14 @@ def exec_wrapper(func) :
         # get cmdlist and parsefunction from method
         # parse_fct is parsing the output of the executed function
         # ParseInfo are any info the parse_fct requires beside ret,
-        # outout and outerr
-        parse_parameterlist = {"args" : args, "kwargs" : kwargs }
+        # outout and outerr 
+        parse_parameterlist = {"args" : args, "kwargs" : kwargs } 
         argspec = inspect.getargspec(func)
-
+         
         self.logger.debug("argspec=%s" % (argspec,))
 
         count = 0
-        if argspec[3] != None :
+        if argspec[3] != None : 
             for key in argspec[0][-len(argspec[3]):] :
                 self.logger.debug("checking argspec key=%s" % key)
                 value = argspec[3][count]
@@ -82,8 +83,8 @@ def exec_wrapper(func) :
         self.logger.debug("kwargs=%s" % (kwargs,))
         self.logger.debug("parse_parameterlist=%s" % (parse_parameterlist,))
 
-        cmd_list, parse_fct = func(self, *args, **kwargs)
-
+        cmd_list, parse_fct = func(self, *args, **kwargs) 
+       
         # do really execute the call
         if self.implementation == "childprocs" :
             ret, output, outerr = self.execute(cmd_list)
@@ -103,12 +104,12 @@ def exec_wrapper(func) :
         return result
 
     return wrapped
-
+ 
 class BaseDAO(object) :
     """
     The mother of all DAOs
     """
-
+    
     def __init__(self, implementation="childprocs") :
         """initializes logger and sets implementation"""
 
@@ -120,7 +121,7 @@ class BaseDAO(object) :
         self.logger.debug("initializing %s-Object" % (self.__class__.__name__))
         self.implementation = implementation
         return
-
+        
     def execute(self, cmd_list, stdin = "") :
         """executes shell command as subprocess"""
 
@@ -143,19 +144,20 @@ class BaseDAO(object) :
                     return 13, "","Permission denied"
             raise ExecError("cmd: \"%s\" failed with ret=%d and stderr=%s\n" % \
                 (' '.join(cmd_list), pipo.returncode, _outerr))
-
+    
         # get rid of whitespace
         output = []
         for line in _output.split("\n") :
             line = line.strip()
-            if line == "" :
+            if line == "" : 
                 continue
             output.append(line)
-
+    
         outerr = []
         for line in _outerr.split("\n") :
             line = line.strip()
-            if line == "" : continue
+            if line == "" : 
+                continue
             outerr.append(line)
 
         self.logger.debug(\
@@ -175,4 +177,4 @@ class BaseDAO(object) :
         "sending command: '%s' with and sdtin=%s to job_sissy at %s" % \
         (' '.join(cmd_list), stdin, job_sissy))
         job_handle = None
-        return job_handle
+        return job_handle 

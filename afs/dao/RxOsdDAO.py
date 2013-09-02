@@ -16,7 +16,7 @@ class RxOsdDAO(BaseDAO):
         """
         examine an object 
         """
-        CmdList=[_cfg.binaries["osd"], "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "examine","-osd","%s" % osd_id,"-fid","%s" % fid, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.parse_examine
         
     @exec_wrapper  
@@ -24,7 +24,7 @@ class RxOsdDAO(BaseDAO):
         """
         query fetchqueues of archival osd.
         """
-        CmdList=[_cfg.binaries["osd"], "fetchq", "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "fetchq", "-cell",  "%s" % _cfg.cell ]
         if osd_id != -1:
             CmdList += ["-name" , "%s" % osd_id]
         return CmdList,PM.parse_getFetchQueue
@@ -34,7 +34,7 @@ class RxOsdDAO(BaseDAO):
         """
         query Servers for its tuneables
         """
-        CmdList=[_cfg.binaries["osd"], "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "whichvariables","-server", "%s" % osd_id, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.parse_getListOfServerSettings
  
     @exec_wrapper  
@@ -42,7 +42,7 @@ class RxOsdDAO(BaseDAO):
         """
         query Servers for it tuneables
         """
-        CmdList=[_cfg.binaries["osd"], "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "getvariable","-server", "%s" % osd_id,"-variable","%s" % key, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.parse_getServerSetting
    
     @exec_wrapper  
@@ -50,7 +50,7 @@ class RxOsdDAO(BaseDAO):
         """
         set Server tunable. Verifies result
         """ 
-        CmdList=[_cfg.binaries["osd"], "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "setvariable","-server", "%s" % osd_id, "-variable", "%s" % key, "-value" % value, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.parse_setServerSetting
 
     @exec_wrapper  
@@ -59,7 +59,7 @@ class RxOsdDAO(BaseDAO):
         get all objects of a given volume on an RxOsd. 
         Optional: define lun on RxOsd
         """ 
-        CmdList=[_cfg.binaries["osd"], "objects", "-osd","%s" % osd_id, "-volume", "%s" % vid, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "objects", "-osd","%s" % osd_id, "-volume", "%s" % vid, "-cell",  "%s" % _cfg.cell ]
         if osd_id :
             CmdList += ["-lun" , "%s" % lun]
         return CmdList,PM.parse_getObjectsofVolumeByOsd
@@ -69,7 +69,7 @@ class RxOsdDAO(BaseDAO):
         """
         get RPC-statistics of RxOsd-sever
         """
-        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id, "-cell",  "%s" % _cfg.cell ]
         if extended :
             CmdList += ["-verbose" ]
         return CmdList,PM.parse_getStatistics
@@ -79,7 +79,7 @@ class RxOsdDAO(BaseDAO):
         """
         reset RPC-statistics of a RxOsd-sever
         """
-        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "statistics", "-osd","%s" % osd_id,"-reset", "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.parse_resetStatistics
 
     @exec_wrapper  
@@ -87,14 +87,14 @@ class RxOsdDAO(BaseDAO):
         """
         get list of active threads of a RxOsd-sever
         """
-        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-cell",  "%s" % _cfg.cell ]
         if extended :
             CmdList += ["-verbose" ]
         return CmdList,PM.parse_getActiveThreads
    
     @exec_wrapper  
     def getWipeCandidates(self,osd_id,_cfg=None,lun=-1,maxNum=100,criteria="atime",minSizeMB=0) :
-        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-max" , "%s" % maxNum, "-minMB", "%s" % minSizeMB, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["osd"], "threads", "-server","%s" % osd_id, "-max" , "%s" % maxNum, "-minMB", "%s" % minSizeMB, "-cell",  "%s" % _cfg.cell ]
         if lun != -1 :
             CmdList += ["-lun", "%s" % lun ]
         if criteria == "atime" :

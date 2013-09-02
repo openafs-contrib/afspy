@@ -9,8 +9,8 @@ def parse_getVersionandBuildDate(rc,output,outerr,parseParamList,Logger):
         M=RXVerRegEx.match(output[1])
         if not M :
             version=""
-            builddate=""
+            build_date=""
         else :
             version=M.groups()[0].strip()
-            builddate=M.groups()[1].strip()
-    return version, builddate
+            build_date=M.groups()[1].strip()
+    return version, build_date

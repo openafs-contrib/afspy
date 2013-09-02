@@ -16,7 +16,7 @@ class VolumeDAO(BaseDAO) :
         """
         moves a volume to a new Destination. 
         """
-        CmdList=[_cfg.binaries["vos"], "move","%s" % ID, "-fromserver", "%s" % SrcServer, "-frompartition" , "%s" % SrcPartition, "-toserver" , "%s" % DstServer, "-topartition", "%s" % DstPartition,  "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "move","%s" % ID, "-fromserver", "%s" % SrcServer, "-frompartition" , "%s" % SrcPartition, "-toserver" , "%s" % DstServer, "-topartition", "%s" % DstPartition,  "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.move
 
     @exec_wrapper
@@ -24,7 +24,7 @@ class VolumeDAO(BaseDAO) :
         """
         release this volume
         """
-        CmdList=[_cfg.binaries["vos"], "release","%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "release","%s" % ID, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.release
     
     @exec_wrapper
@@ -32,7 +32,7 @@ class VolumeDAO(BaseDAO) :
         """
         sets Blockquota
         """
-        CmdList=[_cfg.binaries["vos"], "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.setBlockQuota
         
     @exec_wrapper
@@ -40,7 +40,7 @@ class VolumeDAO(BaseDAO) :
         """
         Dumps a volume into a file
         """
-        CmdList=[_cfg.binaries["vos"], "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.dump
 
     @exec_wrapper
@@ -48,7 +48,7 @@ class VolumeDAO(BaseDAO) :
         """
         Restores this (abstract) volume from a file.
         """
-        CmdList=[_cfg.binaries["vos"], "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.restore
     
     @exec_wrapper
@@ -56,7 +56,7 @@ class VolumeDAO(BaseDAO) :
         """
         converts this RO-Volume to a RW
         """
-        CmdList=[_cfg.binaries["vos"], "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.convert
 
     @exec_wrapper
@@ -64,7 +64,7 @@ class VolumeDAO(BaseDAO) :
         """
         create a Volume
         """
-        CmdList=[_cfg.binaries["vos"], "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % _cfg.CELL_NAME]
+        CmdList=[_cfg.binaries["vos"], "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.create
     
     @exec_wrapper
@@ -72,12 +72,12 @@ class VolumeDAO(BaseDAO) :
         """
         remove this Volume from the Server
         """
-        CmdList=[_cfg.binaries["vos"], "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.remove
    
     @exec_wrapper
     def getVolIDList(self, Server, _cfg=None, Partition=""): 
-        CmdList=[_cfg.binaries["vos"], "listvol","-server", "%s" % Server, "-fast", "-cell",  "%s" % _cfg.CELL_NAME ]
+        CmdList=[_cfg.binaries["vos"], "listvol","-server", "%s" % Server, "-fast", "-cell",  "%s" % _cfg.cell ]
         if Partition != "" :
             CmdList += ["-partition", "%s" % Partition]    
         return CmdList,PM.getVolIDList
@@ -88,5 +88,5 @@ class VolumeDAO(BaseDAO) :
         Volume entry via vos examine from vol-server. 
         If Name is given, it takes precedence over ID
         """
-        CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.CELL_NAME]
+        CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.cell]
         return CmdList,PM.getVolume
