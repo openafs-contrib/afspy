@@ -35,8 +35,8 @@ class LookupUtil :
             (self.__class__.__name__, conf))      
         # fast class-local Lookup cache 
         self.memory_cache = {
-            "DNSInfo" : {},
-            "FSUUIDs" : {}
+            "dns_info" : {},
+            "fsuuids" : {}
         }
 
         return   
@@ -67,17 +67,16 @@ class LookupUtil :
 
        
         # memory_cache 
-       
-        if name_or_ip in self.memory_cache["DNSInfo"] :
+        if name_or_ip in self.memory_cache["dns_info"] :
             self._logger.debug("%s in localcache hard-mapped (%s)" % \
-                (name_or_ip,self.memory_cache["DNSInfo"][name_or_ip] ))
-            return self.memory_cache["DNSInfo"][name_or_ip]
+                (name_or_ip,self.memory_cache["dns_info"][name_or_ip] ))
+            return self.memory_cache["dns_info"][name_or_ip]
         
-        for srv in self.memory_cache["DNSInfo"] :
-            if name_or_ip in self.memory_cache["DNSInfo"][srv]["names"] :
+        for srv in self.memory_cache["dns_info"] :
+            if name_or_ip in self.memory_cache["dns_info"][srv]["names"] :
                 self._logger.debug("%s is hard-mapped to %s" % (name_or_ip, \
-                    self.memory_cache["DNSInfo"][srv] ))
-                return self.memory_cache["DNSInfo"][srv]
+                    self.memory_cache["dns_info"][srv] ))
+                return self.memory_cache["dns_info"][srv]
 
         # lookup from OS
   
@@ -139,12 +138,12 @@ class LookupUtil :
         self._logger.debug("getFSUUID: called with %s" % name_or_ip)
         if cached :
         # local Cache first
-            if name_or_ip in self.memory_cache["FSUUIDs"].keys() :
-                return self.memory_cache["FSUUIDs"][name_or_ip]
+            if name_or_ip in self.memory_cache["fsuuids"].keys() :
+                return self.memory_cache["fsuuids"][name_or_ip]
             else :
                 name_or_ip = self.get_dns_info(name_or_ip)["names"][0] 
-                if name_or_ip in self.memory_cache["FSUUIDs"].keys() :
-                    return self.memory_cache["FSUUIDs"][name_or_ip]
+                if name_or_ip in self.memory_cache["fsuuids"].keys() :
+                    return self.memory_cache["fsuuids"][name_or_ip]
         # then DB
             if  self._config.DB_CACHE:
                 from afs.util.DBManager import DBManager
@@ -158,9 +157,9 @@ class LookupUtil :
                     dns_info["names"][0])
                 if fileserver != None :
                     # store it in memory_cache 
-                    self.memory_cache["FSUUIDs"][fileserver.servernames[0]] = \
+                    self.memory_cache["fsuuids"][fileserver.servernames[0]] = \
                         fileserver.uuid 
-                    self.memory_cache["FSUUIDs"][fileserver.ipaddrs[0]] = \
+                    self.memory_cache["fsuuids"][fileserver.ipaddrs[0]] = \
                         fileserver.uuid
                     return fileserver.uuid
 
@@ -178,8 +177,8 @@ class LookupUtil :
             return None
 
         # store it in memory_cache 
-        self.memory_cache["FSUUIDs"][name_or_ip] = uuid                  
-        self.memory_cache["FSUUIDs"][dns_info["names"][0]] = uuid
+        self.memory_cache["fsuuids"][name_or_ip] = uuid                  
+        self.memory_cache["fsuuids"][dns_info["names"][0]] = uuid
         return uuid
     
     def get_hostname_by_fsuuid(self, uuid, _user = "", cached = True) :
@@ -189,10 +188,10 @@ class LookupUtil :
         self._logger.debug("called with %s, cached=%s" % (uuid, cached))
         if cached :
             # local Cache first
-            for hostname in self.memory_cache["FSUUIDs"] :
+            for hostname in self.memory_cache["fsuuids"] :
                 if not is_name(hostname) : 
                     continue
-                if self.memory_cache["FSUUIDs"][hostname] == uuid :
+                if self.memory_cache["fsuuids"][hostname] == uuid :
                     self._logger.debug("returning from local cache: %s" % \
                         hostname)
                     return hostname
@@ -206,7 +205,7 @@ class LookupUtil :
                 self._logger.debug("looking up hostname in db_cache " + \
                    "for uuid=%s" % uuid)
                 if fileserver != None :
-                    self.memory_cache["FSUUIDs"][fileserver.servernames[0]] = \
+                    self.memory_cache["fsuuids"][fileserver.servernames[0]] = \
                         fileserver.uuid
                     return fileserver.servernames[0]
 
@@ -226,6 +225,6 @@ class LookupUtil :
         self._logger.debug("get_hostname_by_fsuuid: got name_or_ip = %s " + \
             "from live-system" % name_or_ip)
         name_or_ip = self.get_dns_info(name_or_ip)["names"][0]
-        self.memory_cache["FSUUIDs"][name_or_ip] = uuid                  
+        self.memory_cache["fsuuids"][name_or_ip] = uuid                  
         self._logger.debug("returning: %s" % name_or_ip)
         return name_or_ip

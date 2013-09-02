@@ -14,13 +14,13 @@ class DBManager :
         if conf:
             self._CFG = conf
         else:
-            self._CFG = afs.defaultConfig
+            self._CFG = afs.CONFIG
 
         if not self._CFG.DB_CACHE:
             raise AfsError("DB_CACHE not configured")
 
         # LOG INIT
-        classLogLevel = getattr(afs.defaultConfig,"LogLevel_%s" % self.__class__.__name__, "").upper()
+        classLogLevel = getattr(self._CFG,"LogLevel_%s" % self.__class__.__name__, "").upper()
         numericLogLevel = getattr(logging,classLogLevel, 0)
         self.Logger=logging.getLogger("afs.util.%s" % self.__class__.__name__)
         self.Logger.setLevel(numericLogLevel)
