@@ -37,7 +37,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
 
     def do_test_getSyncSite(self, servername):
-        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         SyncSite=d["SyncSite"]
         self.assertTrue( (SyncSite in self.allHosts), msg="SyncSite '%s' not in allDBs : %s" % (SyncSite, self.allHosts))
         return
@@ -51,7 +51,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
 
     def do_test_getAllPeers(self, servername):
-        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         allPeers=d["Peers"].keys()
         allPeers.sort()
         self.assertEqual(allPeers, self.allHosts)
@@ -72,7 +72,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
  
     def do_test_getDBVersion(self, servername) :
-        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         DBVersion=d["SyncSiteDBVersion"]
         self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
@@ -86,7 +86,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
 
     def do_test_getDBState(self, servername) :
-        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         self.assertEqual(d["DBState"], self.DBState)
         return
     
@@ -100,7 +100,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
         
     def do_test_voting(self, servername):
-        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         for p in d["Peers"] :
             if p == servername : continue
             self.assertTrue((d["Peers"][p]["lastVote"] in ["yes","no"]), "Peer '%s' reports lastVote '%s', which is neither 'yes' nor 'no'" % (p,d["Peers"][p]["lastVote"]  ))
@@ -115,7 +115,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         return
 
     def do_test_lastBeaconSend(self, servername): 
-        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.defaultConfig,_user="test")
+        d=self.DAO.getLongInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         for p in d["Peers"] :
             if p == servername : continue
             self.assertTrue((float(d["Peers"][p]["lastBeaconSend"]) >= 0), "last Beacon Sendtime '%s' is not a non-negative float"  %d["Peers"][p]["lastBeaconSend"] )

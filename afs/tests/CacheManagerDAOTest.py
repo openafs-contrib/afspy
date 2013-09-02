@@ -20,12 +20,12 @@ class TestCacheManagerDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_getWSCell(self) :
-        cellname=self.DAO.getWSCell( _cfg=afs.defaultConfig,_user="test")
+        cellname=self.DAO.getWSCell( _cfg=afs.CONFIG,_user="test")
         self.assertEqual(self.Cell,cellname)
         return
         
     def test_getCellAliases(self) :
-        Aliases=self.DAO.getCellAliases(_cfg=afs.defaultConfig,_user="test")
+        Aliases=self.DAO.getCellAliases(_cfg=afs.CONFIG,_user="test")
         print Aliases
         return
     

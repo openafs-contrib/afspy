@@ -15,7 +15,11 @@ class BasicTestSetup :
     super class for all unit-tests here.  
     """
 
+<<<<<<< Updated upstream
     def setUp(self) :
+=======
+    def __init__(self) :
+>>>>>>> Stashed changes
         """parse test.configuration file"""
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)

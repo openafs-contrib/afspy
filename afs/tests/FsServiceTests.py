@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import unittest, sys
-from BaseTest import parseCMDLine, basicTestSetup
+from BaseTest import parse_commandline, BasicTestSetup
 
 from afs.service.FsService import FsService
 import afs
 
-class SetupTest(basicTestSetup) :
+class SetupTest(BasicTestSetup) :
     """
     setup TestFs config
     """
@@ -15,9 +15,9 @@ class SetupTest(basicTestSetup) :
         """
         setup VolService
         """
-        basicTestSetup.setUp(self)
-        self.FsName=self.TestCfg.get("FsService", "FS")
-        self.FsPartitions=self.TestCfg.get("FsService", "Partitions").split(",")
+        BasicTestSetup.__init__(self)
+        self.FsName=self.test_config.get("FsService", "FS")
+        self.FsPartitions=self.test_config.get("FsService", "Partitions").split(",")
         self.FsPartitions.sort()
         self.FsMng = FsService()
         return    
@@ -35,19 +35,6 @@ class TestFsServiceSetMethods(unittest.TestCase, SetupTest):
         SetupTest.setUp(self)
         return
 
-    def test_setRestartTimes(self):
-        restartTime = self.FsMng.setRestartTimes(self.FsName,"never","general")
-        self.assertEqual(None,restartTime)
-        restartTime = self.FsMng.setRestartTimes(self.FsName,"never","binary")
-        self.assertEqual(None,restartTime)
-        return
-        
-    def test_getRestartTimes(self):
-        TimesDict = self.FsMng.getRestartTimes(self.FsName)
-        self.assertEqual("never",TimesDict["general"])
-        self.assertEqual("never",TimesDict["binary"])
-        return
-        
     def test_getServerObj(self) :
         server=self.FsMng.getFileServer(self.FsName, cached=False)
         parts=[]
@@ -79,14 +66,14 @@ class TestFsServiceCachedMethods(unittest.TestCase, SetupTest):
 
 
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceSetMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
-    if afs.defaultConfig.DB_CACHE :
+    if afs.CONFIG.DB_CACHE :
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceCachedMethods)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else :

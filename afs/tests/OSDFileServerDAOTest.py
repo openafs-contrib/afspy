@@ -24,7 +24,7 @@ class TestOSDFileServerDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_getVolList(self) :
-        VolList=self.DAO.getVolList(self.FS,self.Part,_cfg=afs.defaultConfig,_user="test")
+        VolList=self.DAO.getVolList(self.FS,self.Part,_cfg=afs.CONFIG,_user="test")
         # this is somewhat silly, but what can you do ?
         # maybe check structure of result ?
         self.assertTrue(len(VolList)> 100)
@@ -32,7 +32,7 @@ class TestOSDFileServerDAOMethods(unittest.TestCase, basicTestSetup):
         
     def test_getIdVolList(self) :
         self.DAO.Logger.setLevel(logging.DEBUG)
-        IdVolList=self.DAO.getIdVolList(self.FS,self.Part,_cfg=afs.defaultConfig,_user="test")
+        IdVolList=self.DAO.getIdVolList(self.FS,self.Part,_cfg=afs.CONFIG,_user="test")
         self.DAO.Logger.setLevel(logging.WARN)
         # this is somewhat silly, but what can you do ?
         # maybe check structure of result ?
@@ -40,7 +40,7 @@ class TestOSDFileServerDAOMethods(unittest.TestCase, basicTestSetup):
         return
 
     def test_getPartList(self,) :
-        PartList=self.DAO.getPartList(self.FS,_cfg=afs.defaultConfig,_user="test")
+        PartList=self.DAO.getPartList(self.FS,_cfg=afs.CONFIG,_user="test")
         for p in PartList :
            if not p["name"] in self.allParts :
                 self.assertEqual(p,"Not in Test.cfg")

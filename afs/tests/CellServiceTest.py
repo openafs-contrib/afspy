@@ -127,7 +127,7 @@ if __name__ == '__main__' :
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
-    if afs.defaultConfig.DB_CACHE :
+    if afs.CONFIG.DB_CACHE :
         suite = unittest.TestLoader().loadTestsFromTestCase(TestCellServiceCachedMethods)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else :

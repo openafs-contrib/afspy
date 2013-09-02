@@ -22,7 +22,7 @@ class TestVLDbDAOMethods(unittest.TestCase, basicTestSetup):
         return
     
     def test_getVolList(self) :
-        ServList=self.DAO.getFsServList(_cfg=afs.defaultConfig, _user="test")
+        ServList=self.DAO.getFsServList(_cfg=afs.CONFIG, _user="test")
         self.assertTrue(len(ServList) > self.numServ)
         return
         

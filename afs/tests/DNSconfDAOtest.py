@@ -17,7 +17,11 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         """
         setup
         """
+<<<<<<< Updated upstream
         BasicTestSetup.setUp(self)
+=======
+        BasicTestSetup.__init__(self)
+>>>>>>> Stashed changes
         self.dao = DNSconfDAO.DNSconfDAO()
         return
 
@@ -26,7 +30,12 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         test the retrieval of all afs database servers from DNS
         for a given cell.
         """
+<<<<<<< Updated upstream
         db_serverlist = self.dao.get_db_serverlist(_cfg = afs.CONFIG)
+=======
+        db_serverlist = self.dao.get_db_serverlist( _user = "test", \
+            _cfg = afs.CONFIG)
+>>>>>>> Stashed changes
         db_serverlist.sort()
         self.assertEqual(db_serverlist, self.all_dbservers)
         return

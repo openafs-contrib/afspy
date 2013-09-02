@@ -25,19 +25,19 @@ class TestLookupUtilMethods(unittest.TestCase, basicTestSetup):
         return
 
     def test_Lookup_HostAlias(self) :
-        DNSInfo=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getDNSInfo(self.HostAlias)
+        DNSInfo=afs.LookupUtil[afs.CONFIG.cell].getDNSInfo(self.HostAlias)
         self.assertEqual(self.primaryHostName,DNSInfo["names"][0])
         return
 
     def test_Lookup_UUID(self) :
-        uuid=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(self.HostAlias)
+        uuid=afs.LookupUtil[afs.CONFIG.cell].getFSUUID(self.HostAlias)
         self.assertEqual(self.FsUUID,uuid)
         return
 
     def test_Lookup_HostnameByFSUUID(self) :
-        afs.LookupUtil[afs.defaultConfig.CELL_NAME].Logger.setLevel(logging.DEBUG)
-        hostname=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getHostnameByFSUUID(self.FsUUID)
-        afs.LookupUtil[afs.defaultConfig.CELL_NAME].Logger.setLevel(logging.WARN)
+        afs.LookupUtil[afs.CONFIG.cell].Logger.setLevel(logging.DEBUG)
+        hostname=afs.LookupUtil[afs.CONFIG.cell].getHostnameByFSUUID(self.FsUUID)
+        afs.LookupUtil[afs.CONFIG.cell].Logger.setLevel(logging.WARN)
         self.assertEqual(self.primaryHostName,hostname)
         return
 
