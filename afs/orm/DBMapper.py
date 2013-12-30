@@ -2,7 +2,7 @@
 declare and handle object relational mapping of the model objects
 """
 import sys
-from afs.exceptions.ORMError import ORMError
+from afs.orm.ORMError import ORMError
 import afs
 import logging, datetime
 
@@ -109,6 +109,7 @@ def setup_db_mappings(conf = None) :
         Column('servernames_js', TEXT),
         Column('ipaddrs_js', TEXT),
         Column('version', String(32) ),
+        Column('build_date', String(32) ),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
         )
@@ -122,7 +123,6 @@ def setup_db_mappings(conf = None) :
         Column('location', String(32) ),
         Column('owner', String(32) ),
         Column('description', TEXT ),
-        Column('build_date', String(32) ),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
         )
@@ -139,6 +139,7 @@ def setup_db_mappings(conf = None) :
         Column('local_afsdb_version', String(32) ),
         Column('is_clone', Boolean ),
         Column('version', String(32) ),
+        Column('build_date', String(32) ),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
         )
@@ -153,7 +154,6 @@ def setup_db_mappings(conf = None) :
         Column('location', String(32) ),
         Column('owner', String(32) ),
         Column('description', TEXT ),
-        Column('build_date', String(32) ),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
         )
@@ -162,11 +162,17 @@ def setup_db_mappings(conf = None) :
     from afs.model.ExtendedDBServerAttributes import ExtDBServAttr
     safe_mapping(ExtDBServAttr, tbl_extdbservattr)
 
+    #
+    # BosServer
+    #
+
     tbl_bosserver = Table('tbl_bosserver', metadata,
         Column('db_id', Integer, primary_key = True),
         Column('servernames_js', TEXT),
         Column('ipaddrs_js', TEXT),
-        Column('binary_restart_time', String(32) ),
+        Column('superusers_js', TEXT),
+        Column('db_servers_js', TEXT),
+        Column('newbinary_restart_time', String(32) ),
         Column('general_restart_time', String(32) ),
         Column('version', String(32) ),
         Column('build_date', String(32) ),
@@ -178,6 +184,35 @@ def setup_db_mappings(conf = None) :
     from afs.model.BosServer import BosServer
     safe_mapping(BosServer, tbl_bosserver)
 
+
+    #
+    #  BNodes (Server Processes)
+    #
+
+    tbl_bnode = Table('tbl_bnode', metadata,
+        Column('db_id', Integer, primary_key = True),
+        Column('bos_db_id', Integer),
+        Column('bnode_type', String(6)),
+        Column('instance_name', String(255)),
+        Column('status', String(10)),
+        Column('commands_js', TEXT),
+        Column('start_date', DateTime),
+        Column('start_count', String(255)),
+        Column('last_exit_date', DateTime),
+        Column('notifier', String(255)),
+        Column('error_stop', String(255) ),
+        Column('core', String(255)),
+        Column('error_exit_date', DateTime ),
+        Column('error_exit_due', String(255) ),
+        Column('error_exit_signal', String(255) ),
+        Column('error_exit_code', String(255) ),
+        Column('db_creation_date', DateTime),
+        Column('db_update_date', DateTime),
+        )
+
+    #Mapping Table
+    from afs.model.BNode import BNode
+    safe_mapping(BNode, tbl_bnode)
 
     #  Partition
     ##################################################
@@ -218,32 +253,6 @@ def setup_db_mappings(conf = None) :
     from afs.model.ExtendedPartitionAttributes import ExtPartAttr
     safe_mapping(ExtPartAttr, tbl_extpartattr)
 
-    #  BNodes (Server Processes)
-    ##################################################
-    tbl_bnode = Table('tbl_bnode', metadata,
-        Column('db_id', Integer, primary_key = True),
-        Column('bos_db_id', Integer),
-        Column('bnode_type', String(6)),
-        Column('status', String(2)),
-        Column('commands', String(255)),
-        Column('start_date', String(255)),
-        Column('start_count', String(255)),
-        Column('last_exit_date', DateTime),
-        Column('notifier', String(255)),
-        Column('error_stop', String(255) ),
-        Column('core', String(255)),
-        Column('error_exit_date', DateTime ),
-        Column('error_exit_due', String(255) ),
-        Column('error_exit_signal', String(255) ),
-        Column('error_exit_code', String(255) ),
-        Column('db_creation_date', DateTime),
-        Column('db_update_date', DateTime),
-        )
-
-    #Mapping Table
-    from afs.model.BNode import BNode
-    safe_mapping(BNode, tbl_bnode)
-
     #  Volume
     ##################################################
     tbl_volume = Table('tbl_volume', metadata,
@@ -251,7 +260,7 @@ def setup_db_mappings(conf = None) :
         Column('name', String(255)),
         Column('vid', Integer, index = True ),
         Column('fileserver_uuid', String(255), index = True),
-        Column('part', String(2), index = True),
+        Column('partition', String(2), index = True),
         Column('servername', String(255)),
         Column('parent_id', Integer ),
         Column('backup_id', Integer ),
