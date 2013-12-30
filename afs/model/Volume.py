@@ -23,7 +23,7 @@ class Volume(BaseModel) :
         ## ServerUUID where this volume is stored
         self.fileserver_uuid = ""
         ## Partitionname, where this volume is stored.
-        self.part = ""
+        self.partition = ""
         ## hostname, not to be used for queries
         self.servername = ""
         ## numerical ID of  RW Volume
@@ -50,4 +50,4 @@ class Volume(BaseModel) :
         self.spare2  = 0
         self.spare3  = 0
         ## list of attributes not to put into the DB
-        self.unmapped_attributes_list =  ['ExtAttr', 'OsdAttr']
+        self.unmapped_attributes_list =  ['ExtAttr']

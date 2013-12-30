@@ -1,7 +1,6 @@
 """
 Declares Model object of extra Attributes to a server.
 """
-from datetime import datetime
 from afs.model.BaseModel import BaseModel
 
 
@@ -25,5 +24,3 @@ class ExtDBServAttr(BaseModel):
         self.owner = ""
         ## custom description about HW etc.
         self.description = ""
-        ## builddate according to rxdebug
-        self.build_date = ""

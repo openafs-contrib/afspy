@@ -17,7 +17,7 @@ class VLDB(BaseModel) :
         BaseModel.__init__(self)
 
         ## list of servers providing this DB
-        self.dbservers_ipaddrs__js = "[]"
+        self.dbservers_ipaddrs_js = "[]"
         self.dbservers_ipaddrs = []
         ## syncsite, master-server
         self.sync_server_ipaddrs = ""

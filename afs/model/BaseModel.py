@@ -1,7 +1,7 @@
 """
 Declares the mother of all model-objects.
 """
-import datetime, json, logging, decimal
+import datetime, json, logging, decimal, sys
 from types import StringType, IntType, LongType,  FloatType,  BooleanType,  \
     UnicodeType, ListType, DictType, NoneType
 
@@ -26,6 +26,7 @@ class BaseModel(object):
         ## list of attributes not to put into the DB
         ## overwrite in model definition if not empty
         self.unmapped_attributes_list = []
+        self.update_app_repr()
         return 
 
     def update_app_repr(self) :
@@ -64,6 +65,9 @@ class BaseModel(object):
             elif type(value) in [ StringType, IntType, LongType, \
             FloatType, BooleanType, NoneType ] :
                 ignore = True
+            elif attr == "unmapped_attributes_list" or \
+            attr in self.unmapped_attributes_list :
+                ignore = True
             if not ignore :
                 LOGGER.debug("attr=%s type(value)=%s" % (attr, type(value)))
                 json_reprs["%s_js" % attr] = json.dumps(value)
@@ -100,7 +104,13 @@ class BaseModel(object):
         repr = "<%s(" % self.__class__.__name__
         model_attributes = dir(self)
         for attr in model_attributes :
-            if attr in base_model_attrs : continue
-            repr += "%s=%s, " % (attr, eval("self.%s" % attr))
+            if attr in base_model_attrs : 
+                if not attr.startswith("db_") :
+                    continue
+            if attr == self : continue
+            if attr in self.unmapped_attributes_list : 
+                repr += "(%s=%s,)"  % (attr, eval("self.%s" % attr))
+            else :
+                repr += "%s=%s, " % (attr, eval("self.%s" % attr))
         repr += ")>"
         return repr
