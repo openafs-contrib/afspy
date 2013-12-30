@@ -1,3 +1,4 @@
+from RXPeerDAOError import RXPeerDAOError
 import re
 
 def parse_getVersionandBuildDate(rc,output,outerr,parseParamList,Logger):

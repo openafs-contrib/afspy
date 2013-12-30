@@ -1,5 +1,6 @@
-from afs.dao.BaseDAO import BaseDAO, exec_wrapper
-import ParseRXPeerDAO as PM
+from afs.dao.BaseDAO import BaseDAO
+from afs.util.Executor import exec_wrapper
+import RXPeerDAOParse as PM
 
 class RXPeerDAO(BaseDAO):
 

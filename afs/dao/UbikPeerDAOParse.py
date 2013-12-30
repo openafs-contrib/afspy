@@ -1,4 +1,4 @@
-from afs.exceptions.UbikError import UbikError
+from UbikPeerDAOError import UbikPeerDAOError
 import re
 
 SyncRX=re.compile("Sync host (.*) was set (\d+) secs ago")
@@ -66,7 +66,7 @@ def parse_getShortInfo(rc, output, outerr, parseParamList, Logger) :
         elif "I am a clone and never can become sync site" :
             resDict["isClone"] = True
         else :
-            raise UbikError("Cannot get Sync/clone info from %s" % output[idx])
+            raise UbikPeerDAOError("Cannot get Sync/clone info from %s" % output[idx])
         # "I am not sync site"
         resDict["isSyncSite"] = False
         idx += 1
@@ -170,6 +170,6 @@ def parse_getLongInfo( rc, output, outerr, parseParamList,Logger) :
             Host,ago=M.groups()
             continue
 
-        #raise UbikError("Error Parsing line: %s" % output[line_no])
+        #raise UbikPeerDAOError("Error Parsing line: %s" % output[line_no])
     d["Peers"][d["thisHostIPs"][0]]=thisPeerDict
     return d

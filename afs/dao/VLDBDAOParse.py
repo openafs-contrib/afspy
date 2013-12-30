@@ -1,11 +1,11 @@
-from afs.exceptions.VLDbError import VLDbError
+from VLDBDAOError import VLDBDAOError
 import afs
 
 def getFsServList(rc,output,outerr,parseParamList,Logger):
     noresolve=parseParamList["kwargs"]["noresolve"]
     _cfg=parseParamList["kwargs"]["_cfg"]
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
+        raise VLDBDAOError("Error: %s " %  outerr)
     servers = []
     i = 0
     while i < len(output) :
@@ -15,10 +15,10 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
             server['uuid'] = splits[1]
             i = i + 1
             try :
-                DNSInfo=afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(output[i])
+                DNSInfo=afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(output[i])
             except :
                 server['name_or_ip'] = output[i]
-                Logger.warn("Cannot resolv name_or_ip %s. Leaving it as it is." % output[i]  )
+                Logger.warn("Cannot resolv name_or_ip \'%s\'. Leaving it as it is." % output[i]  )
                 continue
             if noresolve :
                 server['name_or_ip'] = DNSInfo["ipaddrs"][0]
@@ -30,7 +30,7 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
 
 def getFsUUID(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
+        raise VLDBDAOError("Error: %s " %  outerr)
     uuid=output[0].split()[1]
     return uuid
 
@@ -38,7 +38,7 @@ def getVolumeList(rc,output,outerr,parseParamList,Logger) :
     noresolve=parseParamList["kwargs"]["noresolve"]
     _cfg=parseParamList["kwargs"]["_cfg"]
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
+        raise VLDBDAOError("Error: %s " %  outerr)
     Volumes=[]
     # header is always 2 lines
     i = 1
@@ -82,36 +82,36 @@ def getVolumeList(rc,output,outerr,parseParamList,Logger) :
 
 def unlock(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 
 def lock(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 
 def syncVLDB(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 
 def setaddrs(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 
 def addsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
+        raise VLDBDAOError("Error: %s " %  outerr)
     return 
 
 def remsite(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 
 def syncServ(rc,output,outerr,parseParamList,Logger) :
     if rc :
-        raise VLDbError("Error: %s " %  outerr)
-    raise VLDbError("Not Implemented.")
+        raise VLDBDAOError("Error: %s " %  outerr)
+    raise VLDBDAOError("Not Implemented.")
 

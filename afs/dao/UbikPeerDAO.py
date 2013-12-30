@@ -1,7 +1,7 @@
-from afs.exceptions.UbikError import UbikError
-from afs.dao.BaseDAO import BaseDAO, exec_wrapper
-from afs.util import afsutil
-import ParseUbikPeerDAO as PM
+from UbikPeerDAOError import UbikPeerDAOError
+from afs.dao.BaseDAO import BaseDAO
+from afs.util.Executor import exec_wrapper
+import UbikPeerDAOParse as PM
 
 
 class UbikPeerDAO(BaseDAO):
@@ -30,6 +30,6 @@ class UbikPeerDAO(BaseDAO):
         CmdList=[_cfg.binaries["udebug"],"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
         rc,output,outerr=self.execute(CmdList) 
         if rc :
-            raise UbikError(rc)
+            raise UbikPeerDAOError(rc)
         return CmdList,PM.parse_getShortInfo
 

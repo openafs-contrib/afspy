@@ -1,13 +1,12 @@
 """ 
-dao : direct  access object.
+low-level interface
 used for filling up objects from a live afs-cell
+and other direct access of the afs-cell
 """
-from afs.dao import BNodeDAO,  CacheManagerDAO, FileServerDAO,  FileSystemDAO, \
-    PTDBDAO, RXPeerDAO,  UbikPeerDAO,  VLDBDAO,  VolumeDAO
 
 # Init 
-__all__ = ["BNodeDAO", "CacheManagerDAO", "FileServerDAO", "FileSystemDAO", \
-     "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolumeDAO"]
+__all__ = ["BosServer", "CacheManager", "DNSconf", "FileServer", "path", \
+     "PTDB", "RXPeer", "UbikPeer", "VLDB", "Volume"]
 
 def setup_options():   
     """

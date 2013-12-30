@@ -1,7 +1,7 @@
-from afs.dao.BaseDAO import BaseDAO, exec_wrapper
-import ParseVLDBDAO as PM
-import VLDbDAO_parse as PM
-import string
+from afs.dao.BaseDAO import BaseDAO
+from afs.util.Executor import exec_wrapper
+import VLDBDAOParse as PM
+from afs.util.AFSError import AFSError
 
 class VLDBDAO(BaseDAO) :
     """
@@ -68,7 +68,7 @@ class VLDBDAO(BaseDAO) :
         set the list of IP address for a given UUID in the VLDB
         Usage: vos setaddrs -uuid <uuid of server> -host <address of host>+ [-cell <cell name>] [-noauth] [-localauth] [-verbose] [-encrypt] [-noresolve] [-help]
         """
-        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % string.join(hostlist," "),  "-cell",  "%s" % _cfg.cell ]
+        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % " ".join(hostlist),  "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.setaddrs
         
     @exec_wrapper
