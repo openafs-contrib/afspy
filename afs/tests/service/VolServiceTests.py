@@ -5,9 +5,9 @@ import unittest,sys
 import afs
 from afs.service.VolService import VolService
 
-from BaseTest import parseCMDLine, basicTestSetup
+from BaseTest import parse_commandline, BasicTestSetup
 
-class SetupTest(basicTestSetup) :
+class SetupTest(BasicTestSetup) :
     """
     Tests VolService Methods
     """
@@ -16,15 +16,15 @@ class SetupTest(basicTestSetup) :
         """
         setup VolService
         """
-        basicTestSetup.setUp(self)
+        BasicTestSetup.__init__(self)
         self.volMng = VolService()
-        self.VolID=int(self.TestCfg.get("VolService", "VolID"))
-        self.VolName=self.TestCfg.get("VolService", "VolName")
-        self.minCopy=int(self.TestCfg.get("VolService", "minCopy"))
-        self.Owner=self.TestCfg.get("VolService", "Owner")
-        self.FS=self.TestCfg.get("VolService", "FS")
-        self.FSName=self.TestCfg.get("VolService", "FSName")
-        self.Part=self.TestCfg.get("VolService", "Part")
+        self.VolID=int(self.test_config.get("VolService", "VolID"))
+        self.VolName=self.test_config.get("VolService", "VolName")
+        self.minCopy=int(self.test_config.get("VolService", "minCopy"))
+        self.Owner=self.test_config.get("VolService", "Owner")
+        self.FS=self.test_config.get("VolService", "FS")
+        self.FSName=self.test_config.get("VolService", "FSName")
+        self.Part=self.test_config.get("VolService", "Part")
         return    
 
 class TestVolServiceSetMethods(unittest.TestCase, SetupTest):
@@ -35,21 +35,8 @@ class TestVolServiceSetMethods(unittest.TestCase, SetupTest):
     def setUp(self):
         return SetupTest.setUp(self) 
 
-    def test_setExtendedVolumeAttributes(self):
-        if not afs.CONFIG.DB_CACHE :
-            self.assertEqual(None, None)
-            return
-        volExtAttrDict={
-                        "mincopy" : self.minCopy, 
-                        "owner" : self.Owner, 
-                        }
-        thisExtVolAttr=self.volMng.setExtVolAttr(self.VolID, volExtAttrDict)
-        self.assertEqual(thisExtVolAttr.mincopy, self.minCopy)
-        self.assertEqual(thisExtVolAttr.owner, self.Owner)
-        return
-    
     def test_getVolbyName_live(self) :
-        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, cached=False)
+        vol = self.volMng.get_volume(self.VolName, self.FS, self.Part, cached=False)
         self.assertEqual(vol.vid, self.VolID)
         self.assertEqual(vol.servername, self.FSName)
         self.assertEqual(vol.part, self.Part)
@@ -65,21 +52,14 @@ class TestVolServiceCachedMethods(unittest.TestCase, SetupTest):
         return SetupTest.setUp(self) 
 
     def test_getVolbyName_cached(self) :
-        vol = self.volMng.getVolume(self.VolName, self.FS, self.Part, cached=True)
+        vol = self.volMng.get_volume(self.VolName, self.FS, self.Part, cached=True)
         self.assertEqual(vol.vid, self.VolID)
         self.assertEqual(vol.servername, self.FSName)
         self.assertEqual(vol.part, self.Part)
         return
     
-    def test_getExtendedVolumeAttributes(self):
-        volExt=self.volMng.getExtVolAttr(self.VolID)
-        
-        self.assertEqual(volExt.mincopy, self.minCopy)
-        self.assertEqual(volExt.owner, self.Owner)
-        return
-
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVolServiceSetMethods)

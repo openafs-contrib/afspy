@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import unittest,sys
-from BaseTest import parseCMDLine, basicTestSetup
+from BaseTest import parse_commandline, BasicTestSetup
 
 import afs
-from afs.dao import VLDbDAO
+from afs.dao import VLDBDAO
 
-class TestVLDbDAOMethods(unittest.TestCase, basicTestSetup):
+class TestVLDbDAOMethods(unittest.TestCase, BasicTestSetup):
     """
     Tests FileServerDAO Methods
     """
@@ -15,10 +15,10 @@ class TestVLDbDAOMethods(unittest.TestCase, basicTestSetup):
         """
         setup
         """
-        basicTestSetup.setUp(self)
-        self.cellname=self.TestCfg.get("general","Cell")
-        self.numServ=int(self.TestCfg.get("VLDbDAO","numServ"))
-        self.DAO = VLDbDAO.VLDbDAO()
+        BasicTestSetup.__init__(self)
+        self.cellname=self.test_config.get("general","Cell")
+        self.numServ=int(self.test_config.get("VLDbDAO","numServ"))
+        self.DAO = VLDBDAO.VLDBDAO()
         return
     
     def test_getVolList(self) :
@@ -27,6 +27,6 @@ class TestVLDbDAOMethods(unittest.TestCase, basicTestSetup):
         return
         
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestVLDbDAOMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)

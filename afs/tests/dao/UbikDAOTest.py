@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import unittest
-from BaseTest import parseCMDLine, basicTestSetup
+from BaseTest import parse_commandline, BasicTestSetup
 
 from afs.dao import UbikPeerDAO 
 import afs
 
 
-class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
+class TestUbikDAOMethods(unittest.TestCase, BasicTestSetup):
     """
     Tests UbikPeerDAO Methods
     """
@@ -16,13 +16,13 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
         """
         setup
         """
-        basicTestSetup.setUp(self)
+        BasicTestSetup.__init__(self)
 
         # XXX This sucks a bit. SyncSite may change
-        self.SyncSite=self.TestCfg.get("UbikDAO","SyncSite")
-        self.DBPort=self.TestCfg.get("UbikDAO","DBPort")
-        self.DBState=self.TestCfg.get("UbikDAO","DBState")
-        self.allHosts=self.TestCfg.get("UbikDAO","allDBs").split(",")
+        self.SyncSite=self.test_config.get("UbikDAO","SyncSite")
+        self.DBPort=self.test_config.get("UbikDAO","DBPort")
+        self.DBState=self.test_config.get("UbikDAO","DBState")
+        self.allHosts=self.test_config.get("UbikDAO","allDBs").split(",")
         self.allHosts.sort()
         self.not_SyncSite=""
         # get a non-Sync DB Host
@@ -32,7 +32,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
             if self.SyncSite != srv :
                 self.not_SyncSite=srv
                 break
-                
+        self.min_ubik_dbversion=self.test_config.get("UbikDAO","MinDBVersion")
         self.DAO = UbikPeerDAO.UbikPeerDAO()
         return
 
@@ -74,7 +74,7 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
     def do_test_getDBVersion(self, servername) :
         d=self.DAO.getShortInfo(servername, self.DBPort,_cfg=afs.CONFIG,_user="test")
         DBVersion=d["SyncSiteDBVersion"]
-        self.assertTrue((DBVersion>self.minUbikDBVersion))
+        self.assertTrue((DBVersion > self.min_ubik_dbversion))
         return
     
     def test_getDBVersion_syncSite(self)  :
@@ -131,6 +131,6 @@ class TestUbikDAOMethods(unittest.TestCase, basicTestSetup):
 
 
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestUbikDAOMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)

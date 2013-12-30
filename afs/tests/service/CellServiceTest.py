@@ -2,13 +2,13 @@
 
 import unittest
 import sys
-from BaseTest import parseCMDLine, basicTestSetup
+from afs.tests.BaseTest import parse_commandline, BasicTestSetup
 
 import afs
 
 from afs.service import CellService
 
-class SetupTest(basicTestSetup) :
+class SetupTest(BasicTestSetup) :
     """
     setup TestFs config
     """
@@ -17,15 +17,16 @@ class SetupTest(basicTestSetup) :
         """
         setup
         """
-        basicTestSetup.setUp(self)
         self.CellService = CellService.CellService()
-        self.numFSs=int(self.TestCfg.get("CellService", "numFSs"))
-        self.allDBIPs=self.TestCfg.get("CellService", "allDBIPs").split(",")
+        BasicTestSetup.__init__(self, self.CellService, ignore_classes=[afs.service.BaseService.BaseService])
+        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
+        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
         self.allDBIPs.sort()
-        self.allDBHostnames=self.TestCfg.get("CellService", "allDBHostnames").split(",")
+        self.allDBHostnames=self.test_config.get("CellService", "allDBHostnames").split(",")
         self.allDBHostnames.sort()
-        self.FS=self.TestCfg.get("CellService", "FS")
-        self.FsUUID=self.TestCfg.get("CellService", "FsUUID")
+        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
+        self.FS=self.test_config.get("CellService", "FS")
+        self.FsUUID=self.test_config.get("CellService", "FsUUID")
         return
 
 class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
@@ -38,37 +39,37 @@ class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
         setup CellService
         """
         SetupTest.setUp(self)
-        self.CellInfo = self.CellService.getCellInfo(cached=False)
+        self.CellInfo = self.CellService.get_cell_info(cached=False)
         return
     
     def test_Cellinfo_DBList_live(self) :
-        DBList=self.CellInfo.DBServers
+        DBList=self.CellInfo.db_servers
         DBList.sort()
         self.assertEqual(self.allDBHostnames, DBList)
         return
 
     def test_getFSServers_live(self) :
-        FSList=self.CellInfo.FileServers
+        FSList=self.CellInfo.file_servers
         self.assertEqual(self.numFSs, len(FSList))
         return
 
     def test_PTDBVersion_live(self):
-        DBVersion = self.CellInfo.PTDBVersion
+        DBVersion = self.CellInfo.ptdb_version
         self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
 
     def test_PTDBSyncSite_live(self):
-        DBSyncSite=self.CellInfo.PTDBSyncSite
+        DBSyncSite=self.CellInfo.ptdb_sync_site
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return
         
     def test_VLDBVersion_live(self):
-        DBVersion=self.CellInfo.VLDBVersion
+        DBVersion=self.CellInfo.vldb_version
         self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
 
     def test_VLDBSyncSite_live(self):
-        DBSyncSite=self.CellInfo.VLDBSyncSite
+        DBSyncSite=self.CellInfo.vldb_sync_site
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
@@ -81,45 +82,45 @@ class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
         setup CellService
         """
         SetupTest.setUp(self)
-        self.CellInfo = self.CellService.getCellInfo(cached=True)
+        self.CellInfo = self.CellService.get_cell_info(cached=True)
         return
 
     def test_getDBList_cached(self) :
-        DBList=self.CellInfo.DBServers
+        DBList=self.CellInfo.db_servers
         DBList.sort()
         self.assertEqual(self.allDBHostnames, DBList)
         return
 
 
     def test_getFSServers_cached(self) :
-        FSList=self.CellInfo.FileServers
+        FSList=self.CellInfo.file_servers
         self.assertEqual(self.numFSs, len(FSList))
         return
         
     def test_PTDBVersion_cached(self):
-        DBVersion=self.CellInfo.PTDBVersion
+        DBVersion=self.CellInfo.ptdb_version
         self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
 
 
     def test_PTDBSyncSite_cached(self):
-        DBSyncSite=self.CellInfo.PTDBSyncSite
+        DBSyncSite=self.CellInfo.ptdb_sync_site
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
     def test_VLDBVersion_cached(self):
-        DBVersion=self.CellInfo.VLDBVersion
+        DBVersion=self.CellInfo.vldb_version
         self.assertTrue((DBVersion>self.minUbikDBVersion))
         return
 
     def test_VLDBSyncSite_cached(self):
-        DBSyncSite=self.CellInfo.VLDBSyncSite
+        DBSyncSite=self.CellInfo.vldb_sync_site
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return        
 
 
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")

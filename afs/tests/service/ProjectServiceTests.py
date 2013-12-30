@@ -5,9 +5,9 @@ import unittest
 import afs,sys
 from afs.service.ProjectService import ProjectService
 
-from BaseTest import parseCMDLine, basicTestSetup
+from BaseTest import parse_commandline, BasicTestSetup
 
-class SetupTest(basicTestSetup) :
+class SetupTest(BasicTestSetup) :
     """
     Tests ProjectService Methods
     """
@@ -16,7 +16,7 @@ class SetupTest(basicTestSetup) :
         """
         setup ProjectService
         """
-        basicTestSetup.setUp(self)
+        BasicTestSetup.setUp(self)
         self.PrjMng = ProjectService()
         self.ProjectName=self.TestCfg.get("ProjectService", "ProjectName")
         self.ProjectID=self.TestCfg.get("ProjectService", "ProjectID")
@@ -35,7 +35,7 @@ class TestProjectServiceCachedMethods(unittest.TestCase, SetupTest):
         self.assertTrue( type(Prj) != type(None) )
 
 if __name__ == '__main__' :
-    parseCMDLine()
+    parse_commandline()
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("====================================\n")
     if afs.CONFIG.DB_CACHE :

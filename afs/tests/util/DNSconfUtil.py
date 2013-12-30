@@ -5,10 +5,10 @@ unit test for retrieving AFS-cell configuration from DNS
 
 import unittest
 from afs.tests.BaseTest import parse_commandline, BasicTestSetup
-from afs.dao import DNSconfDAO
+import afs.lo.DNSconfUtil, afs.lo.BaseUtil
 import afs
 
-class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
+class TestDNSconf(unittest.TestCase, BasicTestSetup) :
     """
     Tests DNSconfDAO Methods
     """
@@ -17,8 +17,8 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         """
         setup
         """
-        BasicTestSetup.__init__(self)
-        self.dao = DNSconfDAO.DNSconfDAO()
+        self.lo = afs.lo.DNSconfUtil.DNSconfUtil()
+        BasicTestSetup.__init__(self, self.lo, ignore_classes = [afs.util.Executor.Executor, afs.lo.BaseUtil.BaseUtil])
         return
 
     def test_get_db_serverlist(self):
@@ -26,12 +26,12 @@ class TestDNSconfDAO(unittest.TestCase, BasicTestSetup) :
         test the retrieval of all afs database servers from DNS
         for a given cell.
         """
-        db_serverlist = self.dao.get_db_serverlist(_cfg = afs.CONFIG)
+        db_serverlist = self.lo.get_db_serverlist(None, _cfg = afs.CONFIG)
         db_serverlist.sort()
         self.assertEqual(db_serverlist, self.all_dbservers)
         return
 
 if __name__ == '__main__' :
     parse_commandline()
-    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDNSconfDAO)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDNSconf)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
