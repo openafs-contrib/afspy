@@ -4,26 +4,18 @@ collection of small functions use everywhere
 import logging
 import re
 import types
+from afs.util.UtilError import UtilError
 
-USE_RXOSD = True
 # log-level is set in AfsConfig
 LOGGER = logging.getLogger("afs.util")
+
 BASE1024_UNITS = ['', 'K', 'M', 'G', 'T', 'P']
 PARTITION_RX = re.compile("/?(?:vicep)?([a-z][a-z]?)")
 BASE1024_UNITS_RX = re.compile("(\d+)([KMGTP]?)")
 
-class UtilError(Exception):
-    """
-    custom exception for utility functions
-    """
-    def __init__(self, message, Errors = None):
-        Exception.__init__(self, message)
-        # Now for your custom code...
-        self.errors = Errors
-
 def convert_to_base1024_unit_number(number) :
     """
-    take a number and translate it to a stirng using base 1024 units 
+    take a number and translate it to a string using base 1024 units 
     """
     best_unit = 0 
     for unit in range(len(BASE1024_UNITS)) :

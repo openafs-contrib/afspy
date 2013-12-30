@@ -4,8 +4,8 @@ DNS and AFS uuid Lookup
 import logging
 import socket
 import afs
-from afs.util.afsutil import is_name
-from afs.exceptions.LookupUtilError import LookupUtilError
+from afs.util.misc import is_name
+from afs.util.LookupUtilError import LookupUtilError
 
 class LookupUtil :
     """
@@ -53,6 +53,8 @@ class LookupUtil :
                 if name_or_ip in afs.CONFIG.hosts[hostname] :
                     self._logger.debug("%s is hard-mapped to (%s,%s)" % \
                         (name_or_ip, [hostname,],afs.CONFIG.hosts[hostname]))
+                    self._logger.debug("returning %s" % ({ "names" : [hostname, ], \
+                             "ipaddrs" : afs.CONFIG.hosts[hostname] }) )
                     return { "names" : [hostname, ], \
                              "ipaddrs" : afs.CONFIG.hosts[hostname] }
 
@@ -62,6 +64,8 @@ class LookupUtil :
         if name_or_ip in afs.CONFIG.hosts.keys() :
             self._logger.debug("%s is hard-mapped to (%s,%s)" % ( name_or_ip, \
                 [name_or_ip, ], afs.CONFIG.hosts[name_or_ip]))
+            self._logger.debug("returning %s" % ({"names" : [name_or_ip,], "ipaddrs" : \
+                afs.CONFIG.hosts[name_or_ip] }) )
             return {"names" : [name_or_ip,], "ipaddrs" : \
                 afs.CONFIG.hosts[name_or_ip] }
 
@@ -70,12 +74,14 @@ class LookupUtil :
         if name_or_ip in self.memory_cache["dns_info"] :
             self._logger.debug("%s in localcache hard-mapped (%s)" % \
                 (name_or_ip,self.memory_cache["dns_info"][name_or_ip] ))
+            self._logger.debug("returning %s" % (self.memory_cache["dns_info"][name_or_ip]))
             return self.memory_cache["dns_info"][name_or_ip]
         
         for srv in self.memory_cache["dns_info"] :
             if name_or_ip in self.memory_cache["dns_info"][srv]["names"] :
                 self._logger.debug("%s is hard-mapped to %s" % (name_or_ip, \
                     self.memory_cache["dns_info"][srv] ))
+                self._logger.debug("returning %s" % (self.memory_cache["dns_info"][srv]) )
                 return self.memory_cache["dns_info"][srv]
 
         # lookup from OS
@@ -89,6 +95,7 @@ class LookupUtil :
                 raise LookupUtilError("Cannot resolve %s" % name_or_ip)
             else :
                 self._logger.warn("Cannot resolve %s" % name_or_ip)
+                self._logger.debug("returning %s" % ({"names": [], "ipaddrs" : [name_or_ip,]}) )
                 return {"names": [], "ipaddrs" : [name_or_ip,]}
 
 
@@ -112,6 +119,8 @@ class LookupUtil :
                     self._logger.debug("memory_cache = %s" % \
                         (self.memory_cache))
                     ipaddrs = []
+                    self._logger.debug("returning %s" % ({ "names" : [hostname], "ipaddrs" : \
+                        afs.CONFIG.hosts[hostname] }) )
                     return { "names" : [hostname], "ipaddrs" : \
                         afs.CONFIG.hosts[hostname] }
 
@@ -121,6 +130,7 @@ class LookupUtil :
         self.memory_cache["dns_info"][servernames[0]] = { \
             "names" : servernames, "ipaddrs" : ipaddrs }
         self._logger.debug("memory_cache = %s" % (self.memory_cache))
+        self._logger.debug("returning %s" % ({"names": servernames, "ipaddrs" : ipaddrs}) )
         return {"names": servernames, "ipaddrs" : ipaddrs}
 
     #
@@ -152,7 +162,7 @@ class LookupUtil :
                      % name_or_ip)
                 dns_info = self.get_dns_info(name_or_ip)
                 this_dbmanager = DBManager(self._config)
-                fileserver = this_dbmanager.getFromCacheByListElement(\
+                fileserver = this_dbmanager.get_from_cache_by_list_element(\
                     FileServer, FileServer.servernames_js, \
                     dns_info["names"][0])
                 if fileserver != None :
@@ -165,13 +175,13 @@ class LookupUtil :
 
         # not found in local cache and not in DB Cache, get it from live-system
             
-        from afs.dao.VLDbDAO import VLDbDAO
+        from afs.dao.VLDBDAO import VLDBDAO
         dns_info = self.get_dns_info(name_or_ip)
         uuid = ""
-        _vl_dao = VLDbDAO()
+        _vl_dao = VLDBDAO()
 
         try :
-            uuid = _vl_dao.getFsUUID(dns_info["names"][0], _user = _user, \
+            uuid = _vl_dao.get_fsuuid(dns_info["names"][0], _user = _user, \
              _cfg = self._config)
         except :
             return None
@@ -200,7 +210,7 @@ class LookupUtil :
                 from afs.util.DBManager import DBManager
                 from afs.model.FileServer import FileServer
                 this_dbmanager = DBManager(self._config)
-                fileserver = this_dbmanager.getFromCache(FileServer, \
+                fileserver = this_dbmanager.get_from_cache(FileServer, \
                     uuid = uuid)
                 self._logger.debug("looking up hostname in db_cache " + \
                    "for uuid=%s" % uuid)
@@ -211,8 +221,8 @@ class LookupUtil :
 
         # not found in local cache and not in DB Cache, or cacheing disabled.
         # get it from live-system
-        from afs.dao.VLDbDAO import VLDbDAO
-        _vl_dao = VLDbDAO()
+        from afs.dao.VLDBDAO import VLDBDAO
+        _vl_dao = VLDBDAO()
         name_or_ip = None
         for fileserver in _vl_dao.getFsServList(\
             _cfg = self._config, _user="" ) :
@@ -222,8 +232,8 @@ class LookupUtil :
             raise LookupUtilError("No Server with uuid=%s " + \
                 "registered in live-system" % uuid)
         # store it in memory_cache 
-        self._logger.debug("get_hostname_by_fsuuid: got name_or_ip = %s " + \
-            "from live-system" % name_or_ip)
+        self._logger.debug("get_hostname_by_fsuuid: got " + \
+            " name_or_ip = %s from live-system" % name_or_ip)
         name_or_ip = self.get_dns_info(name_or_ip)["names"][0]
         self.memory_cache["fsuuids"][name_or_ip] = uuid                  
         self._logger.debug("returning: %s" % name_or_ip)

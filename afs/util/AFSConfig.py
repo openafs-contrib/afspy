@@ -10,7 +10,7 @@ import os
 import types
 
 import afs
-from afs.exceptions.AfsError import AfsError
+from afs.util.AFSError import AFSError
 import afs.util.LookupUtil
 import afs.orm.DBMapper
 
@@ -127,11 +127,11 @@ def parse_configs(my_parser=None):
 
     # setup DAO
     if afs.CONFIG.DAOImplementation != "childprocs" :
-        raise AfsError("Only childprocs are implemented yet.")
+        raise AFSError("Only childprocs are implemented yet.")
     
     # setup stuff necessary for detached DAO
     if afs.CONFIG.DAOImplementation == "detached" :
-        raise  AfsError("detached operation not implemented yet.")
+        raise  AFSError("detached operation not implemented yet.")
 
     # setup DB_CACHE
     if afs.CONFIG.DB_CACHE :
@@ -139,8 +139,12 @@ def parse_configs(my_parser=None):
         afs.CONFIG.DB_ENGINE = afs.orm.DBMapper.create_db_engine(\
             afs.CONFIG)
         afs.orm.DBMapper.setup_db_mappings(afs.CONFIG)
-        afs.DBSessionFactory = sqlalchemy.orm.sessionmaker(\
+        afs.DB_SESSION_FACTORY = sqlalchemy.orm.sessionmaker(\
             bind = afs.CONFIG.DB_ENGINE)
+
+        # setup DB_HISTORY
+        if afs.CONFIG.DB_HISTORY > 0 :
+            afs.orm.Historic.setup_db_mappings(afs.CONFIG) 
 
     # setup binary-pathes
     afs.CONFIG.binaries = {}
@@ -165,7 +169,7 @@ def parse_configs(my_parser=None):
             continue
         key, value = line.split("#")[0].split("=")
         if afs.CONFIG.binaries.has_key(key) :
-            raise AfsError("binary %s defined twice in config file %s" % \
+            raise AFSError("binary %s defined twice in config file %s" % \
                 (key,binconfig))
         afs.CONFIG.binaries[key] = value
     file_.close()
@@ -199,7 +203,7 @@ def load_config_from_file(namespace_obj, config_file_):
                 if  preset_key_value == "" :
                     namespace_obj.__setattr__(key, value)
         else :
-            raise AfsError("%s: unknown option : %s " % (config_file_, key))
+            raise AFSError("%s: unknown option : %s " % (config_file_, key))
     file_.close()
     return namespace_obj
 
