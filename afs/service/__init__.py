@@ -4,9 +4,9 @@ an AFS-cell.
 A service provides methods to create objects from the live 
 AFS-cell or the database cache 
 """
-__all__ = ["AuthService", "BaseService", "CellService", "FsService", \
-"PtService", "ProjectService", "QueryVol", "VolService", "OSDVolService", \
-"OSDFsService", "OSDCellService", "DBsService", "BsService"]
+__all__ = [ "BaseService",  "BosService", "CellService", "DBsService", \
+  "FSsService", "ProjectService", "PTDBService", "VLDBService", "VolumeService"
+]
 
 def setup_options():   
     """
@@ -19,6 +19,5 @@ def setup_options():
         help = argparse.SUPPRESS)
     for service in __all__ :
         my_argparser.add_argument("--LogLevel_%s" % service, \
-            help = argparse.SUPPRESS)
             default = "", help = argparse.SUPPRESS)
     return my_argparser

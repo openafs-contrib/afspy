@@ -1,6 +1,6 @@
 import logging
 
-from afs.exceptions.AfsError import AfsError
+from afs.util.AFSError import AFSError
 
 import afs
 import sys
@@ -37,23 +37,17 @@ class BaseService(object):
         if self._CFG.DAOImplementation == "childprocs" :
             for dao in DAOList :
                 if dao == "vl":
-                    from afs.dao.VLDbDAO import VLDbDAO
-                    self._vlDAO  = VLDbDAO()
+                    from afs.dao.VLDBDAO import VLDBDAO
+                    self._vlDAO  = VLDBDAO()
                 elif dao == "vol" :
                     from afs.dao.VolumeDAO import VolumeDAO 
                     self._volDAO = VolumeDAO()
-                elif dao == "osdvol" :
-                    from afs.dao.OSDVolumeDAO import OSDVolumeDAO 
-                    self._osdvolDAO = OSDVolumeDAO()
-                elif dao == "bnode" :
-                    from afs.dao.BNodeDAO import BNodeDAO
-                    self._bnodeDAO = BNodeDAO()
+                elif dao == "BosServer" :
+                    from afs.dao.BosServerDAO import BosServerDAO
+                    self._bosserver_dao = BosServerDAO()
                 elif dao == "fs" :
                     from afs.dao.FileServerDAO import FileServerDAO
                     self._fsDAO = FileServerDAO()
-                elif dao == "osdfs" :
-                    from afs.dao.OSDFileServerDAO import OSDFileServerDAO 
-                    self._osdfsDAO = OSDFileServerDAO()
                 elif dao == "rx" :
                     from afs.dao import RXPeerDAO
                     self._rxDAO=RXPeerDAO.RXPeerDAO()
@@ -64,6 +58,6 @@ class BaseService(object):
                     from afs.dao import DNSconfDAO
                     self._dnsDAO=DNSconfDAO.DNSconfDAO()
                 else :
-                    raise AfsError("internal Error. invalid DAO '%s' requested" % dao)
+                    raise AFSError("internal Error. invalid DAO '%s' requested" % dao)
         else :
-            raise AfsError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)
+            raise AFSError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)

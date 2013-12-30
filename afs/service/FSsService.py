@@ -1,6 +1,6 @@
 from afs.service.BaseService import BaseService
 from afs.model.FileServer import FileServer
-from afs.exceptions.AfsError import AfsError
+from afs.service.FSsServiceError import FSsServiceError
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 from afs.model.ExtendedPartitionAttributes import ExtPartAttr
 from afs.model.Volume import Volume
@@ -9,13 +9,13 @@ from afs.model.Project import Project
 import afs
 
 
-class FsService (BaseService):
+class FSsService (BaseService):
     """
     Provides Service about a FileServer
     """
     
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "bnode", "vl","rx","vol"])
+        BaseService.__init__(self, conf, DAOList=["fs", "vl", "rx", "vol"])
 
     ###############################################
     # Volume Section
@@ -154,15 +154,15 @@ class FsService (BaseService):
             uuid=afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(DNSInfo["names"][0],self._CFG)
         if cached :
             if part != "" :
-                numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid,part=part)
-                numRO=self.DBManager.count(Volume.id,type="RO",serv_uuid=uuid,part=part)
-                numBK=self.DBManager.count(Volume.id,type="BK",serv_uuid=uuid,part=part)
-                numOffline=self.DBManager.count(Volume.id,status="offline",serv_uuid=uuid,part=part)
+                numRW=self.DBManager.count(Volume.db_id, type="RW", fileserver_uuid=uuid, part=part)
+                numRO=self.DBManager.count(Volume.db_id, type="RO", fileserver_uuid=uuid, part=part)
+                numBK=self.DBManager.count(Volume.db_id, type="BK", fileserver_uuid=uuid, part=part)
+                numOffline=self.DBManager.count(Volume.db_id,status="offline",serv_uuid=uuid,part=part)
             else :
-                numRW=self.DBManager.count(Volume.id,type="RW",serv_uuid=uuid)
-                numRO=self.DBManager.count(Volume.id,type="RO",serv_uuid=uuid)
-                numBK=self.DBManager.count(Volume.id,type="BK",serv_uuid=uuid)
-                numOffline=self.DBManager.count(Volume.id,status="offline")
+                numRW=self.DBManager.count(Volume.db_id, type="RW", fileserver_uuid=uuid)
+                numRO=self.DBManager.count(Volume.db_id, type="RO", fileserver_uuid=uuid)
+                numBK=self.DBManager.count(Volume.db_id, type="BK", fileserver_uuid=uuid)
+                numOffline=self.DBManager.count(Volume.vid,status="offline")
         else :
             numRW = numRO = numBK = numOffline = 0
             for f in self._vlDAO.getFsServList(noresolve=True, _cfg=self._CFG, _user=_user) :
