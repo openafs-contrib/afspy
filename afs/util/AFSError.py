@@ -1,4 +1,4 @@
-class AfsError(Exception):
+class AFSError(Exception):
     def __init__(self, message, Errors=[]):
         Exception.__init__(self, message)
         # Now for your custom code...
