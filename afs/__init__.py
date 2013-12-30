@@ -1,24 +1,37 @@
 """
-The module afs provides high- and low-level acess to openAFS.
+The module afs provides high-level acess to openAFS.
 It mostly deals with the server-side (volumes).
 A database can be used as transparent cache towards the live system.
 """
-__all__ = ["dao", "exceptions", "model", "orm", "service", "util"]
-import afs.orm as orm
-import afs.exceptions as exceptions
-import afs.dao as dao
-import afs.service as service
-import afs.util as util
-import afs.model as model
+__all__ = ["service"]
+
+
+#
+# internal usages
+#
+
+from afs.orm import setup_options as orm_setup_options
+from afs.dao import setup_options as dao_setup_options
+from afs.service import setup_options as service_setup_options
+from afs.util import setup_options as util_setup_options
+from afs.model import setup_options as model_setup_options
 import argparse 
+
+
+#
+# external usage 
+#
+
+from afs.service import *
+from afs.util.AFSConfig import parse_configs
 
 # define and setup cmdline argument parser here
 # so that it can be used in all linked-in modules
 
 ARGPARSER = argparse.ArgumentParser(\
-   parents=[orm.setup_options(), dao.setup_options(), \
-       service.setup_options(), util.setup_options(), \
-       model.setup_options()], \
+   parents=[orm_setup_options(), dao_setup_options(), \
+       service_setup_options(), util_setup_options(), \
+       model_setup_options()], \
    epilog="For more options, see documentation and example config-files")
 
 ARGPARSER.add_argument("--config","-c" , default = "", \
