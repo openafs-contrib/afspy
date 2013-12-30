@@ -33,7 +33,7 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-disable=C0321, W0622
+disable=C0321, W0622, R0201
 
 
 [REPORTS]
@@ -211,7 +211,7 @@ valid-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=5
+max-args=6
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore

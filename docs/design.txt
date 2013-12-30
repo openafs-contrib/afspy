@@ -8,7 +8,12 @@ General
 
  * the application has to run with sufficient token.
 
+ * the userinterface is only the Service - Level
+
  * permissions are checked on the DAO - Level
+ 
+ * the DB_Cache can be considered as a checing proxy to the data
+
 
 DAO
 ===
@@ -60,3 +65,4 @@ usage of variables
  * Internally, servers are adressed by UUID
 
  * Timestamps are datetime.
+
