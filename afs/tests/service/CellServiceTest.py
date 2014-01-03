@@ -1,51 +1,58 @@
 #!/usr/bin/env python
 
-import unittest
 import sys
-from afs.tests.BaseTest import parse_commandline, BasicTestSetup
+import unittest
+from ConfigParser import ConfigParser
+from afs.tests.BaseTest import parse_commandline
 
 import afs
 
 from afs.service import CellService
 
-class SetupTest(BasicTestSetup) :
-    """
-    setup TestFs config
-    """
-    
-    def setUp(self):
-        """
-        setup
-        """
-        self.CellService = CellService.CellService()
-        BasicTestSetup.__init__(self, self.CellService, ignore_classes=[afs.service.BaseService.BaseService])
-        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
-        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
-        self.allDBIPs.sort()
-        self.allDBHostnames=self.test_config.get("CellService", "allDBHostnames").split(",")
-        self.allDBHostnames.sort()
-        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
-        self.FS=self.test_config.get("CellService", "FS")
-        self.FsUUID=self.test_config.get("CellService", "FsUUID")
-        return
-
-class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
+class TestCellServiceSetMethods(unittest.TestCase):
     """
     Tests CellService Methods
     """
     
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         """
         setup CellService
         """
-        SetupTest.setUp(self)
+        self.CellService = CellService.CellService()
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
+        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
+        self.allDBIPs.sort()
+        if "," in self.test_config.get("CellService", "realDBHostnames") :
+            self.realDBHostnames=self.test_config.get("CellService", "realDBHostnames").split(",")
+            self.realDBHostnames.sort()
+        else :
+            self.realDBHostnames = []
+        if "," in self.test_config.get("CellService", "cloneDBHostnames") :
+            self.cloneDBHostnames=self.test_config.get("CellService", "cloneDBHostnames").split(",")
+            self.cloneDBHostnames.sort()
+        else :
+            self.cloneDBHostnames = []
+        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
+        self.FS=self.test_config.get("CellService", "FS")
+        self.FsUUID=self.test_config.get("CellService", "FsUUID")
         self.CellInfo = self.CellService.get_cell_info(cached=False)
         return
     
     def test_Cellinfo_DBList_live(self) :
-        DBList=self.CellInfo.db_servers
+        DBList=[]
+        CloneList=[]
+        for s in self.CellInfo.db_servers :
+            if s["isClone"] :
+                CloneList.append(s["hostname"])
+            else :
+                DBList.append(s["hostname"])
         DBList.sort()
-        self.assertEqual(self.allDBHostnames, DBList)
+        CloneList.sort()
+        self.assertEqual(self.realDBHostnames, DBList)
+        self.assertEqual(self.cloneDBHostnames, CloneList)
         return
 
     def test_getFSServers_live(self) :
@@ -73,22 +80,50 @@ class TestCellServiceSetMethods(unittest.TestCase, SetupTest):
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
-class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
+class TestCellServiceCachedMethods(unittest.TestCase):
     """
     Tests CellService Methods using DB_CACHE
     """
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(self):
         """
         setup CellService
         """
-        SetupTest.setUp(self)
+        self.CellService = CellService.CellService()
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
+        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
+        self.allDBIPs.sort()
+        if "," in self.test_config.get("CellService", "realDBHostnames") :
+            self.realDBHostnames=self.test_config.get("CellService", "realDBHostnames").split(",")
+            self.realDBHostnames.sort()
+        else :
+            self.realDBHostnames = []
+        if "," in self.test_config.get("CellService", "cloneDBHostnames") :
+            self.cloneDBHostnames=self.test_config.get("CellService", "cloneDBHostnames").split(",")
+            self.cloneDBHostnames.sort()
+        else :
+            self.cloneDBHostnames = []
+        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
+        self.FS=self.test_config.get("CellService", "FS")
+        self.FsUUID=self.test_config.get("CellService", "FsUUID")
         self.CellInfo = self.CellService.get_cell_info(cached=True)
         return
 
     def test_getDBList_cached(self) :
-        DBList=self.CellInfo.db_servers
+        DBList=[]
+        CloneList=[]
+        for s in self.CellInfo.db_servers :
+            if s["isClone"] :
+                CloneList.append(s["hostname"])
+            else :
+                DBList.append(s["hostname"])
         DBList.sort()
-        self.assertEqual(self.allDBHostnames, DBList)
+        CloneList.sort()
+        self.assertEqual(self.realDBHostnames, DBList)
+        self.assertEqual(self.cloneDBHostnames, CloneList)
         return
 
 
@@ -121,7 +156,6 @@ class TestCellServiceCachedMethods(unittest.TestCase, SetupTest):
 
 if __name__ == '__main__' :
     parse_commandline()
-    
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCellServiceSetMethods)
