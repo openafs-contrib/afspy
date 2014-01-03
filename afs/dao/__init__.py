@@ -5,8 +5,8 @@ and other direct access of the afs-cell
 """
 
 # Init 
-__all__ = ["BosServer", "CacheManager", "DNSconf", "FileServer", "path", \
-     "PTDB", "RXPeer", "UbikPeer", "VLDB", "Volume"]
+__all__ = ["BosServerDAO", "CacheManagerDAO", "FileServerDAO", \
+     "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolumeDAO"]
 
 def setup_options():   
     """
