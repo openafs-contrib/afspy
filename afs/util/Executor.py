@@ -8,12 +8,6 @@ class Executor(object) :
 
     def __init__(self, implementation="childprocs") :
         """ init """
-        class_loglevel = getattr(afs.CONFIG,"loglevel_%s" \
-            % self.__class__.__name__, "").upper()
-        numeric_loglevel = getattr(logging, class_loglevel, 0)
-        self.logger = logging.getLogger("afs.dao.%s" % self.__class__.__name__)
-        self.logger.setLevel(numeric_loglevel)
-        self.logger.debug("initializing %s-Object" % (self.__class__.__name__))
         self.implementation = implementation
         return
 
@@ -64,7 +58,7 @@ class Executor(object) :
     def execute_detached(self, cmd_list, stdin = "") :
         """
         executes shell command fully detached and returns
-        hash to be used bz JobManager to get status info 
+        hash to be used by JobManager to get status info 
         """
 
         self.logger.info(\
