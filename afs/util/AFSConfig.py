@@ -26,8 +26,10 @@ def parse_configs(my_parser=None):
     
     # mix commandline parsing with giving options in files :
     # 
-    # parse most specific first, default is empty sting for all.
+    # parse most specific first, default is empty string for all.
     # latter ones do not overwrite earlier ones.
+    # if config file is given on command line, do not parse 
+    # the one in the home-directory or the system-wide one.
     # add hard-coded defaults to options still being
     # an empty-string
     
@@ -38,12 +40,12 @@ def parse_configs(my_parser=None):
     if os.path.exists("./afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, \
             "./afspy.cfg")
-    if home_dir :
+    elif home_dir :
         if os.path.exists("%s/.config/afspy.cfg" % home_dir) :
             afs.CONFIG = \
             load_config_from_file(afs.CONFIG, \
                 "%s/.config/afspy.cfg" % home_dir)
-    if os.path.exists(base_config_dir + "afspy.cfg") :
+    elif os.path.exists(base_config_dir + "afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, 
             base_config_dir + "afspy.cfg")
 
