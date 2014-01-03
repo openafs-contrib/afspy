@@ -1,7 +1,7 @@
 """
 base class for all DAOs :
 initializes logging.
-declares decorators.
+and Executor-class
 deals with actual execution of commands
 """
 from afs.util.Executor import Executor
@@ -18,7 +18,7 @@ class BaseDAO(Executor) :
         """initializes logger and sets implementation"""
 
         afs.util.Executor.Executor.__init__(self)
-        class_loglevel = getattr(afs.CONFIG,"loglevel_%s" \
+        class_loglevel = getattr(afs.CONFIG,"LogLevel_%s" \
             % self.__class__.__name__, "").upper()
         numeric_loglevel = getattr(logging, class_loglevel, 0)
         self.logger = logging.getLogger("afs.dao.%s" % self.__class__.__name__)
