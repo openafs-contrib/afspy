@@ -64,7 +64,7 @@ def getVolumeList(rc,output,outerr,parseParamList,Logger) :
         Volume["ROSites"] = []
         for l in range(Volume["numSites"]) :
             splits=output[i+3+l].split()
-            DNSInfo = afs.LookupUtil[_cfg.CELL_NAME].getDNSInfo(splits[1])
+            DNSInfo = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(splits[1])
             if splits[4] == "RW" :
                 if noresolve :
                     Volume["RWSite"] = DNSInfo["ipaddrs"][0]
