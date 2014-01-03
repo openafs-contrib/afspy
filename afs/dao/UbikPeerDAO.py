@@ -1,7 +1,10 @@
-from UbikPeerDAOError import UbikPeerDAOError
+"""
+Low-level implementation for methods
+dealing with a ubik database server.
+"""
 from afs.dao.BaseDAO import BaseDAO
 from afs.util.Executor import exec_wrapper
-import UbikPeerDAOParse as PM
+import afs.dao.UbikPeerDAOParse as PM
 
 
 class UbikPeerDAO(BaseDAO):
@@ -15,21 +18,20 @@ class UbikPeerDAO(BaseDAO):
         return
     
     @exec_wrapper 
-    def getLongInfo(self,name_or_ip,port,_cfg=None) : 
+    def get_long_info(self, name_or_ip, port, _cfg=None) : 
         """
         return dict containing all info from a udebug -long
         """
-        CmdList=[_cfg.binaries["udebug"],"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
-        return CmdList,PM.parse_getLongInfo
+        command_list = [_cfg.binaries["udebug"], "-server", "%s"  % \
+                        name_or_ip, "-port", "%s" % port, "-long"]
+        return command_list, PM.get_long_info
  
     @exec_wrapper 
-    def getShortInfo(self,name_or_ip,port,_cfg=None) :
+    def get_short_info(self, name_or_ip, port, _cfg=None) :
         """
         return dict containing all info from a simple udebug
         """   
-        CmdList=[_cfg.binaries["udebug"],"-server", "%s"  % name_or_ip, "-port", "%s" % port,  "-long"]
-        rc,output,outerr=self.execute(CmdList) 
-        if rc :
-            raise UbikPeerDAOError(rc)
-        return CmdList,PM.parse_getShortInfo
+        command_list = [_cfg.binaries["udebug"], "-server", "%s"  % \
+                        name_or_ip, "-port", "%s" % port, "-long"]
+        return command_list, PM.get_short_info
 
