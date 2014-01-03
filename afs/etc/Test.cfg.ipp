@@ -1,30 +1,21 @@
 [general]
-Cell=testenv.rzg.mpg.de
+Cell=ipp-garching.mpg.de
 User=
 Password=
-allDBServs=te01.rzg.mpg.de, te02.rzg.mpg.de
+allDBServs=afs-db1.rzg.mpg.de,afs-db2.aug.ipp-garching.mpg.de,afs-db3.bc.rzg.mpg.de
 min_ubikdb_version=1327470000
 
 [DNSConfDAO]
 allDBIPs=130.183.100.10,130.183.14.14,130.183.9.5
 
 [BosServerDAO]
-server=te01.rzg.mpg.de
-salvage_volume=test
+server=afs32.rzg.mpg.de
 logfile=FileLog
 newbinary_restart_time=5:00 am
-general_restart_time=5:00 am
+general_restart_time=sun 4:00 am
 superuser=hullafax
-db_server=te01.rzg.mpg.de
-db_server_clone=te02.rzg.mpg.de
-vol_name=testzap 
-vol_part=a
-
-[BosService]
-server=te01.rzg.mpg.de
-newbinary_restart_time=5:00 am
-general_restart_time=5:00 am
-BNodes=fs
+db_server=afs-db2.aug.ipp-garching.mpg.de
+db_server_clone=afs-db-hgw.ipp-hgw.mpg.de
 
 
 [CacheManagerDAO]
@@ -44,13 +35,17 @@ Type=RW
 FS=130.183.30.55
 Partitions=a,b,c,d,hs,k,l,s,ha,hg
 
+[BsService]
+BS=130.183.30.55
+BNodes=fs
+
 [VLDbDAO]
 numServ=20
 
 [FileServerDAO]
-FS=te01.rzg.mpg.de
-Part=a
-allParts=a 
+FS=130.183.30.55
+Part=k
+allParts=a,b,c,d,k,l,s,ha,hg,hs 
 
 [UbikDAO]
 SyncSite=130.183.14.14
@@ -60,12 +55,11 @@ DBState=OK
 MinDBVersion=100000
 
 [CellService]
-FS=130.183.4.16
+FS=130.183.30.55
 FsUUID=00430d64-8e1b-1cef-b3-f7-371eb782aa77
-allDBIPs=130.183.4.16
-realDBHostnames=te01.rzg.mpg.de,te02.rzg.mpg.de
-cloneDBHostnames=
-numFSs=1
+allDBIPs=194.94.214.140,194.94.214.4,130.183.100.10,130.183.14.14,130.183.9.5
+allDBHostnames=afs-db1.rzg.mpg.de,afs-db2.aug.ipp-garching.mpg.de,afs-db3.bc.rzg.mpg.de,afs-hgw1.ipp-hgw.mpg.de,afs-db-hgw.ipp-hgw.mpg.de
+numFSs=44
 MinUbikDBVersion=1000
 
 [VolumeDAO]

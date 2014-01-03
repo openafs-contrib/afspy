@@ -10,7 +10,7 @@
 
 
 # general 
-cell=testenv.rzg.mpg.de
+cell=ipp-garching.mpg.de
 
 # database options
 DB_CACHE=true
@@ -28,6 +28,9 @@ ignoreIP=
 #
 # hostnames to use for given IP-addresses.
 # useful for silly hostaliases.
+hostmap=afs-hgw1.ipp-hgw.mpg.de=194.94.214.4
+hostmap=afs-db-hgw.ipp-hgw.mpg.de=194.94.214.140
+
 
 #
 # DAO 
