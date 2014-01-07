@@ -98,7 +98,7 @@ class FSsService (BaseService):
 
     def getPartitionsByUUID(self,serv_uuid, **kw):
         """
-        return dict ["partname"]={"numRW", "numRO","numBK","usage","free","total","serv_uuid"}
+        return dict ["partname"]={"numRW", "numRO","numBK","used","free","size","serv_uuid"}
         if DB_CACHE is used, then also return "ExtAttr" ={}
         """
         cached=kw.get("cached",False)
