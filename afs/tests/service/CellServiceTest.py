@@ -112,6 +112,15 @@ class TestCellServiceCachedMethods(unittest.TestCase):
         self.CellInfo = self.CellService.get_cell_info(cached=True)
         return
 
+    @classmethod
+    def tearDownClass(self) :
+        """
+        remove history from DB
+        """
+        sys.stderr.write("removing historic classes")
+        self.CellService.DBManager.vaccuum_cache()
+        return
+         
     def test_getDBList_cached(self) :
         DBList=[]
         CloneList=[]

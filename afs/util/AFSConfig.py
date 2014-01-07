@@ -145,7 +145,7 @@ def parse_configs(my_parser=None):
             bind = afs.CONFIG.DB_ENGINE)
 
         # setup DB_HISTORY
-        if afs.CONFIG.DB_HISTORY > 0 :
+        if afs.CONFIG.DB_HISTORY_NUM_PER_DAY > 0 :
             afs.orm.Historic.setup_db_mappings(afs.CONFIG) 
 
     # setup binary-pathes

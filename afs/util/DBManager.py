@@ -7,6 +7,8 @@ import afs
 import afs.model
 from types import ListType,DictType,StringType,IntType
 from copy import deepcopy
+from afs.orm.Historic import historic_tables
+import time
 
 class DBManager :
 
@@ -31,7 +33,7 @@ class DBManager :
 	return
 
 
-    def executeRaw(self,rawsql) :
+    def executeRaw(self, rawsql) :
         """
         execute directly a SQL-statement
         """
@@ -284,6 +286,59 @@ class DBManager :
             return True
         else :
             return False
+
+    def vaccuum_cache(self) :
+        """
+        Cleanup historic tables.
+        keep the minimum number of objects DB_HISTORY_NUM_PER_DAY for each day
+        young than DB_HISTORY_NUM_DAYS
+        """
+        now=time.mktime(time.localtime())
+        for table in historic_tables :
+            self.Logger.debug("vaccuuming table %s" % table)
+            if table == "tbl_hist_extvolattr" :
+                db_id_str = "vid"
+            else :
+                db_id_str = "db_id"
+            res = self.executeRaw("SELECT %s, db_update_date FROM %s" % (db_id_str, table)).fetchall()
+            to_be_deleted = []
+            for db_id, db_update_date in res :
+                timestamp=time.mktime(time.strptime("%s" % db_update_date, "%Y-%m-%d %H:%M:%S"))
+                if timestamp < ( now - afs.CONFIG.DB_HISTORY_NUM_DAYS * 86440 ) :
+                    self.Logger.debug("deleting %s" % (db_update_date) ) 
+                    to_be_deleted.append(db_id)
+
+            for db_id in to_be_deleted :
+                res = self.executeRaw("DELETE FROM %s WHERE %s = %s" % (table, db_id_str, db_id))
+
+            # get all remaining sorted by update_date
+           
+            res = self.executeRaw("SELECT %s, db_update_date FROM %s order by db_update_date ASC" % (db_id_str, table)).fetchall()
+
+            if len(res) == 0 : continue
+                
+            db_id, db_update_date = res[0]
+            day = ("%s" % db_update_date).split()[0]  
+            to_be_deleted = []
+            num_this_day = 0
+            for db_id, db_update_date in res[1:] :
+                if ("%s" % db_update_date).split()[0] == day :
+                    num_this_day += 1
+                    if num_this_day >= afs.CONFIG.DB_HISTORY_NUM_PER_DAY :
+                        to_be_deleted.append(db_id)
+                else :
+                    day = ("%s" % db_update_date).split()[0] 
+                    num_this_day = 0
+             
+            conn = self._CFG.DB_ENGINE.connect()
+            t = conn.begin()
+            for db_id in to_be_deleted :
+                rawsql =  "DELETE FROM %s WHERE %s=%s" %  (table, db_id_str, db_id) 
+                res = conn.execute(rawsql)
+            t.commit()
+            t.close()
+
+        return 
 
     def count(self, Attr, **where) :
         self.Logger.debug("count: Entering with Attr=%s, where=%s" % (Attr, where))

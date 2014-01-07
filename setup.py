@@ -126,6 +126,7 @@ import datetime
 from afs.orm.DBMapper import safe_mapping, LOGGER
 """)
         in_fct = False
+        historic_tables=[]
         while 1 :
             line = f.readline()
             if not line : break            
@@ -136,6 +137,9 @@ from afs.orm.DBMapper import safe_mapping, LOGGER
             if not in_fct : continue
             if "Table" in line or "Key" in line :
                 h.write(line.replace("tbl_","tbl_hist_"))
+                if not "Table" in line : continue 
+                if "tbl_" in line :
+                    historic_tables.append(line.replace("tbl_","tbl_hist_").split()[0]) 
             elif ("import" in line) and (not "sqlalchemy" in line) :
                 model_object = line.split()[-1:][0]
                 h.write("    from afs.model.Historic import historic_%s\n" % model_object)
@@ -148,8 +152,14 @@ from afs.orm.DBMapper import safe_mapping, LOGGER
             else :
                 h.write(line)
        
-        h.close()
         f.close()
+        
+        h.write("\n# list of all historic tables\n")
+        h.write("historic_tables = [")
+        for line in historic_tables :
+            h.write('"%s", ' % line)
+        h.write("]\n") 
+        h.close()
 
 setup(
     name='afspy',
