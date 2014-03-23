@@ -4,7 +4,7 @@ from afs.model.Project import Project
 from afs.model.ProjectSpread import ProjectSpread
 from afs.service.BaseService import BaseService
 from afs.service.ProjectServiceError import ProjectServiceError
-from afs.service.FSsService import FSsService
+from afs.service.FSService import FSService
 from afs.service.VolumeService import VolumeService
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
 import afs
@@ -21,7 +21,7 @@ class ProjectService(BaseService):
             raise ProjectServiceError('Error, Projects work only with a DBCache defined ',None)
         self.ModelObj=Project()
         self._VS = VolumeService()
-        self._FS = FSsService()
+        self._FS = FSService()
         return
         
     def getProjectByName(self, name) :
