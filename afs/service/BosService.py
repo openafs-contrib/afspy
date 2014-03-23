@@ -14,6 +14,16 @@ class BosService (BaseService):
         BaseService.__init__(self, _cfg, DAOList=["BosServer" ])
         return
 
+    def get_object(self, obj_or_param) :
+        if isinstance(obj_or_param, BosServer) :
+             this_BosServer = obj_or_param
+        else : 
+             DNSInfo=afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(obj_or_param)
+             this_BosServer = BosServer()
+             this_BosServer.servernames = DNSInfo["names"]
+
+        return this_bosserver
+
     def pull_bos_server(self, obj_or_param, cached=True) :
         """
         Returning BosServer Object.
@@ -21,12 +31,8 @@ class BosService (BaseService):
         This also pulls up any accompanying bnode objects
         """
         self.Logger.debug("Entering pull_bos_server")
-        if isinstance(obj_or_param, BosServer) :
-             this_BosServer = obj_or_param
-        else :
-             DNSInfo=afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(obj_or_param)
-             this_BosServer = BosServer()
-             this_BosServer.servernames = DNSInfo["names"]
+
+        this_bosserver = self.get_object(obj_or_param)
         
         if self._CFG.DB_CACHE :
             if cached :
@@ -45,6 +51,22 @@ class BosService (BaseService):
                 self.DBManager.set_into_cache(BNode, bn, bos_db_id=bn.bos_db_id, instance_name=bn.instance_name)
         return this_BosServer
 
-    def push_bos_server(self, obj) :
-        self.Logger.debug("Entering push_bos_server")
-        return obj
+    #
+    # modifying methods
+    #
+
+    def startup(self, obj_or_param) :
+        this_bosserver = self.get_object(obj_or_param)
+        return 
+
+    def shutdown(self, obj_or_param) :
+        this_bosserver = self.get_object(obj_or_param)
+        return 
+
+    def set_general_restart_time(self, bos_server ) :
+        this_bosserver = self.get_object(obj_or_param)
+        return 
+
+    def set_binary_restart_time(self, bos_server) :
+        this_bosserver = self.get_object(obj_or_param)
+        return 
