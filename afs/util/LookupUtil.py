@@ -180,15 +180,13 @@ class LookupUtil :
         uuid = ""
         _vl_dao = VLDBDAO()
 
-        try :
-            uuid = _vl_dao.get_fsuuid(dns_info["names"][0], _user = _user, \
+        uuid = _vl_dao.get_fileserver_uuid(dns_info["names"][0], _user = _user, \
              _cfg = self._config)
-        except :
-            return None
 
         # store it in memory_cache 
         self.memory_cache["fsuuids"][name_or_ip] = uuid                  
         self.memory_cache["fsuuids"][dns_info["names"][0]] = uuid
+        self._logger.debug("returning %s" % (uuid))
         return uuid
     
     def get_hostname_by_fsuuid(self, uuid, _user = "", cached = True) :
