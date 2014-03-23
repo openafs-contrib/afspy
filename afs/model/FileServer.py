@@ -29,4 +29,4 @@ class FileServer(BaseModel):
         ## build-date of binary according to rxdebug
         self.build_date = ""
         ## list of attributes not to put into the DB
-        self.unmapped_attributes_list = [ 'BNode', 'parts', 'ExtServAttr' ]
+        self.unmapped_attributes_list = [ 'parts', 'ExtServAttr' ]
