@@ -1,6 +1,6 @@
 from afs.util.AFSError import AFSError
 
 
-class FSsServiceError(AFSError):
+class FSServiceError(AFSError):
     # No specific Method now
     pass

@@ -5,7 +5,7 @@ A service provides methods to create objects from the live
 AFS-cell or the database cache 
 """
 __all__ = [ "BaseService",  "BosService", "CellService", "DBsService", \
-  "FSsService", "ProjectService", "PTDBService", "VLDBService", "VolumeService"
+  "FSService", "ProjectService", "PTDBService", "VLDBService", "VolumeService"
 ]
 
 def setup_options():   
