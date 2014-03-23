@@ -12,15 +12,24 @@ General
 
  * permissions are checked on the DAO - Level
  
- * the DB_Cache can be considered as a checing proxy to the data
+ * Three ways to get data :
+  * the DB_Cache can be considered as a cacheing proxy to the data
+  * async getter methods from the live-cell
+  * blocking getter methods from the live-cell
+
+ * Two ways of manipulating the cell :
+  * async (application needs to check TaskManager, done by threads)
+  * blocking 
 
 
 DAO
 ===
 
- * DAO returns a dict or list of dicts
+ * Two ways of executing afs-commands :
+  * normal exec()
+  * fully detached via SubprocessManager (default)
 
- * DAO are agnostic of the model, so nothing to do with objects. 
+ * DAO return objects
 
  * DAO always raises an execption on error
 
@@ -40,7 +49,7 @@ Service
 
  * A service method accepts an object or a unique attribute of that object as keyword
 
- * A service may throw an exception (wrong hostname used)
+ * A service may throw an exception (e.g. wrong hostname used)
 
 Unit-Tests
 ==========
