@@ -5,7 +5,7 @@ from afs.model.Cell import Cell
 from afs.model.FileServer import FileServer
 from afs.model.DBServer import DBServer
 from afs.service.BaseService import BaseService
-from afs.service.FSsService import FSsService
+from afs.service.FSService import FSService
 from afs.service.BosService import BosService
 from afs.service.ProjectService import ProjectService
 import afs
@@ -18,7 +18,7 @@ class CellService(BaseService):
     """
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, DAOList=["fs", "vl", "vol", "rx", "ubik"])
-        self.FS=FSsService()
+        self.FS=FSService()
         self.PS=ProjectService()
         self.BosS=BosService()
         return
@@ -119,18 +119,3 @@ class CellService(BaseService):
         if not shortInfo["isSyncSite"] : 
              shortInfo = self._ubikDAO.get_short_info(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
         return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])
-
-    def getAllocated(self) :
-        """
-        Get sum of all given quotas of all Volumes
-        DBCache only.
-        """
-        allocated = allocated_stale= 0 
-        return allocated,allocated_stale
-
-    def getPTInfo(self) :
-         """
-         Get all sum of all users and groups defined in PTDB
-         """
-         numUsers = numGroups = 0
-         return numUsers,numGroups
