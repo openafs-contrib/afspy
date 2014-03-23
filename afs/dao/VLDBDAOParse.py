@@ -28,7 +28,7 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
         i += 1
     return servers
 
-def getFsUUID(rc,output,outerr,parseParamList,Logger) :
+def get_fileserver_uuid(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDBDAOError("Error: %s " %  outerr)
     uuid=output[0].split()[1]

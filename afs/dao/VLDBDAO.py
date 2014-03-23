@@ -23,10 +23,10 @@ class VLDBDAO(BaseDAO) :
         return CmdList,PM.getFsServList
 
     @exec_wrapper
-    def getFsUUID(self, name_or_ip, _cfg=None) :
+    def get_fileserver_uuid(self, name_or_ip, _cfg=None) :
         CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.cell ]
 
-        return CmdList,PM.getFsUUID
+        return CmdList,PM.get_fileserver_uuid
 
     @exec_wrapper
     def getVolumeList(self, name_or_ip, part="", noresolve=False, _cfg=None) :

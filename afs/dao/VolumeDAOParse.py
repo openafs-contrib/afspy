@@ -201,19 +201,3 @@ def _get_name_or_id(volume) :
     else :
         raise VolumeDAOError("Neither name nor vid set in volume object")
     return name_or_id 
-
-def get_volumeid_list(ret, output, outerr, parse_param_list, logger) :
-    """
-    parses result from method of same name in VolumeDAO
-    """
-    obj = parse_param_list["args"][0]
-    if ret:
-        raise VolumeDAOError("Error", outerr)
-    volumeid_list = []
-    for line in output :
-        line = line.strip()
-        if len(line) == 0 or "Total" in line : 
-            continue
-        volumeid_list.append(int(line))
-    return volumeid_list
-

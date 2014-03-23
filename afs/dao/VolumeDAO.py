@@ -101,17 +101,6 @@ class VolumeDAO(BaseDAO) :
         return command_list, PM.remove
    
     @exec_wrapper
-    def get_volumeid_list(self, volume, server, _cfg = None, partition=""): 
-        """
-        return list of volume ids from server
-        """
-        command_list = [_cfg.binaries["vos"], "listvol", "-server", server, \
-            "-fast", "-cell", _cfg.cell ]
-        if partition != "" :
-            command_list += ["-partition", "%s" % partition]    
-        return command_list, PM.get_volumeid_list
-    
-    @exec_wrapper
     def pull_volumes(self, volume, _cfg = None) :
         """
         returns volume object via vos examine from vol-server. 
