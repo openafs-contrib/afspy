@@ -91,7 +91,7 @@ class ProjectService(BaseService):
         return RWList,ROList
 
 
-    def getProjectsOnServer(self, name_or_obj, cached = True) :
+    def getProjectsOnServer(self, name_or_obj) :
         """
         return dict[Partition] of lists of [ProjectNames] for a fileserver
         """
@@ -165,18 +165,33 @@ class ProjectService(BaseService):
                     self.DBManager.setIntoCache(ProjectSpread, thisPrjSPObj, vol_type=vol_type, project_id=thisPrjSPObj.project_id, serv_uuid=thisPrjSPObj.serv_uuid, part=thisPrjSPObj.part)
         return ResDict
 
-    def getVolumeIDs(self,prjname) :
+    def getVolumeIDs(self,prjname,servers=None) :
         """
-        return list of Volume IDs part of this project
+        return list of Volume IDs part of this project.
+        servers is an optional list of server_uuids to be used. 
         """
+        self.Logger.debug("Entering with prjname=%s and servers=%s" % (prjname,servers))
         thisProject=self.getProjectByName(prjname)
-        if not thisProject : return None
-        list = self.DBManager.get_from_cacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id,mustBeUnique=False)
+        if not thisProject : 
+            self.Logger.debug("Invalid project-name %s given.", prjname)
+            return None
+        list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id,mustBeUnique=False)
         if list == None :
+            self.Logger.debug("Results from DB: %s" % list )
             return []
+        elif len(list) > 0 :
+            self.Logger.debug("Results[:10] from DB: %s" % list[:min(10,len(list))] )
+        else :
+            self.Logger.debug("Results from DB: %s" % list)
         VolIDList=[]
         for l in list :
-            VolIDList.append(l.vid) 
+            if servers == None :
+                VolIDList.append(l.vid) 
+            else  :
+                for v in self._VS.getVolume(l.vid,cached=True) :
+                    self.Logger.debug("Comparing '%s' to '%s'" % (v.serv_uuid,servers))
+                    if v.serv_uuid in servers :
+                        VolIDList.append(l.vid)
         return VolIDList
 
     def getStorageUsage(self,prjname) :
@@ -291,8 +306,12 @@ class ProjectService(BaseService):
                 raise ProjectServiceError("RW-Volume %s does not exist. Cannot create non-RW volumes for that name." % VolObj.name)
 
         ROVolLocations=[]
+        if VolObj.name[-9:] != ".readonly" :
+            use_vol_name = "%s.readonly" % VolObj.name
+        else :
+            use_vol_name = VolObj.name
         try :
-            existingROVols=self._VS.getVolume("%s.readonly" % VolObj.name, cached=False)
+            existingROVols=self._VS.getVolume(use_vol_name, cached=False)
         except :
             existingROVols=[]
 
@@ -317,7 +336,8 @@ class ProjectService(BaseService):
         maxFree = -1
         FsName = Part = None
         for serv_uuid, thisPart in sps :
-            thisFSName = afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
+            self.Logger.debug("serv_uuid =%s, thisPart = %s" % (serv_uuid,thisPart)) 
+            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
             if not thisPart in PartInfos[serv_uuid].keys() :
                 raise ProjectServiceError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,thisFSName,thisPart)) 
             if VolObj.type == "RW" :
@@ -330,10 +350,18 @@ class ProjectService(BaseService):
                         haveVolonOtherPart = True
                 if haveVolonOtherPart : continue
             elif VolObj.type == "RO" :
-                # ignore the original SP
-                if (serv_uuid, thisPart) in ROVolLocations : continue
+                # ignore servers having alread one RO
+                skip_it = False
+                for ro_srv_uuid, ro_srv_part in ROVolLocations :
+                    if serv_uuid == ro_srv_uuid :
+                        self.Logger.debug("Have already on RO on this server, ignore it.")
+                        skip_it = True
+                if skip_it :
+                    continue
                 # if we have a single RW on this SP, ignore other partitions 
-                if serv_uuid == RWVolLocation[0] and thisPart != RWVolLocation[1] : continue
+                if serv_uuid == RWVolLocation[0] and thisPart != RWVolLocation[1] : 
+                    self.Logger.debug("this SP is a different Partition on the RW-Server, ignore it.")
+                    continue
             else :
                  raise ProjectServiceError("Internal Error. Got invalid volume-type %s" % VolObj.type)
             # substract reservedSpace
@@ -346,6 +374,7 @@ class ProjectService(BaseService):
                 maxFree = PartInfos[serv_uuid][thisPart]
                 FsName = thisFSName
                 Part = thisPart
+                self.Logger.debug("best bet so far: srv %s, part %s, max_free: %s" % (FsName,Part,maxFree) )
         return FsName, Part
 
     def updateVolumeMappings(self) :

@@ -6,7 +6,7 @@ from types import ListType
 
 import afs
 from afs.util.AfsConfig import parseDefaultConfig
-import afs.util.afsutil as afsutil
+from afs.util.afsutil import humanReadableSize
 from afs.util.DBManager import DBManager
 from afs.service.OSDVolService import OSDVolService
 from afs.service.CellService import CellService
@@ -41,7 +41,7 @@ def getProjDetailsFromKeyboard(defaultDict) :
                     defaultElement=""
                 if "serverparts" in key and defaultElement != "" :
                     uuid,part=defaultElement
-                    FsName=afsutil.getHostnameByFSUUID(uuid)
+                    FsName=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getHostnameByFSUUID(uuid)
                     defaultElement = "{0}_{1}".format(FsName,part)
                     
                 givenValue=raw_input("{0} [{1}] : ".format(key,defaultElement))
@@ -54,8 +54,8 @@ def getProjDetailsFromKeyboard(defaultDict) :
                 if "serverparts" in key :
                     server,part=givenValue.strip().split("_")
                     # get servername
-                    server=afsutil.getDNSInfo(server)[0][0]
-                    uuid=afsutil.getFSUUIDByName_IP(server,None)
+                    server=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getDNSInfo(server)[0][0]
+                    uuid=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(server,None)
                     resultList.append([uuid,part])
                 else :
                     resultList.append(givenValue)
@@ -69,7 +69,9 @@ def getProjDetailsFromKeyboard(defaultDict) :
 
 
 myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
-myParser.add_argument("--name", dest="prj_or_srv_name", default="", help="name")
+myParser.add_argument("--name", dest="prj_name", default="", help="name")
+myParser.add_argument("--server", dest="srv_name", default="", help="servername")
+myParser.add_argument("--part", dest="part_name", default="", help="partition")
 Commands=myParser.add_mutually_exclusive_group(required=True)
 Commands.add_argument('--dumpPrj', action='store_true',help='dump information about project to STDOUT. Can be used for importing.')
 Commands.add_argument('--importPrj', action='store_true', help='import project from STDIN. Format is same as dumpPrj')
@@ -79,6 +81,7 @@ Commands.add_argument('--modifyPrj', action='store_true')
 Commands.add_argument('--showFSList', action='store_true', help='display list of all fileservers')
 Commands.add_argument('--updateVolumeMappings', action='store_true', help='update volume <-> Project mapping')
 Commands.add_argument('--showServerSpread', action='store_true', help='show all servers having volumes of a project')
+Commands.add_argument('--showVolumes', action='store_true', help='show volumes of a project on a specific or all servers')
 Commands.add_argument('--updateServerSpread', action='store_true', help='update the serverspread table in DB')
 Commands.add_argument('--showStorageUsage', action='store_true', help='show how much storage (online,OSD-online, OSD-offline) is used by this project')
 Commands.add_argument('--showProjectsOnServer', action='store_true', help='show which Projects have volumes on a server')
@@ -105,9 +108,9 @@ defaultDict=PrjObj.getDict()
 # but fail if we find no UUID for the hostname
 if afs.defaultConfig.dumpPrj == True :
     for p in PS.getProjectList() :
-        if afs.defaultConfig.prj_or_srv_name != "" and p.name != afs.defaultConfig.prj_or_srv_name : continue
+        if afs.defaultConfig.prj_name != "" and p.name != afs.defaultConfig.prj_name : continue
         d=p.getDict()
-        if afs.defaultConfig.prj_or_srv_name != ""  and afs.defaultConfig.prj_or_srv_name !=  d["name"] : continue 
+        if afs.defaultConfig.prj_name != ""  and afs.defaultConfig.prj_name !=  d["name"] : continue 
         print "========================================"
         print "name: {0}".format(d["name"])
         for k in d :
@@ -181,18 +184,18 @@ elif afs.defaultConfig.addPrj == True :
     print "PrjObj: %s " % PrjObj
     PS.saveProject(PrjObj)
 elif afs.defaultConfig.rmPrj == True :
-    if afs.defaultConfig.prj_or_srv_name == "" :
+    if afs.defaultConfig.prj_name == "" :
         name=raw_input("Name of project: ")
     else :
-        name=afs.defaultConfig.prj_or_srv_name
+        name=afs.defaultConfig.prj_name
     if PS.getProjectByName(name) == None :
         print "Found no project with name '%s'" % name
     PS.deleteProject(name)
 elif afs.defaultConfig.modifyPrj == True :
-    if afs.defaultConfig.prj_or_srv_name == "" :
+    if afs.defaultConfig.prj_name == "" :
         name=raw_input("Name of project: ")
     else :
-        name=afs.defaultConfig.prj_or_srv_name
+        name=afs.defaultConfig.prj_name
     oldPrjDict=PS.getProjectByName(name).getDict()
     PrjDict=getProjDetailsFromKeyboard(defaultDict=oldPrjDict)
     PrjObj.setByDict(PrjDict)
@@ -205,14 +208,14 @@ elif afs.defaultConfig.updateVolumeMappings == True :
 elif afs.defaultConfig.updateServerSpread == True :
     print "updateServerSpread"
     for p in PS.getProjectList() :
-        if afs.defaultConfig.prj_or_srv_name != ""  and afs.defaultConfig.prj_or_srv_name !=  p.name : continue 
+        if afs.defaultConfig.prj_name != ""  and afs.defaultConfig.prj_name !=  p.name : continue 
         print p.name
         PS.getServerSpread(p.name,cached=False)
 elif afs.defaultConfig.showServerSpread == True :
-    if afs.defaultConfig.prj_or_srv_name == "" :
+    if afs.defaultConfig.prj_name == "" :
         name=raw_input("Name of project: ")
     else :
-        name=afs.defaultConfig.prj_or_srv_name
+        name=afs.defaultConfig.prj_name
     thisPrj=PS.getProjectByName(name)
     if thisPrj == None :
         print "Unknown project: %s" % name
@@ -234,13 +237,13 @@ elif afs.defaultConfig.showServerSpread == True :
             print "%s %s : %s " % (hostname,s.part,s.num_vol )
 elif afs.defaultConfig.showStorageUsage == True :
     print "command: showStorageUsage"
-    if afs.defaultConfig.prj_or_srv_name == "" : 
+    if afs.defaultConfig.prj_name == "" : 
         prjRX=re.compile(".*")
     else :
         try :
-            prjRX=re.compile(afs.defaultConfig.prj_or_srv_name)
+            prjRX=re.compile(afs.defaultConfig.prj_name)
         except :
-            sys.stderr.write("Invalid Prjname regex %s" % afs.defaultConfig.prj_or_srv_name)
+            sys.stderr.write("Invalid Prjname regex %s" % afs.defaultConfig.prj_name)
             sys.exit(1)
     total_numVol = 0
     total_files_fs = 0
@@ -286,14 +289,41 @@ elif afs.defaultConfig.showStorageUsage == True :
     print "%s\t%s\t%s\t%s\t%s\t" % ("Total",total_numVol,float(total_blocks_fs)/1024/1024/1024/1024,float(total_blocks_osd_on)/1024/1024/1024/1024,float(total_blocks_osd_off)/1024/1024/1024/1024)
 elif afs.defaultConfig.showProjectsOnServer == True :
     print "Show projects on server"
-    if afs.defaultConfig.prj_or_srv_name == "" :
+    if afs.defaultConfig.srv_name == "" :
         name=raw_input(" (part of) Name of server (* for all): ")
     else :
-        name=afs.defaultConfig.prj_or_srv_name
+        name=afs.defaultConfig.srv_name
     for f in CellInfo.FileServers :
         if name == "*" or name in f :
             print "%s :" % f
-            print PS.getProjectsOnServer(f)        
+            fs_info=PS.getProjectsOnServer(f)
+            for part in fs_info :
+                print "part : %s" % part 
+                for prj_info in fs_info[part] :
+                    print "%s : fileserver: %s, osd-online %s, osd-offline %s" % (prj_info["project"].name,humanReadableSize(prj_info["spread"].blocks_fs),humanReadableSize(prj_info["spread"].blocks_osd_on),humanReadableSize(prj_info["spread"].blocks_osd_off))
+elif afs.defaultConfig.showVolumes == True :
+    print "Show volumes of a project on server(s)"
+    if afs.defaultConfig.srv_name == "" :
+        srv_name=raw_input(" (part of) Name of server (* for all): ")
+    else :
+        srv_name=afs.defaultConfig.srv_name
 
+    if afs.defaultConfig.prj_name == "" :
+        prj_name=raw_input("name of project: ")
+    else :
+        prj_name=afs.defaultConfig.prj_name
+    PrjObj=PS.getProjectByName(prj_name)
+    if PrjObj == None :
+        print "Found no project with name '%s'" % prj_name
+        sys.exit(1)
+    for f in CellInfo.FileServers :
+        if srv_name == "*" or srv_name in f :
+            srv_uuid=afs.LookupUtil[afs.defaultConfig.CELL_NAME].getFSUUID(f,None)
+            if srv_uuid == None :
+                sys.stderr.write("internal error: cannot getuuid for server %s" % f)
+                sys.exit(1)
+            print "Server %s" % f
+            print PS.getVolumeIDs(prj_name,[srv_uuid])
+           
 else :
     print "unknown command." 

@@ -187,7 +187,6 @@ class LookupUtil :
         self.memory_cache["fsuuids"][name_or_ip] = uuid                  
         self.memory_cache["fsuuids"][dns_info["names"][0]] = uuid
         self._logger.debug("returning %s" % (uuid))
-        return uuid
     
     def get_hostname_by_fsuuid(self, uuid, _user = "", cached = True) :
         """
