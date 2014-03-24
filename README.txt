@@ -4,8 +4,10 @@ afspy
 
 afspy are (as the name suggests) python bindings to AFS, here
 in the implementation of openAFS.
-It provides low-level and high-level interfaces to AFS.
-Also, database cacheing is supported.
+It provides a high-level interface to AFS.
+Also, database-cacheing of information is supported.
+Asynchronous and detached access to AFS is planned so that 
+an application using afspy remains responsive at all times.
 
 Layout 
 ======
@@ -14,11 +16,13 @@ The different parts of this package are :
 
 * afs/ : The actual module
 
-* afs/dao/ : low-level interface
+* afs/dao/ : low-level internal interface
 
 * afs/service/ : high-level interface
 
-* afs/exceptions/ : custom exceptions
+* afs/model/ : object declarations
+
+* afs/orm/ : object-relational-mapping functionality used fo DB-Cache 
 
 * afs/util/ : helper functions
 
