@@ -1,43 +1,38 @@
-
-from datetime import datetime
+"""
+Declares model object of extra attributes for a partition
+"""
 from afs.model.BaseModel import BaseModel
-
 
 class ExtPartAttr(BaseModel):
     """
-    Model object of extra Attributes to a volume.
+    model object of extra attributes for a partition.
     IN DB_CACHE, this is stored in an own table
     """
-    
-    def __init__(self, serv_uuid="", name="", owner='', unLimitedVolumes = -1, allocated=-1, allocated_stale=-1 ,projectIDs={}):
+
+    def __init__(self) :
         """
         initialize an empty object
         """
-        ## DB internal id
-        self.id       = None
-        ##  (serv_uuid,name) is foreign key to partition-table
-        self.name=name
-        self.serv_uuid=serv_uuid
+        BaseModel.__init__(self)
+
+        ##  (fileserver_uuid,name) is foreign key to partition-table
+        self.name = ""
+        self.fileserver_uuid = ""
         ## Owner of the Partition (string)
-        self.owner         = owner
-        ## json-encoded dict { "projectID" : "numVolumes" } showing ProjectIDs havingnumVolumes  volumes on that partition
-        self.projectIDs_js       = '{}'
-        self.projectIDs=None
-        ## allocated (by quota) size in Kbytes, useless if we have volumes with unlimited quota
-        self.allocated = allocated
-        ## stale_allocated, same as allocated, 
+        self.owner = ""
+        ## json-encoded dict { "projectID" : "numVolumes" }
+        ## showing ProjectIDs having numVolumes  volumes on that partition
+        self.project_ids_js = '{}'
+        self.project_ids = {}
+        ## allocated (by quota) size in Kbytes
+        self.allocated = -1
+        ## stale_allocated, same as allocated,
         ## but for volumes which had not been accessed in $StaleTime days
-        self.allocated_stale = allocated_stale
+        self.allocated_stale = -1
         ## number of volumes with unlimited quota
-        self.unLimitedVolumes = unLimitedVolumes
+        self.unlimited_volumes = -1
         ## Total number of volumes
-        self.numRW = -1
-        self.numRO = -1
-        self.numBK = -1
-        self.numOffline = -1
-        ## creation date of this object
-        self.cdate         = datetime.now()
-        ## update date of this object
-        self.udate         = datetime.now()
-        ## list of attributes not to put into the DB
-        self.ignAttrList= []
+        self.num_vol_rw = -1
+        self.num_vol_ro = -1
+        self.num_vol_bk = -1
+        self.num_vol_offline = -1

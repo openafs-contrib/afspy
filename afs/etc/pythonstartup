@@ -1,6 +1,5 @@
-from afs.util.AfsConfig import parseDefaultConfig
-from afs.service import *
+from afs.util.AFSConfig import parse_configs
 import afs
 
 print "afs: Setting up defaultconfig"
-parseDefaultConfig()
+parse_configs()

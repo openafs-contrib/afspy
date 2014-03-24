@@ -1,14 +1,23 @@
-# Init 
-__all__=["AuthService","BaseService","CellService","FsService","PtService","ProjectService","QueryVol","VolService","OSDVolService","OSDFsService","OSDCellService","DBsService","BsService"]
+"""
+collection of services for the different entities within
+an AFS-cell.
+A service provides methods to create objects from the live 
+AFS-cell or the database cache 
+"""
+__all__ = [ "BaseService",  "BosService", "CellService", "DBsService", \
+  "FSService", "ProjectService", "PTDBService", "VLDBService", "VolumeService"
+]
 
-def setupOptions():   
+def setup_options():   
     """
     add logging options to cmd-line,
     but surpress them, so that they don't clobber up the help-messages
     """
     import argparse
-    argParser=argparse.ArgumentParser(add_help=False)
-    argParser.add_argument("--LogLevel_Service", default="", help=argparse.SUPPRESS)
-    for d in __all__ :
-        argParser.add_argument("--LogLevel_%s" %d , default="", help=argparse.SUPPRESS)
-    return argParser
+    my_argparser = argparse.ArgumentParser(add_help = False)
+    my_argparser.add_argument("--LogLevel_Service", default = "", \
+        help = argparse.SUPPRESS)
+    for service in __all__ :
+        my_argparser.add_argument("--LogLevel_%s" % service, \
+            default = "", help = argparse.SUPPRESS)
+    return my_argparser
