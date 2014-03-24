@@ -1,133 +1,116 @@
-import datetime,json,logging,sys,decimal
-from types import *
-from afs.exceptions.AfsError import AfsError
-import afs
+"""
+Declares the mother of all model-objects.
+"""
+import datetime, json, logging, decimal, sys
+from types import StringType, IntType, LongType,  FloatType,  BooleanType,  \
+    UnicodeType, ListType, DictType, NoneType
 
 # log-level is set in AfsConfig
-Logger=logging.getLogger("afs.model")
+LOGGER = logging.getLogger("afs.model")
 
 class BaseModel(object):
     """
-    The mother of all models.
+    The mother of all model-objects
     """
 
-    def setByDict(self,objByDict):      
+    def __init__(self) :
         """
-        fill in object by dict.
-        It is an error to try to create new attributes with this method
-        It is also an error to pass json representations here.
+        set attributes known to all models
         """
-        Logger.debug("setByDict: got dict=%s" % objByDict)
-        # inject ignAttrList is not present, happens in hand-craftet dicts..
-        if not objByDict.has_key("ignAttrList") : objByDict["ignAttrList"]=self.getDict()["ignAttrList"]
-        for attr, value in objByDict.iteritems():
-            if not hasattr(self,attr) and not attr in objByDict["ignAttrList"] + ["ignAttrList"]  :
-                raise AfsError("Cannot create new attribute '%s' to object '%s'" %(attr, self.__class__.__name__))
-            elif attr[-3:] == "_js" :
-                raise AfsError("Cannot set json representational attributes here.")
-            else :# do not alter DB internal id and creation date
-                if attr != "id" and attr != "cdate":
-                    Logger.debug("setByDict: setting %s to %s" % (attr,value) )
-                    setattr(self,attr,value)
-        return True
+        ## DB - ID
+        self.db_id = None
+        ## creation date of this db-entry
+        self.db_creation_date = datetime.datetime.now()
+        ## update date of this db-entry
+        self.db_update_date = datetime.datetime.now()
+        ## list of attributes not to put into the DB
+        ## overwrite in model definition if not empty
+        self.unmapped_attributes_list = []
+        self.update_app_repr()
+        return 
 
-    def updateAppRepr(self) :
+    def update_app_repr(self) :
         """
         update Complex attributes from their json encoded counterparts
         """
-        cmplxAttrs={}
+        complex_attrs = {}
         for attr, value in self.__dict__.iteritems() :
-            Logger.debug("updateAppRepr: attr=%s, value=%s" % (attr,value))
-            if attr[-3:]=="_js" :
+            LOGGER.debug("updateAppRepr: attr=%s, value=%s" % (attr, value))
+            if attr[-3:] == "_js" :
                 if len(value) == 0 :
-                    cmplxAttrs[attr[:-3]]= '""'
+                    complex_attrs[attr[:-3]] = '""'
                 else :
-                    cmplxAttrs[attr[:-3]]=json.loads(value)
-                Logger.debug("updateAppRepr: complxAttr=%s" % (cmplxAttrs[attr[:-3]]))
-        for attr,value in cmplxAttrs.iteritems() :
-            Logger.debug("updateAppRepr: setting %s=%s, type=%s" % (attr,value,type(value)))
-            setattr(self,attr,value)
+                    complex_attrs[attr[:-3]] = json.loads(value)
+                LOGGER.debug("updateAppRepr: complxAttr=%s" %\
+                                  (complex_attrs[attr[:-3]]))
+        for attr, value in complex_attrs.iteritems() :
+            LOGGER.debug("updateAppRepr: setting %s=%s, type=%s" %\
+                              (attr, value, type(value)))
+            setattr(self, attr, value)
         return
 
-    def updateDBRepr(self) :
+    def update_db_repr(self) :
         """
         update the all attributes holding json represenations of complex attributes
         """
-        jsonReps={}
-        Logger.debug("in updateDBRepr" )
+        json_reprs = {}
+        LOGGER.debug("in updateDBRepr" )
         for attr, value in self.__dict__.iteritems() :
-            ignore=False
+            ignore = False
             if attr[0] == "_" : continue
             if isinstance(value, datetime.datetime) :
                 ignore = True
-            elif isinstance(value,decimal.Decimal) :
+            elif isinstance(value, decimal.Decimal) :
                 ignore = True
-            elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,NoneType] :
-                ignore=True
-
+            elif type(value) in [ StringType, IntType, LongType, \
+            FloatType, BooleanType, NoneType ] :
+                ignore = True
+            elif attr == "unmapped_attributes_list" or \
+            attr in self.unmapped_attributes_list :
+                ignore = True
             if not ignore :
-                Logger.debug("attr=%s type(value)=%s" % (attr,type(value)))
-                jsonReps["%s_js" % attr] = json.dumps(value)
+                LOGGER.debug("attr=%s type(value)=%s" % (attr, type(value)))
+                json_reprs["%s_js" % attr] = json.dumps(value)
             else :
-                Logger.debug("Ignoring attr=%s type(value)=%s" % (attr,type(value)))
-        for attr,value in jsonReps.iteritems() :
-            Logger.debug("setting json rep %s to '%s'" % (attr,value) )
-            setattr(self,attr,value)
+                LOGGER.debug("Ignoring attr=%s type(value)=%s" % \
+                    (attr, type(value)))
+        for attr, value in json_reprs.iteritems() :
+            LOGGER.debug("setting json rep %s to '%s'" % (attr, value) )
+            setattr(self, attr, value)
         return
- 
-    def copyObj(self, newObj):
+
+    def get_json_repr(self):
         """
-        copies one object onto another.
-        """
-        Logger.debug("Copying newObj=%s to onto self." % newObj)
-        ObjDict=newObj.getDict()
-        self.setByDict(ObjDict)
-        return
-    
-    def getJson(self):
-        """
-        Get a json representation of the model object
-        """
-        res={}
-        for attr,value in self.getDict() :
-            if isinstance(value, datetime.datetime):
-                res[attr] = json.dumps(value.isoformat('-'))
-            elif type(value) in [StringType,IntType,UnicodeType,ListType,DictType,NoneType] : 
-                res[attr] = json.dumps(value)
-        return res
-    
-    def getDict(self):
-        """
-        Get a dictionary representation of the model object.
-        json encoded attributes ending in "_js" are not set.
+        Get a json representation of the model object.
+        ignore db and private attributes.
         """
         res = {}
-        for attr, value in self.__dict__.iteritems() :
+        for attr, value in self. __dict__.iteritems() :
             if attr[0] == "_" : continue
-            if attr[-3:]=="_js" : continue
+            if attr[-3:] == "_js" : continue
             if isinstance(value, datetime.datetime):
-                res[attr] = value.isoformat('-')
-            elif isinstance(value,decimal.Decimal) :
-                res[attr] = long(value)
-            elif type(value) in [StringType,IntType,LongType,FloatType,BooleanType,UnicodeType,DictType,ListType,NoneType] :
-                Logger.debug("getDict: attr=%s, value=%s, type(value)=%s" % (attr,value,type(value)))
-                res[attr] = value
-            else : # ignore anything else
-                Logger.debug("getDict: ignoring attr %s with type(value)=%s" % (attr,type(value)) )
-                pass
-        Logger.debug("getDict: returning : %s" % res)
+                res[attr] = json.dumps(value.isoformat('-'))
+            elif type(value) in [ StringType, IntType, UnicodeType, ListType, \
+                DictType, NoneType ] :
+                res[attr] = json.dumps(value)
         return res
-    
+
     def __repr__(self):
         """
         Get a string representation of the model object.
         no python built-ins nor BaseModel stuff
         """
-        BaseModelAttributes=dir(BaseModel())
-        repr="<%s(" % self.__class__.__name__
-        ModelAttributes=dir(self)
-        for a in ModelAttributes :
-            if a in BaseModelAttributes : continue
-            repr += "%s=%s, " % (a, eval("self.%s" % a))
+        base_model_attrs = dir(BaseModel())
+        repr = "<%s(" % self.__class__.__name__
+        model_attributes = dir(self)
+        for attr in model_attributes :
+            if attr in base_model_attrs : 
+                if not attr.startswith("db_") :
+                    continue
+            if attr == self : continue
+            if attr in self.unmapped_attributes_list : 
+                repr += "(%s=%s,)"  % (attr, eval("self.%s" % attr))
+            else :
+                repr += "%s=%s, " % (attr, eval("self.%s" % attr))
         repr += ")>"
         return repr

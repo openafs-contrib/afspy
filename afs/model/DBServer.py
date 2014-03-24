@@ -1,35 +1,33 @@
+"""
+Declares Model object of a database-server
+"""
 from afs.model.BaseModel import BaseModel
-from datetime import datetime
-
 
 class DBServer(BaseModel):
     """
-    Model object of a server of any type
+    Model object of a database-server
     """
-    
+
     def __init__(self):
         """
         initialize an empty object.
         """
+        BaseModel.__init__(self)
         ## for db index
-        self.id = None
+        self.db_id = None
         ## list of DNS-hostnames
         self.servernames = None
         self.servernames_js = ""
         ## list of ipaddrs
-        self.ipaddr = "" 
+        self.ipaddr = ""
         ## Flag if it is a clone or real db-server
-        self.isClone = True
+        self.is_clone = True
         ## type of db : vldb or ptdb
-        self.type=""
+        self.afsdb_type = ""
         ## local version of the DB
-        self.localDBVersion=""
-        ## rxdebug version string and builddate
+        self.local_afsdb_version = ""
+        ## rxdebug version string 
         self.version = ""
-        self.builddate = ""
-        ## Date of object creation
-        self.cdate   = datetime.now()
-        ## Date of last object update
-        self.udate   = datetime.now()
+        self.build_date = ""
         ## list of attributes not to put into the DB
-        self.ignAttrList= ['BNode','ExtServAttr']
+        self.unmapped_attributes_list= ['BNode', 'ExtServAttr' ]

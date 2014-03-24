@@ -1,34 +1,32 @@
+"""
+Declares model object of a fileserver
+"""
 from afs.model.BaseModel import BaseModel
-from datetime import datetime
-
 
 class FileServer(BaseModel):
     """
-    Model object of a server of any type
+    Model object of a fileserver 
     """
-    
+
     def __init__(self):
         """
         initialize an empty object.
-        Partitions are not in the same Table in DB_CACHE as 
-        Server, so the attribute 'parts' will be inserted by the FsService
+        Partitions are not in the same Table in DB_CACHE as
+        Server, so the attribute 'partitions' will be inserted by the FsService
         """
-        ## for db index
-        self.id = None
+        BaseModel.__init__(self)
+
         ## AFS Server UUID
         self.uuid = ""
         ## list of DNS-hostnames
-        self.servernames = None
-        self.servernames_js = ""
+        self.servernames_js = '[]'
+        self.servernames = []
         ## list of ipaddrs
-        self.ipaddrs = None 
-        self.ipaddrs_js = ""
-        ## rxdebug version string and builddate
+        self.ipaddrs_js = '[]'
+        self.ipaddrs = []
+        ## rxdebug version string 
         self.version = ""
-        self.builddate = ""
-        ## Date of object creation
-        self.cdate   = datetime.now()
-        ## Date of last object update
-        self.udate   = datetime.now()
+        ## build-date of binary according to rxdebug
+        self.build_date = ""
         ## list of attributes not to put into the DB
-        self.ignAttrList= ['BNode','parts','ExtServAttr']
+        self.unmapped_attributes_list = [ 'parts', 'ExtServAttr' ]

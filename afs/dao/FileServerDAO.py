@@ -1,6 +1,7 @@
-from afs.dao.BaseDAO import BaseDAO,execwrapper
-import FileServerDAO_parse as PM
-from afs.util import afsutil
+from afs.dao.BaseDAO import BaseDAO
+from afs.util.Executor import exec_wrapper
+import FileServerDAOParse as PM
+from afs.util import misc
 
 class FileServerDAO(BaseDAO) :
     """
@@ -11,30 +12,37 @@ class FileServerDAO(BaseDAO) :
         BaseDAO.__init__(self)
         return
 
-    @execwrapper    
-    def getVolList(self, serv, part, _cfg=None): 
+    @exec_wrapper    
+    def get_volume_list(self, fileserver, part="", _cfg=None): 
         """
         List Volume entry via vos listvol from vol-server. 
         return list of dictionaries
         """
-        part = afsutil.canonicalizePartition(part)
-        CmdList = [_cfg.binaries["vos"],"listvol", "-server", "%s"  % serv , "-part", "%s"  % part ,"-format","-cell", "%s" %  _cfg.CELL_NAME]
-        return CmdList,PM.getVolList
+        CmdList = [_cfg.binaries["vos"],"listvol", "-server", "%s"  % \
+            fileserver.servernames[0], "-format", "-cell", "%s" %  _cfg.cell]
+        if part != "" :
+            part = misc.canonicalize_partition(part)
+            CmdList += ["-partition", "%s" % part] 
+        return CmdList, PM.get_volume_list
         
-    @execwrapper    
-    def getIdVolList(self, server, part, _cfg=None):
+    @exec_wrapper    
+    def get_volume_id_list(self, fileserver, part="", _cfg=None):
         """
         return  Volumes in partition
         """
-        part = afsutil.canonicalizePartition(part)
-        CmdList=[_cfg.binaries["vos"],"listvol", "-server", "%s" % server, "-partition", "%s" % part ,"-fast" , "-cell","%s" % _cfg.CELL_NAME]
-        return CmdList,PM.getIdVolList
+        CmdList=[_cfg.binaries["vos"], "listvol", "-server", "%s" % \
+            fileserver.servernames[0],  "-fast", "-cell","%s" % _cfg.cell]
+        if part != "" :
+            part = misc.canonicalize_partition(part)
+            CmdList += ["-partition", "%s" % part] 
+        return CmdList, PM.get_volume_id_list
  
 
-    @execwrapper    
-    def getPartList(self,  serv, _cfg=None) :
+    @exec_wrapper    
+    def get_partitions(self, fileserver, _cfg=None) :
         """
-        return list  of  Partitions-dicts
+        return list of Partitions-objects
         """       
-        CmdList=[_cfg.binaries["vos"],"partinfo", "%s" % serv, "-cell","%s" % _cfg.CELL_NAME]
-        return CmdList,PM.getPartList
+        CmdList=[_cfg.binaries["vos"], "partinfo", "-server", "%s" % \
+            fileserver.servernames[0], "-cell", "%s" % _cfg.cell]
+        return CmdList, PM.get_partitions

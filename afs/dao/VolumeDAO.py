@@ -1,93 +1,114 @@
-from afs.dao.BaseDAO import BaseDAO
-import VolumeDAO_parse as PM
-from afs.dao.BaseDAO import execwrapper
-from afs.util import afsutil
+"""
+Provides Methods to query and modify live AFS-Volumes
+Makes use of the model object Volume.
+"""
+from afs.dao.BaseDAO import BaseDAO 
+from afs.util.Executor import exec_wrapper
+import VolumeDAOParse as PM
+from VolumeDAOError import VolumeDAOError
+from afs.model import Volume 
 
 class VolumeDAO(BaseDAO) :
     """
     Provides Methods to query and modify live AFS-Volumes
+    Makes use of the model object Volume.
     """
     
     def __init__(self) :
         BaseDAO.__init__(self)
         return
 
-    @execwrapper
-    def move(self,ID, SrcServer, SrcPartition, DstServer,DstPartition, _cfg=None ) :
+    @exec_wrapper
+    def move(self, volume, dst_server, dst_partition, _cfg = None ) :
         """
         moves a volume to a new Destination. 
         """
-        CmdList=[_cfg.binaries["vos"], "move","%s" % ID, "-fromserver", "%s" % SrcServer, "-frompartition" , "%s" % SrcPartition, "-toserver" , "%s" % DstServer, "-topartition", "%s" % DstPartition,  "-cell",  "%s" % _cfg.CELL_NAME ]
-        return CmdList,PM.move
+        command_list = [_cfg.binaries["vos"], "move", "%s" % volume.vid, \
+            "-fromserver", volume.servername, "-frompartition" , \
+            volume.partition, "-toserver" , "%s" % dst_server, "-topartition", \
+            "%s" % dst_partition,  "-cell", _cfg.cell ]
+        return command_list, PM.move
 
-    @execwrapper
-    def release(self,ID, _cfg=None) :
+    @exec_wrapper
+    def release(self, volume, _cfg=None) :
         """
         release this volume
         """
-        CmdList=[_cfg.binaries["vos"], "release","%s" % ID, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.release
+        command_list = [_cfg.binaries["vos"], "release","%s" % volume.vid, \
+            "-cell", _cfg.cell]
+        return command_list, PM.release
     
-    @execwrapper
-    def setBlockQuota(self,ID, BlockQuota, _cfg=None) :
+    @exec_wrapper
+    def set_blockquota(self, volume, blockquota, _cfg = None) :
         """
         sets Blockquota
         """
-        CmdList=[_cfg.binaries["vos"], "setfield","-id" ,"%s" % ID,"-maxquota","%s" % BlockQuota, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.setBlockQuota
+        command_list = [_cfg.binaries["vos"], "setfield", "-id" , \
+            "%s" % volume.vid, "-maxquota", "%s" % blockquota, \
+            "-cell", _cfg.cell]
+        return command_list, PM.set_blockquota
         
-    @execwrapper
-    def dump(self,ID, DumpFile, _cfg=None) :
+    @exec_wrapper
+    def dump(self, volume, dump_file, _cfg = None) :
         """
         Dumps a volume into a file
         """
-        CmdList=[_cfg.binaries["vos"], "dump","-id" ,"%s" % ID, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.dump
+        name_or_id = PM._get_name_or_id(volume)
+        command_list = [_cfg.binaries["vos"], "dump", "-id" , \
+            name_or_id, "-file", dump_file, "-cell", _cfg.cell]
+        return command_list, PM.dump
 
-    @execwrapper
-    def restore(self,VolName,Server,Partition,DumpFile, _cfg=None) :
+    @exec_wrapper
+    def restore(self, volume, dump_file, _cfg = None) :
         """
         Restores this (abstract) volume from a file.
         """
-        CmdList=[_cfg.binaries["vos"], "restore","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName, "-file" ,"%s" % DumpFile, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.restore
+        command_list = [_cfg.binaries["vos"], "restore", "-server", \
+            volume.servername, "-partition", volume.partition, "-name", \
+            volume.name, "-file", dump_file, "-cell", _cfg.cell]
+        return command_list, PM.restore
     
-    @execwrapper
-    def convert(self,VolName,Server,Partition, _cfg=None) :
+    @exec_wrapper
+    def convert(self, volume, _cfg = None) :
         """
         converts this RO-Volume to a RW
         """
-        CmdList=[_cfg.binaries["vos"], "convertROtoRW","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.convert
+        name_or_id = PM._get_name_or_id(volume)
+        command_list = [_cfg.binaries["vos"], "convertROtoRW", "-server", \
+            volume.servername, "-partition", volume.partition, "-id", \
+            name_or_id, "-cell", _cfg.cell]
+        return command_list, PM.convert
 
-    @execwrapper
-    def create(self,VolName,Server,Partition,MaxQuota, _cfg=None) :
+    @exec_wrapper
+    def create(self, volume, maxquota, _cfg = None) :
         """
         create a Volume
         """
-        CmdList=[_cfg.binaries["vos"], "create","-server", "%s" % Server, "-partition", "%s" % Partition, "-name", "%s" % VolName , "-maxquota", "%s" % MaxQuota, "-cell",  "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.create
+        command_list = [_cfg.binaries["vos"], "create", "-server", \
+            volume.server, "-partition", volume.partition, "-name", \
+            volume.name , "-maxquota", "%s" % maxquota, "-cell", _cfg.cell]
+        return command_list, PM.create
     
-    @execwrapper
-    def remove(self,VolName,Server, Partition, _cfg=None) :
+    @exec_wrapper
+    def remove(self, volume, _cfg = None) :
         """
         remove this Volume from the Server
         """
-        CmdList=[_cfg.binaries["vos"], "remove","-server", "%s" % Server, "-partition", "%s" % Partition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.CELL_NAME ]
-        return CmdList,PM.remove
+        name_or_id = PM._get_name_or_id(volume)
+        command_list = [_cfg.binaries["vos"], "remove", "-server", \
+            volume.server, "-partition", volume.partition, "-id", \
+            name_or_id, "-cell", _cfg.cell ]
+        return command_list, PM.remove
    
-    @execwrapper
-    def getVolIDList(self, Server, _cfg=None, Partition=""): 
-        CmdList=[_cfg.binaries["vos"], "listvol","-server", "%s" % Server, "-fast", "-cell",  "%s" % _cfg.CELL_NAME ]
-        if Partition != "" :
-            CmdList += ["-partition", "%s" % Partition]    
-        return CmdList,PM.getVolIDList
-    
-    @execwrapper
-    def getVolume(self, name_or_id, serv=None, _cfg=None) :
+    @exec_wrapper
+    def pull_volumes(self, volume, _cfg = None) :
         """
-        Volume entry via vos examine from vol-server. 
-        If Name is given, it takes precedence over ID
+        returns volume object via vos examine from vol-server. 
+        if servername and partition are unspecified, return list
+        of volume objects
         """
-        CmdList = [_cfg.binaries["vos"],"examine",  "%s"  % name_or_id ,"-format","-cell", "%s" % _cfg.CELL_NAME]
-        return CmdList,PM.getVolume
+        name_or_id = PM._get_name_or_id(volume)
+        command_list = [_cfg.binaries["vos"], "examine", "%s"  % name_or_id, \
+            "-format", "-cell", _cfg.cell]
+        return command_list, PM.pull_volumes
+

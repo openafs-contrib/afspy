@@ -1,24 +1,77 @@
 Design decisions in this package
 
+General
+=======
 
-Policies
-========
+ * use lowercase_with_underscore coding style now every where
+  * use pylint with the configuration file given here to validate this.
 
-* DAO returns dictionary of list of dicts
+ * the application has to run with sufficient token.
 
-* DAO always raises an execption on error
+ * the userinterface is only the Service - Level
 
-* DAO are agnostic of the model.
+ * permissions are checked on the DAO - Level
+ 
+ * Three ways to get data :
+  * the DB_Cache can be considered as a cacheing proxy to the data
+  * async getter methods from the live-cell
+  * blocking getter methods from the live-cell
 
-* Partitions are used canonicalized only
+ * Two ways of manipulating the cell :
+  * async (application needs to check TaskManager, done by threads)
+  * blocking 
 
-* Internally, Servers are adressed by UUID, externally by first hostname
 
-* Id are integer. DAO has to convert it.  Same for quota,  number of files access
+DAO
+===
 
-* Timestamps are datetime.
+ * Two ways of executing afs-commands :
+  * normal exec()
+  * fully detached via SubprocessManager (default)
 
-* DAOs are distinguished on the RPC-Level.
+ * DAO return objects
 
-* Services never call another service, but multiple DAOs
+ * DAO always raises an execption on error
+
+ * DAOs are distinguished on the RPC-Level.
+
+ * DAO casts variables to the correct datatype ( e.g. volume_id are integer )
+
+
+Service
+=======
+
+ * A service returns an object, list of objects or NONE (if the request was not really invalid)
+
+   * Objects returned by a service can be lazy
+  
+   * Objects are by default first looked up in the cache
+
+ * A service method accepts an object or a unique attribute of that object as keyword
+
+ * A service may throw an exception (e.g. wrong hostname used)
+
+Unit-Tests
+==========
+
+ * each DAO and service has to have to unit-test.
+
+Documentation
+=============
+
+ * pydoc is used for creating documentation
+
+Database Cache
+==============
+
+ * expiry-time of an entry in the cache can be configured by table.
+
+usage of variables
+==================
+
+ * Partitions are used canonicalized only (i.e. one or two letters)
+
+ * Internally, servers are adressed by UUID
+
+ * Timestamps are datetime.
 
