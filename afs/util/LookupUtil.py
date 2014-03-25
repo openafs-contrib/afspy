@@ -145,7 +145,7 @@ class LookupUtil :
         returns UUID of a fileserver, which is used as key for server-entries
         in other tables. This does not silently update the Cache
         """
-        self._logger.debug("getFSUUID: called with %s" % name_or_ip)
+        self._logger.debug("get_fsuuid: called with %s" % name_or_ip)
         if cached :
         # local Cache first
             if name_or_ip in self.memory_cache["fsuuids"].keys() :
@@ -187,6 +187,7 @@ class LookupUtil :
         self.memory_cache["fsuuids"][name_or_ip] = uuid                  
         self.memory_cache["fsuuids"][dns_info["names"][0]] = uuid
         self._logger.debug("returning %s" % (uuid))
+        return uuid
     
     def get_hostname_by_fsuuid(self, uuid, _user = "", cached = True) :
         """
