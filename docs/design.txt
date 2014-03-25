@@ -29,7 +29,9 @@ DAO
   * normal exec()
   * fully detached via SubprocessManager (default)
 
- * DAO return objects
+ * DAO return objects.
+  * these objects do not need to have all attributes set.
+    the service is required to fill in the gaps.
 
  * DAO always raises an execption on error
 

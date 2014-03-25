@@ -1,4 +1,6 @@
+import inspect
 import logging
+import threading
 
 from afs.util.AFSError import AFSError
 
@@ -58,3 +60,61 @@ class BaseService(object):
                     raise AFSError("internal Error. invalid DAO '%s' requested" % dao)
         else :
             raise AFSError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)
+
+
+        # Async INIT
+        # list of active threads in this service
+        self.active_tasks={}
+        self.task_results={}
+  
+    def wait_for_task(self, task_ident)  :
+        self.active_tasks[task_ident].join()
+        return
+ 
+    def get_task_result(self, task_ident) :
+        return self.task_results.pop(task_ident)
+
+
+def task_wrapper(method) :
+    """
+    This decorator is meant for either calling a method directly 
+    or execute it in a different thread.
+    """
+
+    def wrapped(self, *args, **kwargs): 
+        """actual wrapper code""" 
+
+        if not kwargs.has_key("async") :
+            kwargs["async"] = True
+
+        async = kwargs["async"]
+
+        # get cmdlist and parsefunction from method
+        # parse_fct is parsing the output of the executed function
+        # ParseInfo are any info the parse_fct requires beside ret,
+        # outout and outerr 
+        parse_parameterlist = {"args" : args, "kwargs" : kwargs } 
+        argspec = inspect.getargspec(method)
+         
+        self.Logger.debug("argspec=%s" % (argspec,))
+
+        count = 0
+        if argspec[3] != None : 
+            for key in argspec[0][-len(argspec[3]):] :
+                self.logger.debug("checking argspec key=%s" % key)
+                value = argspec[3][count]
+                self.Logger.debug("value=%s" % value)
+                count += 1
+                if not parse_parameterlist["kwargs"].has_key(key) :
+                    parse_parameterlist["kwargs"][key] = value
+
+        self.Logger.debug("args=%s" % (args,))
+  
+        if async :
+            this_thread = threading.Thread(target=method, args=(self, ) + args, kwargs=kwargs)
+            this_thread.start()
+            self.active_tasks[this_thread.ident]=this_thread
+            return this_thread.ident
+        else :
+            return method(self, *args, **kwargs)
+    return wrapped
