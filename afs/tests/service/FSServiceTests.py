@@ -1,80 +1,109 @@
 #!/usr/bin/env python
 
-import unittest, sys
-from BaseTest import parse_commandline, BasicTestSetup
+import sys
+import unittest
+from ConfigParser import ConfigParser
+from afs.tests.BaseTest import parse_commandline
 
-from afs.service.FsService import FsService
 import afs
 
-class SetupTest(BasicTestSetup) :
+from afs.service.FSService import FSService
+
+
+class TestFSServiceSetMethods(unittest.TestCase):
     """
-    setup TestFs config
+    Tests FSService Methods
     """
-    
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(self):
         """
-        setup VolService
-        """
-        BasicTestSetup.__init__(self)
-        self.FsName=self.test_config.get("FsService", "FS")
-        self.FsPartitions=self.test_config.get("FsService", "Partitions").split(",")
+        setup FSService
+        """ 
+        self.FSService = FSService()
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.FsName = self.test_config.get("FSService", "FS")
+        self.FsUUID = self.test_config.get("FSService", "FSUUID")
+        self.FsPartitions = self.test_config.get("FSService", "Partitions").split(",")
         self.FsPartitions.sort()
-        self.FsMng = FsService()
-        return    
+        self.fileserver=self.FSService.get_fileserver(self.FsName, async=False, cached=False)
 
-
-class TestFsServiceSetMethods(unittest.TestCase, SetupTest):
-    """
-    Tests FsService Methods
-    """
-    
-    def setUp(self):
-        """
-        setup token and FsService
-        """
-        SetupTest.setUp(self)
-        return
-
-    def test_getServerObj(self) :
-        server=self.FsMng.getFileServer(self.FsName, cached=False)
-        parts=[]
-        for p in server.parts :
-            parts.append(server. parts[p]["name"])
+    def test_partition_list(self) :
+        parts = []
+        for p in self.fileserver.parts :
+            parts.append(p.name)
         parts.sort()
         self.assertEqual(self.FsPartitions, parts)
         return
 
-class TestFsServiceCachedMethods(unittest.TestCase, SetupTest):
-    """
-    Tests FsService Methods
-    """
-    
-    def setUp(self):
-        """
-        setup token and FsService
-        """
-        SetupTest.setUp(self)
+    def test_uuid(self) :
+        self.assertEqual(self.FsUUID, self.fileserver.uuid)
         return
 
-    def test_getServerObj(self) :
-        server=self.FsMng.getFileServer(self.FsName, cached=True)
-        parts= server.parts.keys()
+    def test_get_volumes(self) :
+        volumes = self.FSService.get_volumes(self.fileserver, async=False, cached=False) 
+        sys.stderr.write("num_vols=%s\n" % len(volumes,))
+        return
+
+
+class TestFSServiceCachedMethods(unittest.TestCase):
+    """
+    Tests FsService Methods from cache
+    """
+    
+    @classmethod
+    def setUpClass(self):
+        """
+        setup FsService
+        """ 
+        self.FSService = FSService()
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.FsName = self.test_config.get("FSService", "FS")
+        self.FsUUID = self.test_config.get("FSService", "FSUUID")
+        self.FsPartitions = self.test_config.get("FSService", "Partitions").split(",")
+        self.FsPartitions.sort()
+        self.fileserver=self.FSService.get_fileserver(self.FsName, cached=True)
+
+    @classmethod
+    def tearDownClass(self) :
+        """
+        remove history from DB
+        """
+        sys.stderr.write("removing historic classes")
+        self.FSService.DBManager.vaccuum_cache()
+        return
+
+    def test_partitionlist(self) :
+        parts = []
+        for p in self.fileserver.parts :
+            parts.append(p.name)
         parts.sort()
         self.assertEqual(self.FsPartitions, parts)
         return
 
+    def test_uuid(self) :
+        self.assertEqual(self.FsUUID, self.fileserver.uuid)
+        return
+
+    def test_get_volumes(self) :
+        volumes = self.FSService.get_volumes(self.fileserver, cached=True) 
+        sys.stderr.write("num_vols=%s\n" % (volumes,))
+        return
 
 
 if __name__ == '__main__' :
     parse_commandline()
+
     sys.stderr.write("Testing live methods to fill DB_CACHE\n")
     sys.stderr.write("==============================\n")
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceSetMethods)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestFSServiceSetMethods)
     unittest.TextTestRunner(verbosity=2).run(suite)
     sys.stderr.write("Testing  methods accessing DB_CACHE\n")
     sys.stderr.write("================================\n")
     if afs.CONFIG.DB_CACHE :
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestFsServiceCachedMethods)
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestFSServiceCachedMethods)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else :
          sys.stderr.write("Skipped,  because DB_CACHE is disabled.\n")
