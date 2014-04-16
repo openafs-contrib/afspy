@@ -172,7 +172,5 @@ setup(
     license='LICENSE.txt',
     description='high-level bindings to openAFS',
     long_description=open('README.txt').read(),
-    requires=[
-        "pymysql",
-    ],
+    requires=[ "SQLAlchemy", ],
 )
