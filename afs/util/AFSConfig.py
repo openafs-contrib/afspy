@@ -40,11 +40,9 @@ def parse_configs(my_parser=None):
     if os.path.exists("./afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, \
             "./afspy.cfg")
-    elif home_dir :
-        if os.path.exists("%s/.config/afspy.cfg" % home_dir) :
-            afs.CONFIG = \
-            load_config_from_file(afs.CONFIG, \
-                "%s/.config/afspy.cfg" % home_dir)
+    elif os.path.exists("%s/.config/afspy.cfg" % home_dir) :
+        afs.CONFIG = load_config_from_file(afs.CONFIG, \
+            "%s/.config/afspy.cfg" % home_dir)
     elif os.path.exists(base_config_dir + "afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, 
             base_config_dir + "afspy.cfg")
