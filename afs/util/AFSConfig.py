@@ -40,11 +40,9 @@ def parse_configs(my_parser=None):
     if os.path.exists("./afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, \
             "./afspy.cfg")
-    elif home_dir :
-        if os.path.exists("%s/.config/afspy.cfg" % home_dir) :
-            afs.CONFIG = \
-            load_config_from_file(afs.CONFIG, \
-                "%s/.config/afspy.cfg" % home_dir)
+    elif os.path.exists("%s/.config/afspy.cfg" % home_dir) :
+        afs.CONFIG = load_config_from_file(afs.CONFIG, \
+            "%s/.config/afspy.cfg" % home_dir)
     elif os.path.exists(base_config_dir + "afspy.cfg") :
         afs.CONFIG = load_config_from_file(afs.CONFIG, 
             base_config_dir + "afspy.cfg")
@@ -64,12 +62,6 @@ def parse_configs(my_parser=None):
         afs.CONFIG.DB_CACHE = True
     else :
         afs.CONFIG.DB_CACHE = False
-
-    # setup mandatory defaultoptions after all the parsing
-    if afs.CONFIG.DAOImplementation == "" :
-        afs.CONFIG.DAOImplementation = "childprocs"
-    if afs.CONFIG.globalLogLevel == "" :
-        afs.CONFIG.globalLogLevel = "warn"
 
     # LogLevels
     # don't do any logging with globalLogLevel == off
@@ -127,14 +119,6 @@ def parse_configs(my_parser=None):
     else :
         root_logger.addHandler(logging.NullHandler())
 
-    # setup DAO
-    if afs.CONFIG.DAOImplementation != "childprocs" :
-        raise AFSError("Only childprocs are implemented yet.")
-    
-    # setup stuff necessary for detached DAO
-    if afs.CONFIG.DAOImplementation == "detached" :
-        raise  AFSError("detached operation not implemented yet.")
-
     # setup DB_CACHE
     if afs.CONFIG.DB_CACHE :
         import sqlalchemy
@@ -155,10 +139,6 @@ def parse_configs(my_parser=None):
     else :
         binconfig = afs.CONFIG.binconfig
 
-    # setup LookupUtil
-    afs.LOOKUP_UTIL[afs.CONFIG.cell] = \
-        afs.util.LookupUtil.LookupUtil()
-
     file_ = file(binconfig, "r")
     while 1:
         line = file_.readline()
@@ -175,6 +155,11 @@ def parse_configs(my_parser=None):
                 (key,binconfig))
         afs.CONFIG.binaries[key] = value
     file_.close()
+
+    # setup LookupUtil
+    afs.LOOKUP_UTIL[afs.CONFIG.cell] = \
+        afs.util.LookupUtil.LookupUtil()
+
     return
 
 def load_config_from_file(namespace_obj, config_file_):

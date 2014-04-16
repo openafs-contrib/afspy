@@ -40,8 +40,6 @@ ARGPARSER.add_argument("--cell", default = "", \
     help = "default afs-cell")
 ARGPARSER.add_argument("--globalLogLevel", default = "", \
     help = argparse.SUPPRESS)
-ARGPARSER.add_argument("--DAOImplementation", default = "", \
-    help = argparse.SUPPRESS)
 ARGPARSER.add_argument("--ignoreIP",  default = [], action = "append", \
     help = argparse.SUPPRESS)
 ARGPARSER.add_argument("--hostmap",  default = [], action = "append", \

@@ -20,4 +20,8 @@ def setup_options():
     for submodule in __all__ :
         my_argparser.add_argument("--LogLevel_%s" % submodule, default = "", \
             help = argparse.SUPPRESS)
+    my_argparser.add_argument("--SpoolDirBase", default = "/tmp/afspy", \
+    help = argparse.SUPPRESS)
+    my_argparser.add_argument("--AsyncTimeout", default = 60, type=int, \
+        help = argparse.SUPPRESS)
     return my_argparser
