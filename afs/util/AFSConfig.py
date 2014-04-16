@@ -65,12 +65,6 @@ def parse_configs(my_parser=None):
     else :
         afs.CONFIG.DB_CACHE = False
 
-    # setup mandatory defaultoptions after all the parsing
-    if afs.CONFIG.DAOImplementation == "" :
-        afs.CONFIG.DAOImplementation = "childprocs"
-    if afs.CONFIG.globalLogLevel == "" :
-        afs.CONFIG.globalLogLevel = "warn"
-
     # LogLevels
     # don't do any logging with globalLogLevel == off
     # if empty loglevel, set to NOTSET
@@ -126,14 +120,6 @@ def parse_configs(my_parser=None):
                 afs.CONFIG.LogLevel_DAO))
     else :
         root_logger.addHandler(logging.NullHandler())
-
-    # setup DAO
-    if afs.CONFIG.DAOImplementation != "childprocs" :
-        raise AFSError("Only childprocs are implemented yet.")
-    
-    # setup stuff necessary for detached DAO
-    if afs.CONFIG.DAOImplementation == "detached" :
-        raise  AFSError("detached operation not implemented yet.")
 
     # setup DB_CACHE
     if afs.CONFIG.DB_CACHE :
