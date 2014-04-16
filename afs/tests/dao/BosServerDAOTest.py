@@ -4,26 +4,29 @@
 unit-test module for the BosServerDAO
 """
 
+from ConfigParser import ConfigParser
 import sys
 import unittest
-from afs.tests.BaseTest import parse_commandline, BasicTestSetup
+from afs.tests.BaseTest import parse_commandline
 import afs.dao.BosServerDAO
 import afs.model.BosServer
 import afs.model.Volume
 import afs.model.BNode
 
-class TestBosServerDAOMethods(unittest.TestCase, BasicTestSetup):
+class TestBosServerDAOMethods(unittest.TestCase):
     """
     Tests BosServerPeerDAO Methods
     """
-    
+
+    @classmethod  
     def setUp(self):
         """
         setup test environment
         called automagically
         """
         self.dao = afs.dao.BosServerDAO.BosServerDAO()
-        BasicTestSetup.__init__(self, self.dao, ignore_methods = ["pull_bos_server","push_general_restart_time", "push_newbinary_restart_time"], ignore_classes = [afs.dao.BaseDAO.BaseDAO], multi_tests = {"user_management" : ["add_user", "remove_user", "pull_userlist"], "shutdown_startup" : ["startup", "shutdown"], "start_stop_bnode" : ["start_bnodes", "stop_bnodes"]  }  )
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
         self.bos_server = afs.model.BosServer.BosServer()
         self.bos_server.servername =  self.test_config.get("BosServerDAO","server")
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerDAO","newbinary_restart_time")
