@@ -139,10 +139,6 @@ def parse_configs(my_parser=None):
     else :
         binconfig = afs.CONFIG.binconfig
 
-    # setup LookupUtil
-    afs.LOOKUP_UTIL[afs.CONFIG.cell] = \
-        afs.util.LookupUtil.LookupUtil()
-
     file_ = file(binconfig, "r")
     while 1:
         line = file_.readline()
@@ -159,6 +155,11 @@ def parse_configs(my_parser=None):
                 (key,binconfig))
         afs.CONFIG.binaries[key] = value
     file_.close()
+
+    # setup LookupUtil
+    afs.LOOKUP_UTIL[afs.CONFIG.cell] = \
+        afs.util.LookupUtil.LookupUtil()
+
     return
 
 def load_config_from_file(namespace_obj, config_file_):
