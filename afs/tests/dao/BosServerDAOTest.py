@@ -19,7 +19,7 @@ class TestBosServerDAOMethods(unittest.TestCase):
     """
 
     @classmethod  
-    def setUp(self):
+    def setUpClass(self) :
         """
         setup test environment
         called automagically
@@ -179,7 +179,7 @@ class TestBosServerDAOMethods(unittest.TestCase):
         result_1 = self.dao.stop_bnodes(self.bos_server,[bnode])
         result_2 = self.dao.start_bnodes(self.bos_server,[bnode])
         return
-        
+
 
 if __name__ == '__main__' :
     # disable DBCACHE stuff, since we are dealing with DAO only
