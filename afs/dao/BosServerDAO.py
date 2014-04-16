@@ -5,8 +5,7 @@ uses BosServer and Bnode objects
 """
 import types
 import afs
-from afs.dao.BaseDAO import BaseDAO
-from afs.util.Executor import exec_wrapper
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
 import BosServerDAOParse as PM
 from afs.model import BosServer
 from BosServerDAOError import BosServerDAOError

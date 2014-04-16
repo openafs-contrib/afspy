@@ -181,8 +181,47 @@ class TestBosServerDAOMethods(unittest.TestCase):
         return
 
 
+class TestBosServerDAOMethods_async(unittest. TestCase) :
+
+    @classmethod  
+    def setUpClass(self) :
+        """
+        setup test environment
+        called automagically.
+        Same as in sync-case, but the attribute self.async
+        """
+        self.dao = afs.dao.BosServerDAO.BosServerDAO()
+        self.test_config = ConfigParser()
+        self.test_config.read(afs.CONFIG.setup)
+        self.bos_server = afs.model.BosServer.BosServer()
+        self.bos_server.servername =  self.test_config.get("BosServerDAO","server")
+        self.bos_server.newbinary_restart_time = self.test_config.get("BosServerDAO","newbinary_restart_time")
+        self.bos_server.general_restart_time = self.test_config.get("BosServerDAO","general_restart_time")
+        self.logfile = self.test_config.get("BosServerDAO","logfile")
+        self.volume_name = self.test_config.get("BosServerDAO","vol_name")
+        self.volume_partition = self.test_config.get("BosServerDAO","vol_part")
+        self.test_superuser = self.test_config.get("BosServerDAO","superuser")
+        self.test_db_server = self.test_config.get("BosServerDAO","db_server")
+        self.test_db_server_clone = self.test_config.get("BosServerDAO","db_server_clone")
+        return
+
+    def test_get_log(self) :
+        """
+        test reading a logfile
+        """ 
+        sp_ident = self.dao.get_log(self.bos_server, self.logfile, async=True)
+        self.dao.wait_for_subprocess(sp_ident)
+        res = self.dao.get_subprocess_result(sp_ident)
+        self.assertTrue(len(res) > 0)
+        return
+
+
 if __name__ == '__main__' :
     # disable DBCACHE stuff, since we are dealing with DAO only
     parse_commandline()
+    sys.stderr.write("\n===\n=== testing direct fork ===\n===\n\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestBosServerDAOMethods)
+    unittest.TextTestRunner(verbosity = 2).run(suite)
+    sys.stderr.write("\n===\n=== testing detached execution ===\n===\n\n")
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestBosServerDAOMethods_async)
     unittest.TextTestRunner(verbosity = 2).run(suite)
