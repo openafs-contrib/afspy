@@ -112,6 +112,10 @@ class BaseDAO :
             while 1 :
                 line = f.readline()
                 if not line : break
+                # get rid of whitespace
+                line = line.strip()
+                if line == "" : 
+                    continue
                 if not suffix in raw_result.keys() :
                     raw_result[suffix] = [ line.strip() ]
                 else :
