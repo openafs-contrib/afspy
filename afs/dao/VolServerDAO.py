@@ -2,13 +2,12 @@
 Provides Methods to query and modify live AFS-Volumes
 Makes use of the model object Volume.
 """
-from afs.dao.BaseDAO import BaseDAO 
-from afs.util.Executor import exec_wrapper
-import VolumeDAOParse as PM
-from VolumeDAOError import VolumeDAOError
+from afs.dao.BaseDAO import BaseDAO, exec_wrapper
+import VolServerDAOParse as PM
+from VolServerDAOError import VolServerDAOError
 from afs.model import Volume 
 
-class VolumeDAO(BaseDAO) :
+class VolServerDAO(BaseDAO) :
     """
     Provides Methods to query and modify live AFS-Volumes
     Makes use of the model object Volume.

@@ -1,4 +1,4 @@
 from afs.util.AFSError import AFSError
 
-class VolumeDAOError(AFSError):
+class VolServerDAOError(AFSError):
     pass

@@ -6,7 +6,7 @@ and other direct access of the afs-cell
 
 # Init 
 __all__ = ["BosServerDAO", "CacheManagerDAO", "FileServerDAO", \
-     "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolumeDAO"]
+     "PTDBDAO", "RXPeerDAO", "UbikPeerDAO", "VLDBDAO", "VolServerDAO"]
 
 def setup_options():   
     """
