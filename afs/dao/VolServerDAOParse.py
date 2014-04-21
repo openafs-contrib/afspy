@@ -6,7 +6,7 @@ output from shell commands executed by Volume
 import re
 import afs.util.misc
 from datetime import datetime
-from VolumeDAOError import VolumeDAOError
+from VolServerDAOError import VolServerDAOError
 from afs.model import Volume 
 
 def pull_volumes(ret, output, outerr, parse_param_list, logger):
@@ -17,7 +17,7 @@ def pull_volumes(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
 
     logger.debug("getVolume: got=%s" % output)
 
@@ -112,7 +112,7 @@ def pull_volumes(ret, output, outerr, parse_param_list, logger):
                 vol.partition == obj.partition :
                 return vol
 
-        raise VolumeDAOError("volume %s not on server %s partition %s" % \
+        raise VolServerDAOError("volume %s not on server %s partition %s" % \
                 obj.name, obj.servername, obj.partition)
     # return whole list if server/partition unspecified 
     return volume_list
@@ -123,7 +123,7 @@ def move(ret, output, outerr, parse_param_list, logger) :
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def release(ret, output, outerr, parse_param_list, logger):
@@ -132,7 +132,7 @@ def release(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def set_blockquota(ret, output, outerr, parse_param_list, logger):
@@ -141,7 +141,7 @@ def set_blockquota(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def dump(ret, output, outerr, parse_param_list, logger):
@@ -150,7 +150,7 @@ def dump(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def restore(ret, output, outerr, parse_param_list, logger):
@@ -159,7 +159,7 @@ def restore(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def convert(ret, output, outerr, parse_param_list, logger):
@@ -168,7 +168,7 @@ def convert(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def create(ret, output, outerr, parse_param_list, logger):
@@ -177,7 +177,7 @@ def create(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def remove(ret, output, outerr, parse_param_list, logger):
@@ -186,7 +186,7 @@ def remove(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolumeDAOError("Error", outerr)
+        raise VolServerDAOError("Error", outerr)
     return obj
 
 def _get_name_or_id(volume) :
@@ -199,5 +199,5 @@ def _get_name_or_id(volume) :
     elif (volume.vid) :
         name_or_id = "%s" % volume.vid
     else :
-        raise VolumeDAOError("Neither name nor vid set in volume object")
+        raise VolServerDAOError("Neither name nor vid set in volume object")
     return name_or_id 
