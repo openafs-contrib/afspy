@@ -1,5 +1,4 @@
-from afs.lla.BaseLLA import BaseLLA
-from afs.util.Executor import exec_wrapper
+from afs.lla.BaseLLA import BaseLLA, exec_wrapper
 import CellLLAParse as PM
 from afs.model import Cell
 

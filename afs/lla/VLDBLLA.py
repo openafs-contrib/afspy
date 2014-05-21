@@ -1,5 +1,4 @@
-from afs.lla.BaseLLA import BaseLLA
-from afs.util.Executor import exec_wrapper
+from afs.lla.BaseLLA import BaseLLA, exec_wrapper
 import VLDBLLAParse as PM
 from afs.util.AFSError import AFSError
 

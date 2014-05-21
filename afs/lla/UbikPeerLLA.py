@@ -2,8 +2,7 @@
 Low-level implementation for methods
 dealing with a ubik database server.
 """
-from afs.lla.BaseLLA import BaseLLA
-from afs.util.Executor import exec_wrapper
+from afs.lla.BaseLLA import BaseLLA, exec_wrapper
 import afs.lla.UbikPeerLLAParse as PM
 
 
