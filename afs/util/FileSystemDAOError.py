@@ -1,4 +1,4 @@
 from afs.util.AFSError import AFSError
 
-class FilesystemDAOError(AFSError):
+class FilesystemLLAError(AFSError):
     pass

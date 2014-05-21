@@ -4,7 +4,7 @@ Parser of CacheMangerUtil
 
 def flush_all(ret, output, outerr, parse_param_list, logger) :
     """
-    parses result from method of same name in VolumeDAO
+    parses result from method of same name in VolumeLLA
     """
     obj = parse_param_list["args"][0]
     if ret :
@@ -13,7 +13,7 @@ def flush_all(ret, output, outerr, parse_param_list, logger) :
 
 def flush_volume(ret, output, outerr, parse_param_list, logger) :
     """
-    parses result from method of same name in VolumeDAO
+    parses result from method of same name in VolumeLLA
     """
     obj = parse_param_list["args"][0]
     if ret :
@@ -22,7 +22,7 @@ def flush_volume(ret, output, outerr, parse_param_list, logger) :
 
 def flush_mount(ret, output, outerr, parse_param_list, logger) :
     """
-    parses result from method of same name in VolumeDAO
+    parses result from method of same name in VolumeLLA
     """
     obj = parse_param_list["args"][0]
     if ret :
@@ -31,7 +31,7 @@ def flush_mount(ret, output, outerr, parse_param_list, logger) :
 
 def flush(ret, output, outerr, parse_param_list, logger) :
     """
-    parses result from method of same name in VolumeDAO
+    parses result from method of same name in VolumeLLA
     """
     obj = parse_param_list["args"][0]
     if ret :

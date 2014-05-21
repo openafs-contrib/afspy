@@ -19,8 +19,8 @@ class SetupTest(BasicTestSetup) :
         BasicTestSetup.__init__(self, self.service, ignore_classes=[afs.service.BaseService.BaseService])
         self.server_name=self.test_config.get("BosService", "server")
         self.BNodes=self.test_config.get("BosService", "BNodes").split(",")
-        self.newbinary_restart_time = self.test_config.get("BosServerDAO","newbinary_restart_time")
-        self.general_restart_time = self.test_config.get("BosServerDAO","general_restart_time")
+        self.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
+        self.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         return    
 
 

@@ -5,10 +5,10 @@ Password=
 allDBServs=afs-db1.rzg.mpg.de,afs-db2.aug.ipp-garching.mpg.de,afs-db3.bc.rzg.mpg.de
 min_ubikdb_version=1327470000
 
-[DNSConfDAO]
+[DNSConfLLA]
 allDBIPs=130.183.100.10,130.183.14.14,130.183.9.5
 
-[BosServerDAO]
+[BosServerLLA]
 server=afs32.rzg.mpg.de
 logfile=FileLog
 newbinary_restart_time=5:00 am
@@ -18,7 +18,7 @@ db_server=afs-db2.aug.ipp-garching.mpg.de
 db_server_clone=afs-db-hgw.ipp-hgw.mpg.de
 
 
-[CacheManagerDAO]
+[CacheManagerLLA]
 aliases=rzg=ipp-garching.mpg.de,@cell=ipp-garching.mpg.de,ipp=ipp-garching.mpg.de,mpa=mpa-garching.mpg.de,mpe=mpe.mpg.de,rzg.mpg.de=ipp-garching.mpg.de
 
 [VolService]
@@ -39,15 +39,15 @@ Partitions=a,b,c,d,hs,k,l,s,ha,hg
 BS=130.183.30.55
 BNodes=fs
 
-[VLDbDAO]
+[VLDbLLA]
 numServ=20
 
-[FileServerDAO]
+[FileServerLLA]
 FS=130.183.30.55
 Part=k
 allParts=a,b,c,d,k,l,s,ha,hg,hs 
 
-[UbikDAO]
+[UbikLLA]
 SyncSite=130.183.14.14
 DBPort=7002
 allDBs=194.94.214.140,194.94.214.4,130.183.100.10,130.183.14.14,130.183.9.5
@@ -62,7 +62,7 @@ allDBHostnames=afs-db1.rzg.mpg.de,afs-db2.aug.ipp-garching.mpg.de,afs-db3.bc.rzg
 numFSs=44
 MinUbikDBVersion=1000
 
-[VolumeDAO]
+[VolumeLLA]
 FS=130.183.30.4
 Part=a
 VolID=536999539

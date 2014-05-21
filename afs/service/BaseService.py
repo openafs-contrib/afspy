@@ -12,7 +12,7 @@ class BaseService(object):
     Provides implementation for basic methods for all Service.
     """
     
-    def __init__(self,conf=None, DAOList=[]):
+    def __init__(self,conf=None, LLAList=[]):
         
         # CONF INIT
         if conf:
@@ -35,31 +35,31 @@ class BaseService(object):
             from afs.util.NODBManager import NODBManager    
             self.DBManager=NODBManager()
         
-        # DAO INIT 
-        if self._CFG.DAOImplementation == "childprocs" :
-            for dao in DAOList :
-                if dao == "vl":
-                    from afs.dao.VLDBDAO import VLDBDAO
-                    self._vlDAO  = VLDBDAO()
-                elif dao == "vol" :
-                    from afs.dao.VolumeDAO import VolumeDAO 
-                    self._volDAO = VolumeDAO()
-                elif dao == "BosServer" :
-                    from afs.dao.BosServerDAO import BosServerDAO
-                    self._bosserver_dao = BosServerDAO()
-                elif dao == "fs" :
-                    from afs.dao.FileServerDAO import FileServerDAO
-                    self._fsDAO = FileServerDAO()
-                elif dao == "rx" :
-                    from afs.dao import RXPeerDAO
-                    self._rxDAO=RXPeerDAO.RXPeerDAO()
-                elif dao == "ubik" :
-                    from afs.dao import UbikPeerDAO
-                    self._ubikDAO=UbikPeerDAO.UbikPeerDAO()
+        # LLA INIT 
+        if self._CFG.LLAImplementation == "childprocs" :
+            for lla in LLAList :
+                if lla == "vl":
+                    from afs.lla.VLDBLLA import VLDBLLA
+                    self._vlLLA  = VLDBLLA()
+                elif lla == "vol" :
+                    from afs.lla.VolumeLLA import VolumeLLA 
+                    self._volLLA = VolumeLLA()
+                elif lla == "BosServer" :
+                    from afs.lla.BosServerLLA import BosServerLLA
+                    self._bosserver_lla = BosServerLLA()
+                elif lla == "fs" :
+                    from afs.lla.FileServerLLA import FileServerLLA
+                    self._fsLLA = FileServerLLA()
+                elif lla == "rx" :
+                    from afs.lla import RXPeerLLA
+                    self._rxLLA=RXPeerLLA.RXPeerLLA()
+                elif lla == "ubik" :
+                    from afs.lla import UbikPeerLLA
+                    self._ubikLLA=UbikPeerLLA.UbikPeerLLA()
                 else :
-                    raise AFSError("internal Error. invalid DAO '%s' requested" % dao)
+                    raise AFSError("internal Error. invalid LLA '%s' requested" % lla)
         else :
-            raise AFSError("internal Error. DAO-implementation '%s' not available" % self._CFG.DAOImplementation)
+            raise AFSError("internal Error. LLA-implementation '%s' not available" % self._CFG.LLAImplementation)
 
 
         # Async INIT

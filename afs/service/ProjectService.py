@@ -16,7 +16,7 @@ class ProjectService(BaseService):
     """
    
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs"])
+        BaseService.__init__(self, conf, LLAList=["fs"])
         if not self._CFG.DB_CACHE:
             raise ProjectServiceError('Error, Projects work only with a DBCache defined ',None)
         self.ModelObj=Project()
@@ -324,7 +324,7 @@ class ProjectService(BaseService):
             thisFSName = afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
             if not serv_uuid in PartInfos : 
                 PartInfos[serv_uuid] = {}
-                for p in self._fsDAO.getPartList(thisFSName) :
+                for p in self._fsLLA.getPartList(thisFSName) :
                     PartInfos[serv_uuid][p["name"]] = p["free"] 
         # XXX partinfo contains now all partitions    
         self.Logger.debug("PartInfos of Prj %s: %s" % (thisProject.name,PartInfos)) 

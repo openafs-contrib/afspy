@@ -1,4 +1,4 @@
-from FileSystemDAOError import FileSystemDAOError
+from FileSystemLLAError import FileSystemLLAError
 
 def copyACL(rc,output,outerr,parseParamList,Logger):
     return

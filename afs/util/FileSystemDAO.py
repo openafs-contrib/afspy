@@ -1,8 +1,8 @@
 import types,string
-from afs.dao.BaseDAO import BaseDAO, exec_wrapper
-import FileSystemDAOParse as PM
+from afs.lla.BaseLLA import BaseLLA, exec_wrapper
+import FileSystemLLAParse as PM
 
-class FileSystemDAO(BaseDAO) :
+class FileSystemLLA(BaseLLA) :
     """
     low level access to the FileSystem
     ATM this requires a cache-manager, since most of 
@@ -10,7 +10,7 @@ class FileSystemDAO(BaseDAO) :
     """
 
     def __init__(self) :
-        BaseDAO.__init__(self)
+        BaseLLA.__init__(self)
         return
 
 

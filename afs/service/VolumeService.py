@@ -15,7 +15,7 @@ class VolumeService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["vol","fs"])
+        BaseService.__init__(self, conf, LLAList=["vol","fs"])
        
     ###############################################
     # Volume Section
@@ -45,7 +45,7 @@ class VolumeService (BaseService):
                         raise VolumeServiceError("get_volume_group: invalid volume type encountered: %s" % v.type)
                 return VolGroupDict 
             self.Logger.info("found no VolumeGroup for name_or_id %s in cache. Trying live-system." % id) 
-        vol = self._volDAO.get_volume(id, _cfg=self._CFG, _user=_user)
+        vol = self._volLLA.get_volume(id, _cfg=self._CFG, _user=_user)
         if vol == None : 
             self.Logger.debug("get_volume_group: returning live: None")
             return None
@@ -53,31 +53,31 @@ class VolumeService (BaseService):
         if vol[0]["vid"] == vol[0]["parentID"] : # is RW
             rwvol = vol
             try :
-                rovol = self._volDAO.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
+                rovol = self._volLLA.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
             except : 
                 rovol = []
             try :           
-                bkvol = self._volDAO.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+                bkvol = self._volLLA.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
             except :
                 bkvol = []
         elif vol[0]["vid"] == vol[0]["cloneID"] : # is RO
             rovol = vol
             try :
-                rwvol = self._volDAO.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+                rwvol = self._volLLA.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
             except :
                 rwvol = []
             try :
-                bkvol = self._volDAO.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
+                bkvol = self._volLLA.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
             except :
                 bkvol = []
         elif vol[0]["vid"] == vol[0]["backupID"] : # is RO
             bkvol = vol
             try :
-                rwvol = self._volDAO.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
+                rwvol = self._volLLA.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
             except :
                 rwvol = []
             try :           
-                rovol = self._volDAO.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
+                rovol = self._volLLA.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
             except :
                 rovol = []
         else : # error
@@ -113,7 +113,7 @@ class VolumeService (BaseService):
                     v.ExtAttr=self.getExtVolAttr(v.vid)
                     VolList.append(v)
                 return vol
-        volumes = self._volDAO.get_volume(name_or_id, _cfg=self._CFG, _user=_user)
+        volumes = self._volLLA.get_volume(name_or_id, _cfg=self._CFG, _user=_user)
         for v in volumes :
             v.serv_uuid=afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(v.serv,self._CFG)
             self.Logger.debug("get_volume: v=%s" % v)

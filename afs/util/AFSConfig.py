@@ -76,7 +76,7 @@ def parse_configs(my_parser=None):
         root_logger.setLevel(get_numeric_loglevel(\
             afs.CONFIG.globalLogLevel))
         #
-        # setup non-DAO and non-Service loggers
+        # setup non-LLA and non-Service loggers
         #
         if afs.CONFIG.DB_CACHE :
             # setup DB_CACHE Logging
@@ -112,10 +112,10 @@ def parse_configs(my_parser=None):
             service_logger = logging.getLogger("afs.service") 
             service_logger.setLevel(get_numeric_loglevel(\
                 afs.CONFIG.LogLevel_Service))
-        if  afs.CONFIG.LogLevel_DAO != "" :
-            dao_logger = logging.getLogger("afs.dao") 
-            dao_logger.setLevel(get_numeric_loglevel(\
-                afs.CONFIG.LogLevel_DAO))
+        if  afs.CONFIG.LogLevel_LLA != "" :
+            lla_logger = logging.getLogger("afs.lla") 
+            lla_logger.setLevel(get_numeric_loglevel(\
+                afs.CONFIG.LogLevel_LLA))
     else :
         root_logger.addHandler(logging.NullHandler())
 

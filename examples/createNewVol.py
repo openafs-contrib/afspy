@@ -6,9 +6,9 @@ from afs.util.AfsConfig import parseDefaultConfig
 from afs.util.afsutil import parseHumanWriteableSize
 from afs.service.ProjectService import ProjectService
 from afs.model.Volume import Volume
-from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.VLDbDAO import VLDbDAO
-from afs.dao.FileSystemDAO import FileSystemDAO
+from afs.lla.VolumeLLA import VolumeLLA
+from afs.lla.VLDbLLA import VLDbLLA
+from afs.lla.FileSystemLLA import FileSystemLLA
 
 
 myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
@@ -22,9 +22,9 @@ myParser.add_argument("--prj", dest="ProjectName", help="Name of Project")
 myParser.add_argument("--force", action='store_true', dest="force", default=False, help="force creation, even if Volume does not fit in given project")
 
 parseDefaultConfig(myParser)
-VD=VolumeDAO()
-VlD=VLDbDAO()
-FsD=FileSystemDAO()
+VD=VolumeLLA()
+VlD=VLDbLLA()
+FsD=FileSystemLLA()
 
 VolumeType = afs.defaultConfig.VolumeType
 if afs.defaultConfig.VolumeName[-9:] == ".readonly"  :

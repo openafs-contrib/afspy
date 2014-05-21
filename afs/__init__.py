@@ -11,7 +11,7 @@ __all__ = ["service"]
 #
 
 from afs.orm import setup_options as orm_setup_options
-from afs.dao import setup_options as dao_setup_options
+from afs.lla import setup_options as lla_setup_options
 from afs.service import setup_options as service_setup_options
 from afs.util import setup_options as util_setup_options
 from afs.model import setup_options as model_setup_options
@@ -29,7 +29,7 @@ from afs.util.AFSConfig import parse_configs
 # so that it can be used in all linked-in modules
 
 ARGPARSER = argparse.ArgumentParser(\
-   parents=[orm_setup_options(), dao_setup_options(), \
+   parents=[orm_setup_options(), lla_setup_options(), \
        service_setup_options(), util_setup_options(), \
        model_setup_options()], \
    epilog="For more options, see documentation and example config-files")

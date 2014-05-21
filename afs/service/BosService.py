@@ -11,7 +11,7 @@ class BosService (BaseService):
     """
     
     def __init__(self, _cfg = None):
-        BaseService.__init__(self, _cfg, DAOList=["BosServer" ])
+        BaseService.__init__(self, _cfg, LLAList=["BosServer" ])
         return
 
     def get_object(self, obj_or_param) :
@@ -42,7 +42,7 @@ class BosService (BaseService):
                     cached_BosServer.bnodes = []
                     self.Logger.debug("pull_bosserver: returning cached object")
                     return cached_BosServer
-        this_BosServer = self._bosserver_dao.pull_bos_server(this_BosServer, _cfg=self._CFG)
+        this_BosServer = self._bosserver_lla.pull_bos_server(this_BosServer, _cfg=self._CFG)
         # update cache if present
         if self._CFG.DB_CACHE :
             cached_BosServer = self.DBManager.set_into_cache_by_list_element(BosServer, this_BosServer, BosServer.servernames_js, this_BosServer.servernames[0])

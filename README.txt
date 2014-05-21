@@ -16,7 +16,7 @@ The different parts of this package are :
 
 * afs/ : The actual module
 
-* afs/dao/ : low-level internal interface
+* afs/lla/ : low-level internal interface
 
 * afs/service/ : high-level interface
 
@@ -65,8 +65,6 @@ Contents of the AfsConfig
 * default AFS Cellname
 
 * default Keberos REALM
-
-* DAO-implementation to use
 
 * DB-implementation to use.
 

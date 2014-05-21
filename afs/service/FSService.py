@@ -18,7 +18,7 @@ class FSService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "vl", "rx", "vol"])
+        BaseService.__init__(self, conf, LLAList=["fs", "vl", "rx", "vol"])
 
     ###############################################
     # Volume Section
@@ -68,7 +68,7 @@ class FSService (BaseService):
 
         vols = []
         for part in this_partition_names :    
-            this_vols = self._fsDAO.get_volume_list(this_fileserver, part=part, \
+            this_vols = self._fsLLA.get_volume_list(this_fileserver, part=part, \
                 _cfg=self._CFG, _user=_user)
             vols += this_vols
             if self._CFG.DB_CACHE :
@@ -149,7 +149,7 @@ class FSService (BaseService):
         # UUID
         this_fileserver.uuid = uuid
         this_fileserver.version, this_fileserver.build_date = \
-            self._rxDAO.getVersionandBuildDate(this_fileserver.servernames[0], \
+            self._rxLLA.getVersionandBuildDate(this_fileserver.servernames[0], \
             7000, _cfg=self._CFG, _user=_user)
 
         # update cache
@@ -159,7 +159,7 @@ class FSService (BaseService):
             
         # Partitions
         this_fileserver.parts = []
-        for part in self._fsDAO.get_partitions(this_fileserver, \
+        for part in self._fsLLA.get_partitions(this_fileserver, \
             _cfg=self._CFG, _user=_user) :
             part.fileserver_uuid = uuid
             part.ExtAttr = ExtPartAttr()
