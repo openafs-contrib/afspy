@@ -36,30 +36,26 @@ class BaseService(object):
             self.DBManager=NODBManager()
         
         # LLA INIT 
-        if self._CFG.LLAImplementation == "childprocs" :
-            for lla in LLAList :
-                if lla == "vl":
-                    from afs.lla.VLDBLLA import VLDBLLA
-                    self._vlLLA  = VLDBLLA()
-                elif lla == "vol" :
-                    from afs.lla.VolumeLLA import VolumeLLA 
-                    self._volLLA = VolumeLLA()
-                elif lla == "BosServer" :
-                    from afs.lla.BosServerLLA import BosServerLLA
-                    self._bosserver_lla = BosServerLLA()
-                elif lla == "fs" :
-                    from afs.lla.FileServerLLA import FileServerLLA
-                    self._fsLLA = FileServerLLA()
-                elif lla == "rx" :
-                    from afs.lla import RXPeerLLA
-                    self._rxLLA=RXPeerLLA.RXPeerLLA()
-                elif lla == "ubik" :
-                    from afs.lla import UbikPeerLLA
-                    self._ubikLLA=UbikPeerLLA.UbikPeerLLA()
-                else :
-                    raise AFSError("internal Error. invalid LLA '%s' requested" % lla)
-        else :
-            raise AFSError("internal Error. LLA-implementation '%s' not available" % self._CFG.LLAImplementation)
+        for lla in LLAList :
+            if lla == "vl":
+                from afs.lla.VLDBLLA import VLDBLLA
+                self._vlLLA  = VLDBLLA()
+            elif lla == "vol" :
+                from afs.lla.VolumeLLA import VolumeLLA
+            elif lla == "BosServer" :
+                from afs.lla.BosServerLLA import BosServerLLA
+                self._bosserver_lla = BosServerLLA()
+            elif lla == "fs" :
+                from afs.lla.FileServerLLA import FileServerLLA
+                self._fsLLA = FileServerLLA()
+            elif lla == "rx" :
+                from afs.lla import RXPeerLLA
+                self._rxLLA=RXPeerLLA.RXPeerLLA()
+            elif lla == "ubik" :
+                from afs.lla import UbikPeerLLA
+                self._ubikLLA=UbikPeerLLA.UbikPeerLLA()
+            else :
+                raise AFSError("internal Error. invalid LLA '%s' requested" % lla)
 
 
         # Async INIT
