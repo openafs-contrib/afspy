@@ -5,7 +5,7 @@ import os,subprocess,string,sys
 ConfigFile="/usr/local/lib/python2.7/site-packages/afs/etc/Test.cfg"
 numFailed = 0
 exit_on_fail = True
-for d in ["dao", "service", "util"]  :
+for d in ["lla", "service", "util"]  :
     Tests=os.listdir(d)
     Tests.sort()
     for f in Tests :

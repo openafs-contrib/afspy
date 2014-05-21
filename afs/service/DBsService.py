@@ -14,7 +14,7 @@ class DBsService(BaseService) :
     _CFG    = None
     
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["vl","ubik","rx"])
+        BaseService.__init__(self, conf, LLAList=["vl","ubik","rx"])
 
     def getDBServer(self, name_or_ip, DBType,_user="",cached=False) :
         """
@@ -50,10 +50,10 @@ class DBsService(BaseService) :
         this_DBServer.type = DBType
         this_DBServer.servernames=DNSInfo["names"]
         this_DBServer.ipaddr=mandIP
-        shortInfo=self._ubikDAO.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
+        shortInfo=self._ubikLLA.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
         this_DBServer.isClone=shortInfo["isClone"]
         this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
-        this_DBServer.version,this_DBServer.build_date=self._rxDAO.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
+        this_DBServer.version,this_DBServer.build_date=self._rxLLA.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
 
         if self._CFG.DB_CACHE :
             self.DBManager.setIntoCache(DBServer,this_DBServer,ipaddr=this_DBServer.ipaddr,type=DBType)

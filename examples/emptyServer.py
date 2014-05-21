@@ -11,8 +11,8 @@ from afs.service.OSDCellService import OSDCellService
 from afs.service.OSDFsService import OSDFsService
 from afs.service.ProjectService import ProjectService
 from afs.model.Volume import Volume
-from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.VLDbDAO import VLDbDAO
+from afs.lla.VolumeLLA import VolumeLLA
+from afs.lla.VLDbLLA import VLDbLLA
 
 global FS,PS,VS,VD,VlD
 
@@ -39,8 +39,8 @@ parseDefaultConfig(myParser)
 FS=OSDFsService()
 PS=ProjectService()
 VS=OSDVolService()
-VD=VolumeDAO()
-VlD=VLDbDAO()
+VD=VolumeLLA()
+VlD=VLDbLLA()
 
 if not afs.defaultConfig.moveRWVols and not afs.defaultConfig.moveSolitaryROVols :
     sys.stderr.write("If you want to nmake me do anything, specify --rwvols and/or --solitaryrovols\n")

@@ -36,7 +36,7 @@ class BasicTestSetup :
                 bind = afs.CONFIG.DB_ENGINE)
         self.tested_class = tested_class
         # the tested class can be inherit some other class,
-        # whose methods should be ignored. e.g. BaseDAO
+        # whose methods should be ignored. e.g. BaseLLA
         self.ignore_classes = ignore_classes
         self.ignore_methods = ignore_methods
         self.multi_tests = multi_tests

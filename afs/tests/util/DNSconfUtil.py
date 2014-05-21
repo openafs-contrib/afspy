@@ -10,7 +10,7 @@ import afs
 
 class TestDNSconf(unittest.TestCase, BasicTestSetup) :
     """
-    Tests DNSconfDAO Methods
+    Tests DNSconfLLA Methods
     """
 
     def setUp(self):

@@ -2,7 +2,7 @@
 get configuration about AFS-cell from DNS
 """
 from afs.util.Executor import exec_wrapper
-import DNSconfDAOParse as PM
+import DNSconfLLAParse as PM
 from BaseUtil import BaseUtil
 
 class DNSconfUtil(BaseUtil) :

@@ -17,7 +17,7 @@ class CellService(BaseService):
     Thus one instance works only for cell.
     """
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, DAOList=["fs", "vl", "vol", "rx", "ubik"])
+        BaseService.__init__(self, conf, LLAList=["fs", "vl", "vol", "rx", "ubik"])
         self.FS=FSService()
         self.PS=ProjectService()
         self.BosS=BosService()
@@ -85,7 +85,7 @@ class CellService(BaseService):
         """
         FileServers=[]
         self.Logger.debug("refreshing FileServers from live system")
-        for na in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True) :
+        for na in self._vlLLA.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True) :
             DNSInfo=afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(na['name_or_ip'])
             FileServers.append(DNSInfo['names'][0])
         self.Logger.debug("get_fileservers: returning %s" % FileServers)
@@ -102,7 +102,7 @@ class CellService(BaseService):
 
         # get one fileserver and from that one the DBServList
         # we need to make sure to get the IP
-        for f in self._vlDAO.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True ) :
+        for f in self._vlLLA.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True ) :
             if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
             break
         _bos_server = self.BosS.pull_bos_server(f["name_or_ip"], cached=False)
@@ -114,8 +114,8 @@ class CellService(BaseService):
         """
         return (SyncSite,DBVersion,DBState) tuple for DataBase accessible from Port
         """
-        shortInfo = self._ubikDAO.get_short_info(name_or_ip, Port, _cfg=self._CFG, _user=_user)
+        shortInfo = self._ubikLLA.get_short_info(name_or_ip, Port, _cfg=self._CFG, _user=_user)
         # we get DBState only from SyncSite  
         if not shortInfo["isSyncSite"] : 
-             shortInfo = self._ubikDAO.get_short_info(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
+             shortInfo = self._ubikLLA.get_short_info(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
         return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])

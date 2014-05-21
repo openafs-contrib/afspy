@@ -15,8 +15,8 @@ from afs.service.ProjectService import ProjectService
 from afs.model.Volume import Volume
 from afs.model.Partition import Partition
 from afs.model.ExtendedPartitionAttributes import ExtPartAttr
-from afs.dao.UbikPeerDAO import UbikPeerDAO
-from afs.dao.OSDVolumeDAO import OSDVolumeDAO
+from afs.lla.UbikPeerLLA import UbikPeerLLA
+from afs.lla.OSDVolumeLLA import OSDVolumeLLA
 
 myParser=argparse.ArgumentParser(parents=[afs.argParser], add_help=False)
 myParser.add_argument("--force", action='store_true',default=False, help="force re-check")
@@ -25,14 +25,14 @@ myParser.add_argument("--onlySP", default="", help="check only server_partition"
 myParser.add_argument("--stat", action='store_true', default=False, help="do not query live-system, but only update DB-internal sums")
 
 parseDefaultConfig(myParser)
-VDAO=OSDVolumeDAO()
+VLLA=OSDVolumeLLA()
 CS=OSDCellService()
 FS=OSDFsService()
 VS=OSDVolService()
 DBsS=DBsService()
 DBM=DBManager()
 PS=ProjectService()
-UDAO=UbikPeerDAO()
+ULLA=UbikPeerLLA()
 
 def main() :
 
@@ -80,7 +80,7 @@ def main() :
     if not afs.defaultConfig.create :
         cachedCell=CS.getCellInfo(cached=True)
         liveCell=CS.getCellInfo(cached=False)
-        # live_VLDBVersion=UDAO.getShortInfo(cachedCell.DBServers[0],7003,None,None)["SyncSiteDBVersion"]
+        # live_VLDBVersion=ULLA.getShortInfo(cachedCell.DBServers[0],7003,None,None)["SyncSiteDBVersion"]
         # update if required
         if cachedCell :
             if "%s" % cachedCell.VLDBVersion == "%s" % liveCell.VLDBVersion :

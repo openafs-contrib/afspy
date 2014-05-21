@@ -166,7 +166,7 @@ setup(
     version='0.2.0',
     author='Christof Hanke, Fabrizio Manfredi',
     author_email='hanke@rzg.mpg.de, fabrizio.manfredi@gmail.com',
-    packages=['afs', 'afs.util', 'afs.model', 'afs.dao', 'afs.service', 'afs.tests', 'afs.orm'],
+    packages=['afs', 'afs.util', 'afs.model', 'afs.lla', 'afs.service', 'afs.tests', 'afs.orm'],
     scripts=["scripts/asyncExecutioner.py"],
     package_data={'afs': ['etc/*.cfg', 'etc/pythonstartup']},
     url='http://pypi.python.org/pypi/afspy/',

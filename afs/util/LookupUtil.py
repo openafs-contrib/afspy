@@ -175,12 +175,12 @@ class LookupUtil :
 
         # not found in local cache and not in DB Cache, get it from live-system
             
-        from afs.dao.VLDBDAO import VLDBDAO
+        from afs.lla.VLDBLLA import VLDBLLA
         dns_info = self.get_dns_info(name_or_ip)
         uuid = ""
-        _vl_dao = VLDBDAO()
+        _vl_lla = VLDBLLA()
 
-        uuid = _vl_dao.get_fileserver_uuid(dns_info["names"][0], _user = _user, \
+        uuid = _vl_lla.get_fileserver_uuid(dns_info["names"][0], _user = _user, \
              _cfg = self._config)
 
         # store it in memory_cache 
@@ -219,10 +219,10 @@ class LookupUtil :
 
         # not found in local cache and not in DB Cache, or cacheing disabled.
         # get it from live-system
-        from afs.dao.VLDBDAO import VLDBDAO
-        _vl_dao = VLDBDAO()
+        from afs.lla.VLDBLLA import VLDBLLA
+        _vl_lla = VLDBLLA()
         name_or_ip = None
-        for fileserver in _vl_dao.getFsServList(\
+        for fileserver in _vl_lla.getFsServList(\
             _cfg = self._config, _user="" ) :
             if fileserver['uuid'] == uuid :
                 name_or_ip = fileserver['name_or_ip']

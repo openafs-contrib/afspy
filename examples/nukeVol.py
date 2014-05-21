@@ -6,16 +6,16 @@ from afs.util.AfsConfig import parseDefaultConfig
 from afs.util.afsutil import parseHumanWriteableSize
 from afs.service.VolService import VolService
 from afs.model.Volume import Volume
-from afs.dao.VolumeDAO import VolumeDAO
-from afs.dao.VLDbDAO import VLDbDAO
-from afs.dao.FileSystemDAO import FileSystemDAO
+from afs.lla.VolumeLLA import VolumeLLA
+from afs.lla.VLDbLLA import VLDbLLA
+from afs.lla.FileSystemLLA import FileSystemLLA
 
 
 myParser=argparse.ArgumentParser(parents=[afs.argParser], description="nuke a volume. Remove RW and all ROs", add_help=False)
 myParser.add_argument("--volname", dest="VolumeName", required=True, help="Name of Volume")
 
 parseDefaultConfig(myParser)
-VD=VolumeDAO()
+VD=VolumeLLA()
 VS=VolService()
 
 try :

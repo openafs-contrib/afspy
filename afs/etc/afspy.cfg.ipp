@@ -33,11 +33,11 @@ hostmap=afs-db-hgw.ipp-hgw.mpg.de=194.94.214.140
 
 
 #
-# DAO 
+# LLA 
 
 # how afs-coomands should be executed.
 # possible values : childprocs, detached
-DAOImplementation=
+LLAImplementation=
 
 #
 # logging
@@ -50,9 +50,9 @@ globalLogLevel=warn
 # specific module.
 # available options are:
 
-# loglevel for all DAOs:
-# LogLevel_DAO=warn
-# loglevel for a specific DAO, %s=classname of DAO, e.g. LogLeveL=UbikPeerDAO
+# loglevel for all LLAs:
+# LogLevel_LLA=warn
+# loglevel for a specific LLA, %s=classname of LLA, e.g. LogLeveL=UbikPeerLLA
 # LogLevel_%s
 
 # loglevel for Model-class operations

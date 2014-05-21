@@ -9,4 +9,4 @@ class PTDBService(BaseService):
     need to change self._CFG
     """
     def __init__(self,conf=None):
-        BaseService.__init__(self, conf, DAOList=["pts",  ])
+        BaseService.__init__(self, conf, LLAList=["pts",  ])

@@ -58,7 +58,7 @@ DB_USER=
 # LogLevel_sqlalchemy=
 # LogLevel_AuthService=debug
 #LogLevel_Service=debug
-#LogLevel_DAO=debug
+#LogLevel_LLA=debug
 globalLogLevel=
 
 ## Type: CSV
