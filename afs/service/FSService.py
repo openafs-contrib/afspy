@@ -18,7 +18,7 @@ class FSService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, LLAList=["fs", "vl", "rx", "vol"])
+        BaseService.__init__(self, conf, LLAList=["fs", "rx", "vl"])
 
     ###############################################
     # Volume Section

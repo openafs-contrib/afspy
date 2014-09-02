@@ -217,7 +217,7 @@ def exec_wrapper(func) :
     and returns the appropriate parsing function and all info this
     parsing function needs.
     Hooks for Auth checking are in place, but unused.
-    Warning: if the interpreter complains 
+    Note: if the interpreter complains 
     got multiple values for keyword argument _cfg, then you're
     passing a positional argument, which should not be there.
     """

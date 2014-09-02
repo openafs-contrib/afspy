@@ -1,14 +1,22 @@
 #!/usr/bin/env python
 
+from ConfigParser import ConfigParser
 import sys
 import unittest
-from ConfigParser import ConfigParser
-from afs.tests.BaseTest import parse_commandline
 
+from afs.tests.BaseTest import parse_commandline
+from afs.service.FSService import FSService
 import afs
 
-from afs.service.FSService import FSService
+class EvaluateTestResults(unittest.TestCase) :
+    
+    def eval_get_fileserver(self, res) :
+        self.assertEqual(self.general_restart_time, res.general_restart_time)
+        self.assertEqual(self.newbinary_restart_time, res.newbinary_restart_time)
+        return
 
+    def eval_partition_list(self, res) :
+        return
 
 
 class TestFSServiceSetMethods_async(unittest.TestCase):
@@ -130,7 +138,6 @@ class TestFSServiceCachedMethods(unittest.TestCase):
         volumes = self.FSService.get_volumes(self.fileserver, part="a", async=False, cached=True) 
         sys.stderr.write("num_vols=%s\n" % len(volumes,))
         return
-
 
 if __name__ == '__main__' :
     parse_commandline()

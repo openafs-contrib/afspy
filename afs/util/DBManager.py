@@ -1,18 +1,22 @@
-from afs.util.AFSError import AFSError
-import string,json,logging
-from sqlalchemy import or_,func
-import sqlalchemy.orm.session
-from sqlalchemy.orm import object_session 
-import afs
-import afs.model
+import datetime
+import json
+import logging
+import string
 from types import ListType,DictType,StringType,IntType
 from copy import deepcopy
+
+from sqlalchemy import or_, func, desc
+import sqlalchemy.orm.session
+from sqlalchemy.orm import object_session 
+
 from afs.orm.Historic import historic_tables
-import time
+from afs.util.AFSError import AFSError
+import afs
+import afs.model
 
 class DBManager :
 
-    def __init__(self,conf=None) :
+    def __init__(self, conf=None) :
 
         # CONF INIT 
         if conf:
@@ -50,22 +54,23 @@ class DBManager :
             res=None
         t.close()
         return res
-        
-
-    def get_from_cache(self, Class, mustBeUnique=True, **where) :
+       
+    def get_from_cache(self, Class, mustBeUnique=True, fresh_only=True, **where) :
         """
         get an object from the cache.
         returns None if object is not found in cache
         unique is used the same way as in setIntoCache
         """
-        query=self.DbSession.query(Class).filter_by(**where)
+        query = self.DbSession.query(Class).filter_by(**where)
+        if fresh_only == True :
+            query = query.filter( Class.db_update_date > ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.DB_TIME_TO_CACHE))) )
         cachedObjList = query.all()
         emptyObj = Class()
         for r in cachedObjList :
             r.update_app_repr()
             # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
             r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
-            # expung Obj from Session, we don't want to use it outside
+            # expunge Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("get_from_cache: got fromDB: %s" % (cachedObjList))
         if mustBeUnique :
@@ -220,11 +225,11 @@ class DBManager :
             self.DbSession.expunge(Obj)
         self.Logger.debug("setIntoCache: Obj=%s" % Obj)
         # get a mapped object
-        mapped_object = self.get_from_cache(Class, **unique)
+        mapped_object = self.get_from_cache(Class, fresh_only=False, **unique)
         if mapped_object == None :
             mapped_object = Class()
         updated_obj = self.do_set_into_cache(Obj, mapped_object)
-        return self.get_from_cache(Class, **unique)
+        return self.get_from_cache(Class, fresh_only=False, **unique)
 
     def set_into_cache_by_dict_value(self, Class, Obj, Attr, Elem) :
         if object_session(Obj) != None : 
@@ -234,7 +239,7 @@ class DBManager :
         if mapped_object == None :
             mapped_object = Class()
         updated_obj = self.do_set_into_cache(Obj, mapped_object)
-        return elf.get_from_cache_by_dict_value(Class, Attr, Elem)
+        return self.get_from_cache_by_dict_value(Class, Attr, Elem)
 
     def set_into_cache_by_list_element(self, Class, Obj, Attr, Elem) :
         if object_session(Obj) != None : 
@@ -246,21 +251,82 @@ class DBManager :
         updated_obj = self.do_set_into_cache(Obj, mapped_object)
         return self.get_from_cache_by_list_element(Class, Attr,Elem)
 
+
+    def obj_has_changed(self, obj, latest_archived_obj) :
+        """
+        checks if obj is different from latest archived object
+        """
+        from afs.model.BaseModel import BaseModel
+        base_model_attrs = dir(BaseModel())
+        model_attributes = dir(obj)
+        for attr in model_attributes :
+            if attr[0] == "_" : continue
+            if attr in base_model_attrs : continue
+            if attr == obj : continue
+            if not attr in obj.unmapped_attributes_list :
+                if getattr(latest_archived_obj, attr) != getattr(obj, attr) :
+                    self.Logger.debug("attr %s changed. was :%s is: %s" % (attr, getattr(latest_archived_obj, attr),getattr(obj, attr)) )
+                    return True
+        return False   
+             
+
+    def archive_into_cache(self, mapped_object) :
+        """
+        archive object into historic class if configuration allows
+        """
+        self.Logger.debug("Entering archive_into_cache")
+        historic_class = afs.model.get_historic_class(mapped_object)
+        now = datetime.datetime.now()
+        latest_archived_obj= self.DbSession.query(historic_class).filter_by(real_db_id=mapped_object.db_id).order_by(desc(historic_class.db_creation_date)).first()
+       
+
+    
+        self.Logger.debug("latest=%s\n" % latest_archived_obj)
+        if latest_archived_obj == None :
+            self.do_archive_obj(mapped_object, now)
+            return
+
+        already_archived_objs = self.DbSession.query(historic_class).filter_by(real_db_id=mapped_object.db_id).filter( historic_class.db_creation_date > ( now - datetime.timedelta(minutes=int(self._CFG.DB_HISTORY_MIN_INTERVAL_MINUTES))) ).all()
+        if len(already_archived_objs) == 0 :
+            if self.obj_has_changed(mapped_object, latest_archived_obj)  :
+                self.do_archive_obj(mapped_object, now)
+                return
+        else :
+            self.Logger.debug("Not archiving any object, since we got one already in the last %s minutes." % self._CFG.DB_HISTORY_MIN_INTERVAL_MINUTES)
+
+    def do_archive_obj(self, mapped_object, now) :
+            historic_obj = afs.model.get_historic_object(mapped_object)
+            if historic_obj.real_db_id != None : # only create history if there was sth there first
+                historic_obj.db_creation_date = now
+                historic_obj.db_update_date = None
+                historic_obj.update_db_repr()
+                self.DbSession.merge(historic_obj) 
+                self.Logger.debug("do_archive_obj: history to mapped-Obj=%s" % historic_obj)
+
     def do_set_into_cache(self, Obj, mapped_object) : 
+        """
+        method to actually push something into the DB_CACHE
+        """
         # copy over used Attributes
         self.Logger.debug("do_set_into_cache: got obj=%s" % Obj)
+        now = datetime.datetime.now()
         # save mapped-object as-is into historical table.
         # admin need to vacuum once in a while, no automatism here.
-        historic_obj = afs.model.get_historic(mapped_object)
-        historic_obj.update_db_repr()
-        self.Logger.debug("do_set_into_cache: history to mapped-Obj=%s" % historic_obj)
-        self.DbSession.merge(historic_obj) 
+        if self._CFG.DB_HISTORY :
+            self.archive_into_cache(mapped_object)
+
         # update mapped-object to store it back to DB
         db_id = mapped_object.db_id
         db_creation_date = mapped_object.db_creation_date
+        if db_creation_date == None :
+            db_creation_date = now
+            db_update_date = None
+        else :
+            db_update_date = now
         mapped_object = deepcopy(Obj) 
         mapped_object.db_id = db_id
         mapped_object.db_creation_date = db_creation_date
+        mapped_object.db_update_date = db_update_date
         self.Logger.debug("do_set_into_cache: copied to mapped-Obj=%s" % mapped_object)
         # update database (json) representations
         mapped_object.update_db_repr()
@@ -278,7 +344,7 @@ class DBManager :
         """
         Delete Object from cache
         """
-        cached_obj = self.get_from_cache(Class, **unique)
+        cached_obj = self.get_from_cache(Class, fresh_only=False, **unique)
 
         if cached_obj :
             self.DbSession.delete(cached_obj)
@@ -287,57 +353,24 @@ class DBManager :
         else :
             return False
 
-    def vaccuum_cache(self) :
+    def vacuum_history(self, Class, keep_num_days=-1  ) :
         """
-        Cleanup historic tables.
-        keep the minimum number of objects DB_HISTORY_NUM_PER_DAY for each day
-        young than DB_HISTORY_NUM_DAYS
+        Cleanup historic tables, remove everything older than DB_HISTORY_NUM_DAYS.
         """
-        now=time.mktime(time.localtime())
-        for table in historic_tables :
-            self.Logger.debug("vaccuuming table %s" % table)
-            if table == "tbl_hist_extvolattr" :
-                db_id_str = "vid"
-            else :
-                db_id_str = "db_id"
-            res = self.executeRaw("SELECT %s, db_update_date FROM %s" % (db_id_str, table)).fetchall()
-            to_be_deleted = []
-            for db_id, db_update_date in res :
-                timestamp=time.mktime(time.strptime("%s" % db_update_date, "%Y-%m-%d %H:%M:%S"))
-                if timestamp < ( now - afs.CONFIG.DB_HISTORY_NUM_DAYS * 86440 ) :
-                    self.Logger.debug("deleting %s" % (db_update_date) ) 
-                    to_be_deleted.append(db_id)
+        if keep_num_days == -1 :
+            keep_num_days = self._CFG.DB_HISTORY_NUM_DAYS
 
-            for db_id in to_be_deleted :
-                res = self.executeRaw("DELETE FROM %s WHERE %s = %s" % (table, db_id_str, db_id))
-
-            # get all remaining sorted by update_date
-           
-            res = self.executeRaw("SELECT %s, db_update_date FROM %s order by db_update_date ASC" % (db_id_str, table)).fetchall()
-
-            if len(res) == 0 : continue
-                
-            db_id, db_update_date = res[0]
-            day = ("%s" % db_update_date).split()[0]  
-            to_be_deleted = []
-            num_this_day = 0
-            for db_id, db_update_date in res[1:] :
-                if ("%s" % db_update_date).split()[0] == day :
-                    num_this_day += 1
-                    if num_this_day >= afs.CONFIG.DB_HISTORY_NUM_PER_DAY :
-                        to_be_deleted.append(db_id)
-                else :
-                    day = ("%s" % db_update_date).split()[0] 
-                    num_this_day = 0
-             
-            conn = self._CFG.DB_ENGINE.connect()
-            t = conn.begin()
-            for db_id in to_be_deleted :
-                rawsql =  "DELETE FROM %s WHERE %s=%s" %  (table, db_id_str, db_id) 
-                res = conn.execute(rawsql)
-            t.commit()
-            t.close()
-
+        # delete objects with no db_update_date (should not happen anyway)
+        to_be_deleted_objs = self.get_from_cache(Class, db_update_date=None, mustBeUnique=False, fresh_only=False) 
+        if to_be_deleted_objs != None :
+            for obj in to_be_deleted_objs :
+                self.Logger.debug("deleting invalid obj: %s db_id %s" % (obj, obj.db_id) ) 
+                self.DbSession.delete(obj)
+        to_be_deleted_objs = self.DbSession.query(Class).filter((Class.db_creation_date - datetime.datetime.now()) > datetime.timedelta(days=keep_num_days)).all()
+        for obj in to_be_deleted_objs :
+                self.Logger.debug("deleting obj: %s db_id %s" % (obj, obj.db_id) )
+                self.DbSession.delete(obj)
+        self.DbSession.commit()
         return 
 
     def count(self, Attr, **where) :

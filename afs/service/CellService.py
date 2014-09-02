@@ -17,7 +17,7 @@ class CellService(BaseService):
     Thus one instance works only for cell.
     """
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, LLAList=["fs", "vl", "vol", "rx", "ubik"])
+        BaseService.__init__(self, conf, LLAList=["fs", "vl", "rx", "ubik"])
         self.FS=FSService()
         self.PS=ProjectService()
         self.BosS=BosService()

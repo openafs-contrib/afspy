@@ -129,7 +129,7 @@ def parse_configs(my_parser=None):
             bind = afs.CONFIG.DB_ENGINE)
 
         # setup DB_HISTORY
-        if afs.CONFIG.DB_HISTORY_NUM_PER_DAY > 0 :
+        if afs.CONFIG.DB_HISTORY :
             afs.orm.Historic.setup_db_mappings(afs.CONFIG) 
 
     # setup binary-pathes
@@ -187,7 +187,7 @@ def load_config_from_file(namespace_obj, config_file_):
                     preset_key_value.append(value)
                     namespace_obj.__setattr__(key, preset_key_value)
             else :
-                if  preset_key_value == "" :
+                if preset_key_value == "" or preset_key_value == None :
                     namespace_obj.__setattr__(key, value)
         else :
             raise AFSError("%s: unknown option : %s " % (config_file_, key))

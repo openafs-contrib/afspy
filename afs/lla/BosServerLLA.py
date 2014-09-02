@@ -36,7 +36,7 @@ class BosServerLLA(BaseLLA) :
         result_list.append(self.push_newbinary_restart_time(bos_server, \
             ))
         # userlist
-        superusers=self.pull_userlist(bos_server).superusers
+        superusers=self.get_userlist(bos_server).superusers
         to_be_removed = []
         to_be_added = []
         for su in superusers :
@@ -52,18 +52,18 @@ class BosServerLLA(BaseLLA) :
             
         return  
 
-    def pull_bos_server(self, bos_server, _cfg = None) :
+    def get_bos_server(self, bos_server, _cfg = None) :
         """
-        pull a full bos_server object from server.
+        get a full bos_server object from server.
         filled attributes depends on authorization. 
         """
         dns_info = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(bos_server.servernames[0])
         bos_server.servernames = dns_info["names"]
         bos_server.servername = bos_server.servernames[0]
         bos_server.ipaddrs = dns_info["ipaddrs"]
-        bos_server = self.pull_bnodes(bos_server)
-        bos_server = self.pull_restart_times(bos_server)
-        bos_server = self.pull_db_servers(bos_server)
+        bos_server = self.get_bnodes(bos_server)
+        bos_server = self.get_restart_times(bos_server)
+        bos_server = self.get_db_servers(bos_server)
         return bos_server
 
     def push_restart_times(self, bos_server, _cfg = None) :
@@ -76,26 +76,26 @@ class BosServerLLA(BaseLLA) :
         return obj
 
     @exec_wrapper    
-    def pull_bnodes(self, bos_server, _cfg = None) :
+    def get_bnodes(self, bos_server, _cfg = None) :
         """
-        pull list of BNode Objects from a server.
+        get list of BNode Objects from a server.
         """ 
         command_list = [_cfg.binaries["bos"], "status", "-server", \
             "%s"  % bos_server.servername ,"-long", "-cell" , "%s" % _cfg.cell]
-        return command_list, PM.pull_bnodes
+        return command_list, PM.get_bnodes
 
     #
     # methods to deal with specific attributes of a bos_server object
     #
 
     @exec_wrapper    
-    def pull_restart_times(self, bos_server, _cfg = None):
+    def get_restart_times(self, bos_server, _cfg = None):
         """
-        pull attributes restart times from bosserver into given object
+        get attributes restart times from bosserver into given object
         """
         command_list = [_cfg.binaries["bos"], "getrestart", "-server", \
             "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell]
-        return command_list, PM.pull_restart_times
+        return command_list, PM.get_restart_times
 
     @exec_wrapper    
     def push_general_restart_time(self, bos_server, _cfg = None) :
@@ -144,13 +144,13 @@ class BosServerLLA(BaseLLA) :
         return command_list, PM.remove_user
     
     @exec_wrapper    
-    def pull_userlist(self, bos_server, _cfg = None) :
+    def get_userlist(self, bos_server, _cfg = None) :
         """
-        pull bosserver's superuserlist into given object
+        get bosserver's superuserlist into given object
         """
         command_list = [_cfg.binaries["bos"], "listuser", "-server", \
             "%s"  % bos_server.servername ]
-        return command_list, PM.pull_userlist
+        return command_list, PM.get_userlist
     
     @exec_wrapper    
     def get_filedate(self, bos_server, filelist, destdir="", _cfg = None) :
@@ -165,13 +165,13 @@ class BosServerLLA(BaseLLA) :
         return command_list, PM.get_filedate
     
     @exec_wrapper    
-    def pull_db_servers(self, bos_server, _cfg = None) :
+    def get_db_servers(self, bos_server, _cfg = None) :
         """
         get list of all database-servers known to a given AFS-server
         """
         command_list = [_cfg.binaries["bos"], "listhosts", "-server", \
             "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell]
-        return command_list, PM.pull_db_servers
+        return command_list, PM.get_db_servers
 
     @exec_wrapper    
     def restart(self, bos_server, bnodes = None, restart_bosserver = False, \

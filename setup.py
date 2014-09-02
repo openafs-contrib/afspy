@@ -105,10 +105,11 @@ from afs.magix import *
                     in_class = True
                     continue
                 if not in_class: continue
-                if "BaseModel.__init__(self)" in line :
+                if "def __init__(self" in line :
+                    h.write("    ## pointer to current table entry\n")
+                    h.write("    real_db_id = -1\n")
+                    h.write("\n")
                     h.write(line)
-                    h.write("        ## pointer to current table entry\n")
-                    h.write("        self.real_db_id = -1\n")
                 else :
                     h.write(line)
             f.close()

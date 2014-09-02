@@ -12,7 +12,16 @@ from afs.tests.BaseTest import parse_commandline
 import afs.lla.VolServerLLA 
 import afs
 
-class TestVolServerLLAMethods(unittest.TestCase):
+class EvaluateTestResults(unittest.TestCase) :
+    """
+    evaluate results
+    """
+
+    def eval_examine(self, res) :
+        self.assertEqual(res.vid, self.volume.vid) 
+        return
+
+class TestVolServerLLAMethods(EvaluateTestResults) :
     """
     Tests VolumeLLA Methods
     """
@@ -32,16 +41,13 @@ class TestVolServerLLAMethods(unittest.TestCase):
         self.volume.vid = int(self.test_config.get("VolServerLLA", "VolID"))
         self.num_volumes = int(self.test_config.get("VolServerLLA", "numVols"))
         return
-    
-    def test_pull_volumes(self) :
-        """
-        test filling in a Volume object
-        """
-        volumes = self.lla.pull_volumes(self.volume, _cfg = afs.CONFIG)
-        self.assertEqual(volumes[0].vid, self.volume.vid)
-        return
 
-class TestVolServerLLAMethods_async(unittest.TestCase):
+    def test_vos_examine(self) :
+        res = self.lla.examine(self.volume)
+        self.eval_examine(res) 
+        return
+    
+class TestVolServerLLAMethods_async(EvaluateTestResults):
     """
     Tests VolServerLLA Methods
     """
@@ -61,17 +67,14 @@ class TestVolServerLLAMethods_async(unittest.TestCase):
         self.volume.vid = int(self.test_config.get("VolServerLLA", "VolID"))
         self.num_volumes = int(self.test_config.get("VolServerLLA", "numVols"))
         return
-    
-    def test_pull_volumes(self) :
-        """
-        test filling in a Volume object
-        """
-        sp_ident = self.lla.pull_volumes(self.volume, _cfg = afs.CONFIG, async = True)
-        self.lla.wait_for_subprocess(sp_ident)
-        volumes = self.lla.get_subprocess_result(sp_ident)
-        self.assertEqual(volumes[0].vid, self.volume.vid)
-        return
 
+    def test_vos_examine(self) :
+        sp_ident = self.lla.examine(self.volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_examine(res) 
+        return
+    
 if __name__ == '__main__' :
     parse_commandline()
     sys.stderr.write("\n===\n=== testing direct fork ===\n===\n\n")

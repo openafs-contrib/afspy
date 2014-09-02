@@ -13,19 +13,20 @@ class BaseModel(object):
     The mother of all model-objects
     """
 
+    ## DB - ID
+    db_id = None
+    ## creation date of this db-entry
+    db_creation_date = datetime.datetime.now()
+    ## update date of this db-entry
+    db_update_date = datetime.datetime.now()
+    ## list of attributes not to put into the DB
+    ## overwrite in model definition if not empty
+    unmapped_attributes_list = []
+
     def __init__(self) :
         """
         set attributes known to all models
         """
-        ## DB - ID
-        self.db_id = None
-        ## creation date of this db-entry
-        self.db_creation_date = datetime.datetime.now()
-        ## update date of this db-entry
-        self.db_update_date = datetime.datetime.now()
-        ## list of attributes not to put into the DB
-        ## overwrite in model definition if not empty
-        self.unmapped_attributes_list = []
         self.update_app_repr()
         return 
 
@@ -114,3 +115,14 @@ class BaseModel(object):
                 repr += "%s=%s, " % (attr, eval("self.%s" % attr))
         repr += ")>"
         return repr
+
+    def __setattr__(self, name, value):
+        """
+        Raise an exception if attempting to assign to an atribute which does not exist in the model.
+        We're not checking if the attribute is an SQLAlchemy-mapped column because we also want it to work with properties etc.
+        See http://stackoverflow.com/questions/12032260/ for more details.
+        This is activated after the initialization in the models __init__ - method
+        """ 
+        if name != "_sa_instance_state" and not hasattr(self, name):
+            raise ValueError("Attribute %s is not a mapped column of object %s" % (name, self))
+        super(BaseModel, self).__setattr__(name, value) 

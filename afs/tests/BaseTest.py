@@ -89,11 +89,13 @@ def parse_commandline():
         add_help = False,epilog = afs.ARGPARSER.epilog)
     my_parser.add_argument("--setup", default="./Test.cfg", \
         help="path to Testconfig")
-    my_parser.add_argument("--destructive", action='store_const', const=True, \
+    my_parser.add_argument("--harmless_auth", dest="enable_harmless_auth_tests", action='store_const', const=True, \
+      default=False, help="enable harmless tests requiring authentication")
+    my_parser.add_argument("--destructive", dest="enable_destructive_tests", action='store_const', const=True, \
       default=False, help="enable destructive tests")
-    my_parser.add_argument("--modifying", action='store_const', const=True, \
+    my_parser.add_argument("--modifying", dest="enable_modifying_tests", action='store_const', const=True, \
       default=False, help="enable modifying tests")
-    my_parser.add_argument("--interrupting", action='store_const', const=True, \
+    my_parser.add_argument("--interrupting", dest="enable_interrupting_tests", action='store_const', const=True, \
       default=False, help="enable interrupting tests")
     parse_configs(my_parser)
     if not os.path.exists(afs.CONFIG.setup) :

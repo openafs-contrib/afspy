@@ -10,17 +10,18 @@ class VLDB(BaseModel) :
     The single copies of it are defined in the
     DBServer model.
     """
+
+    ## list of servers providing this DB
+    dbservers_ipaddrs_js = "[]"
+    dbservers_ipaddrs = []
+    ## syncsite, master-server
+    sync_server_ipaddrs = ""
+    ## FIXME: add more attributes like registered fileservers etc.
+    ## DB-version
+    vldb_version = -1
+
     def __init__(self):
         """
         Initializes empty shell
         """
         BaseModel.__init__(self)
-
-        ## list of servers providing this DB
-        self.dbservers_ipaddrs_js = "[]"
-        self.dbservers_ipaddrs = []
-        ## syncsite, master-server
-        self.sync_server_ipaddrs = ""
-        ## FIXME: add more attributes like registered fileservers etc.
-        ## DB-version
-        self.vldb_version = -1

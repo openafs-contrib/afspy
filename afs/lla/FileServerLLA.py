@@ -27,7 +27,7 @@ class FileServerLLA(BaseLLA) :
     @exec_wrapper    
     def get_volume_id_list(self, fileserver, part="", _cfg=None):
         """
-        return  Volumes in partition
+        return Volumes in partition
         """
         CmdList=[_cfg.binaries["vos"], "listvol", "-server", "%s" % \
             fileserver.servernames[0],  "-fast", "-cell","%s" % _cfg.cell]

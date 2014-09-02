@@ -22,7 +22,14 @@ def setup_options():
     return my_argparser
 
 
-def get_historic(obj) :
+def get_historic_class(object_or_class) :
+    """
+    return historic class belonging to the given object
+    """
+    return eval("Historic.historic_%s\n" % (object_or_class.__class__.__name__))
+         
+
+def get_historic_object(obj) :
     """
     return a historic object from given model object.
     Ths historic object is like the model object, but mapped to another table
@@ -31,8 +38,8 @@ def get_historic(obj) :
     import Historic
     from BaseModel import BaseModel
 
-    base_model_attrs = dir(BaseModel())
     historic_object = eval("Historic.historic_%s()\n" % (obj.__class__.__name__))
+    base_model_attrs = dir(BaseModel())
     model_attributes = dir(obj)
     for attr in model_attributes :
         if attr[0] == "_" : continue
