@@ -22,17 +22,17 @@ class BosService (BaseService):
              this_BosServer = BosServer()
              this_BosServer.servernames = DNSInfo["names"]
 
-        return this_bosserver
+        return this_BosServer
 
-    def pull_bos_server(self, obj_or_param, cached=True) :
+    def get_bos_server(self, obj_or_param, cached=True) :
         """
         Returning BosServer Object.
         As input parameter, give a BosServer Object or name_or_ip.
-        This also pulls up any accompanying bnode objects
+        This also get up any accompanying bnode objects
         """
-        self.Logger.debug("Entering pull_bos_server")
+        self.Logger.debug("Entering get_bos_server")
 
-        this_bosserver = self.get_object(obj_or_param)
+        this_BosServer = self.get_object(obj_or_param)
         
         if self._CFG.DB_CACHE :
             if cached :
@@ -40,9 +40,9 @@ class BosService (BaseService):
                 if cached_BosServer != None :
                     # XXX get BNodes
                     cached_BosServer.bnodes = []
-                    self.Logger.debug("pull_bosserver: returning cached object")
+                    self.Logger.debug("get_bosserver: returning cached object")
                     return cached_BosServer
-        this_BosServer = self._bosserver_lla.pull_bos_server(this_BosServer, _cfg=self._CFG)
+        this_BosServer = self._bosserver_lla.get_bos_server(this_BosServer, _cfg=self._CFG)
         # update cache if present
         if self._CFG.DB_CACHE :
             cached_BosServer = self.DBManager.set_into_cache_by_list_element(BosServer, this_BosServer, BosServer.servernames_js, this_BosServer.servernames[0])

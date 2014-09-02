@@ -10,7 +10,7 @@ General
 
  * the userinterface is only the Service - Level
 
- * permissions are checked on the DAO - Level
+ * permissions are checked on the LLA - Level
  
  * Three ways to get data :
   * the DB_Cache can be considered as a cacheing proxy to the data
@@ -18,26 +18,29 @@ General
   * blocking getter methods from the live-cell
 
  * Two ways of manipulating the cell :
-  * async (application needs to check TaskManager, done by threads)
+  * async (application needs to check Service, done by threads)
   * blocking 
 
 
-DAO
+LLA
 ===
 
  * Two ways of executing afs-commands :
-  * normal exec()
-  * fully detached via SubprocessManager (default)
+  * normal exec() (default)
+    * LLA return objects.
+      * these objects do not need to have all attributes set.
+      the service is required to fill in the gaps.
+  * fully detached 
+    * LLA return handle to async command.
+    * provides methods to query status detached commands.
+    * more than one command may be executed detached at one time.
+    * it is up to the service to collect the pieces.
 
- * DAO return objects.
-  * these objects do not need to have all attributes set.
-    the service is required to fill in the gaps.
+ * LLA always raises an execption on error
 
- * DAO always raises an execption on error
+ * LLAs are distinguished on the RPC-Level.
 
- * DAOs are distinguished on the RPC-Level.
-
- * DAO casts variables to the correct datatype ( e.g. volume_id are integer )
+ * LLA casts variables to the correct datatype ( e.g. volume_id are integer )
 
 
 Service
@@ -47,16 +50,19 @@ Service
 
    * Objects returned by a service can be lazy
   
-   * Objects are by default first looked up in the cache
+   * Objects are by default first looked up in the cache and returned if they are not too old.
 
  * A service method accepts an object or a unique attribute of that object as keyword
 
  * A service may throw an exception (e.g. wrong hostname used)
 
+ * Direct changes of object-attributes cause undefined behaviour. 
+
+
 Unit-Tests
 ==========
 
- * each DAO and service has to have to unit-test.
+ * each LLA and service has to have to unit-test.
 
 Documentation
 =============

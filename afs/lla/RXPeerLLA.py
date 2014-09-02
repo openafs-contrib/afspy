@@ -15,4 +15,3 @@ class RXPeerLLA(BaseLLA):
     def getVersionandBuildDate(self, servername, port,_cfg=None):
         CmdList=[_cfg.binaries["rxdebug"],"-server", "%s"  % servername, "-port", "%s" % port, "-version"]
         return CmdList,PM.parse_getVersionandBuildDate
-

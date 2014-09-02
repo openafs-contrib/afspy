@@ -100,14 +100,12 @@ class VolServerLLA(BaseLLA) :
         return command_list, PM.remove
    
     @exec_wrapper
-    def pull_volumes(self, volume, _cfg = None) :
+    def examine(self, volume, _cfg = None) :
         """
-        returns volume object via vos examine from vol-server. 
-        if servername and partition are unspecified, return list
-        of volume objects
+        returns volume object filled by vos examine from vol-server. 
         """
         name_or_id = PM._get_name_or_id(volume)
         command_list = [_cfg.binaries["vos"], "examine", "%s"  % name_or_id, \
             "-format", "-cell", _cfg.cell]
-        return command_list, PM.pull_volumes
+        return command_list, PM.examine
 

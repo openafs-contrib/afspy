@@ -1,7 +1,7 @@
 import string,json,logging
 from afs.model.Volume import Volume
 from afs.model.ExtendedVolumeAttributes import ExtVolAttr
-from afs.service.BaseService import BaseService
+from afs.service.BaseService import BaseService, task_wrapper
 from afs.service.VolumeServiceError import VolumeServiceError
 from afs.util import misc
 import afs
@@ -15,119 +15,142 @@ class VolumeService (BaseService):
     """
     
     def __init__(self, conf=None):
-        BaseService.__init__(self, conf, LLAList=["vol","fs"])
+        BaseService.__init__(self, conf, LLAList=["fs", "vol"])
        
-    ###############################################
-    # Volume Section
-    ###############################################    
-    
-    """
-    Retrieve Volume Group.
-    Returns dict "RW": RWVolObj, "RO": [ROVolObj1, ROVolObj2, ...]
-    """
-    def get_volume_group(self, id, _user="", cached=True):
-        self.Logger.debug("get_volume_group: entering with id=%s" % id) 
-        VolGroupDict={"RW" : None, "RO" : [], "BK": None}
+    def get_object(self, obj_or_param) :
+        """
+        return an object, regardless of what was the input (object or unique parameters)
+        unique paramter is name_or_id (either volume name or volume id)
+        """
+        if isinstance(obj_or_param, Volume) :
+             this_Volume = obj_or_param
+        else : 
+             this_Volume = Volume()
+             if misc.is_name(obj_or_param) :
+                 this_Volume.name = obj_or_param
+             else :
+                 this_Volume.vid = obj_or_param
+        return this_Volume
+
+    @task_wrapper
+    def get_volume_group(self, obj_or_param, _thread_name="", _user="", cached=True, async=False):
+        """
+        Retrieve Volume Group.
+        Returns dict "RW": RWVolObj, "RO": [ROVolObj1, ROVolObj2, ...]
+        """
+        self.Logger.debug("get_volume_group: entering with obj_or_param=%s" % obj_or_param) 
+        this_Volume = self.get_object(obj_or_param)
+
+        volume_group = {"RW" : None, "RO" : [], "BK": None}
         if cached :
-            VolList=self.DBManager.getFromCache(Volume,vid=id,mustBeUnique=False)
-            self.Logger.debug("VolList=%s" % VolList)
-            if VolList != [] :
-                parentID=VolList[0].parentID
-                VolList=self.DBManager.getFromCache(Volume,parentID=parentID,mustBeUnique=False)
-                for v in VolList :
+            if this_Volume.name != "" :
+               volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, mustBeUnique=False)
+            else :
+               volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, mustBeUnique=False)
+            self.Logger.debug("volume_list=%s" % volume_list)
+            if volume_list != [] and volume_list != None :
+                parent_id = volume_list[0].parent_id
+                volume_list = self.DBManager.get_from_cache(Volume, parent_id=parent_id, mustBeUnique=False)
+                for v in volume_list :
                     if v.type == "RW" :
-                        VolGroupDict["RW"] = v  
+                        volume_group["RW"] = v  
                     elif v.type == "RO" : 
-                        VolGroupDict["RO"].append(v)  
+                        volume_group["RO"].append(v)  
                     elif v.type == "BK" :
-                        VolGroupDict["BK"] = v  
+                        volume_group["BK"] = v  
                     else :
                         raise VolumeServiceError("get_volume_group: invalid volume type encountered: %s" % v.type)
-                return VolGroupDict 
-            self.Logger.info("found no VolumeGroup for name_or_id %s in cache. Trying live-system." % id) 
-        vol = self._volLLA.get_volume(id, _cfg=self._CFG, _user=_user)
+                return self.do_return(_thread_name, volume_group)
+            self.Logger.info("found no VolumeGroup for obj_or_param %s in cache. Trying live-system." % obj_or_param) 
+        vol = self._volLLA.examine(this_Volume, _cfg=self._CFG, _user=_user)
         if vol == None : 
             self.Logger.debug("get_volume_group: returning live: None")
-            return None
+            return self.do_return(_thread_name, None)
+        vol = vol[0]
         self.Logger.debug("get_volume_group: got vol=%s" % vol)
-        if vol[0]["vid"] == vol[0]["parentID"] : # is RW
-            rwvol = vol
-            try :
-                rovol = self._volLLA.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)
-            except : 
-                rovol = []
-            try :           
-                bkvol = self._volLLA.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
-            except :
-                bkvol = []
-        elif vol[0]["vid"] == vol[0]["cloneID"] : # is RO
-            rovol = vol
-            try :
-                rwvol = self._volLLA.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
-            except :
-                rwvol = []
-            try :
-                bkvol = self._volLLA.get_volume(vol[0]["backupID"], _cfg=self._CFG, _user=_user)  
-            except :
-                bkvol = []
-        elif vol[0]["vid"] == vol[0]["backupID"] : # is RO
-            bkvol = vol
-            try :
-                rwvol = self._volLLA.get_volume(vol[0]["parentID"], _cfg=self._CFG, _user=_user)
-            except :
-                rwvol = []
-            try :           
-                rovol = self._volLLA.get_volume(vol[0]["cloneID"], _cfg=self._CFG, _user=_user)  
-            except :
-                rovol = []
-        else : # error
-            raise VolumeServiceError("get_volume_group: error parsing intrenal vollist: %s" % vol)
-
-        self.Logger.debug("get_volume_group: got rwvol=%s,rovol=%s,bkvol=%s" % (rwvol,rovol,bkvol))
-        VolGroupDict["RW"] = self.get_volume(int(rwvol[0]["vid"]),serv=rwvol[0]["servername"],cached=False)   
-        VolGroupDict["RO"] = self.get_volume(int(rovol[0]["vid"]),cached=False)
-        #VolGroupDict["BK"] = self.get_volume(bkvol[0]["vid"])   
-        
-        return VolGroupDict
        
-    """
-    Retrieve Volume Information by Name or ID
-    returns list of volume-objects.
-    """
-    def get_volume(self, name_or_id, serv=None, _user="", cached=True):
-        VolList=[]
+        # depending on what we got fill in the others
+        rw_vol = self.get_object(vol.parent_id)
+        ro_vol = self.get_object(vol.readonly_id)
+        bk_vol = self.get_object(vol.backup_id)
+        if vol.parent_id != 0 :
+            volume_group["RW"] = self._volLLA.examine(rw_vol, _cfg=self._CFG, _user=_user)[0]
+            volume_group["RW"].fileserver_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(volume_group["RW"].servername, self._CFG)
+        if vol.readonly_id != 0 :
+            volume_group["RO"] = self._volLLA.examine(ro_vol, _cfg=self._CFG, _user=_user)
+            for volume in volume_group["RO"] :
+                volume.fileserver_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(volume.servername, self._CFG)
+        if vol.backup_id != 0 :
+            volume_group["BK"].fileserver_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(volume_group["BK"].servername, self._CFG)
+            volume_group["BK"] = self._volLLA.examine(bk_vol, _cfg=self._CFG, _user=_user)[0]  
+        
+        if self._CFG.DB_CACHE :
+            if volume_group["RW"] != None :
+                self.DBManager.set_into_cache(Volume, volume_group["RW"], vid=volume_group["RW"].vid, fileserver_uuid=volume_group["RW"].fileserver_uuid)
+            for volume in volume_group["RO"] :
+                self.DBManager.set_into_cache(Volume, volume, vid=volume.vid, fileserver_uuid=volume.fileserver_uuid)
+                
+            if volume_group["BK"] != None :
+                self.DBManager.set_into_cache(Volume, volume_group["BK"], vid=volume_group["BK"].vid, fileserver_uuid=volume_group["BK"].fileserver_uuid)
+       
+        self.Logger.debug("get_volume_group: returning: %s " % (volume_group))
+        return self.do_return(_thread_name, volume_group)
+
+    @task_wrapper
+    def get_volume(self, obj_or_param, fileserver="", _thread_name="", _user="", cached=True, async=False):
+        """
+        Retrieve Volume Information by Name or ID
+        Always return a list
+        """
+        this_Volume = self.get_object(obj_or_param)
+
+        if fileserver != "" :
+            wanted_fileserver_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(fileserver, self._CFG)
+        else : # make it an invalid UUID
+            wanted_fileserver_uuid = "XXX"
+      
+        self.Logger.debug("get_volume: called with obj_or_param=%s, fileserver=%s->wanted_fileserver_uuid=%s, _user=%s" % (obj_or_param, fileserver, wanted_fileserver_uuid, _user))
+
         if cached :
-            if serv != "" :
-                serv_uuid=afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(serv,self._CFG)
-                if misc.is_name(name_or_id) :
-                    vol=self.DBManager.getFromCache(Volume,name=name_or_id,serv_uuid=serv_uuid)
+            if fileserver != "" : 
+                if this_Volume.name != "" :
+                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, fileserver_uuid=wanted_fileserver_uuid, mustBeUnique=False)
                 else :
-                    vol=self.DBManager.getFromCache(Volume,vid=name_or_id,serv_uuid=serv_uuid)
+                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, fileserver_uuid=wanted_fileserver_uuid, mustBeUnique=False)
             else :
-                if misc.isName(name_or_id) :
-                    vol=self.DBManager.getFromCache(Volume,name=name_or_id)
+                if this_Volume.name != "" :
+                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, mustBeUnique=False)
                 else :
-                    vol=self.DBManager.getFromCache(Volume,vid=name_or_id)
-            if vol != None :
-                for v in vol :
-                    v.ExtAttr=self.getExtVolAttr(v.vid)
-                    VolList.append(v)
-                return vol
-        volumes = self._volLLA.get_volume(name_or_id, _cfg=self._CFG, _user=_user)
-        for v in volumes :
-            v.serv_uuid=afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(v.serv,self._CFG)
-            self.Logger.debug("get_volume: v=%s" % v)
-            # this doesnot work, since RO are not unique.  
-            # we would need to write a setListIntoCache method for this
-            if self._CFG.DB_CACHE :
-                self.DBManager.setIntoCache(Volume,vol,vid = vol.vid)
-            VolList.append(v)
-        return VolList
+                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, mustBeUnique=False)
+                
+            if volume_list != [] and volume_list != None :
+                return self.do_return(_thread_name, volume_list)
+        volume_list = self._volLLA.examine(this_Volume, _cfg=self._CFG, _user=_user)
+        self.Logger.debug("get_volume: got volume_list from LLA : %s" % volume_list)
+        if volume_list == None :
+            return self.do_return(_thread_name, None)
+        to_be_removed = []
+        for volume in volume_list : 
+            volume.fileserver_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(volume.servername, self._CFG)
+            if volume.fileserver_uuid != wanted_fileserver_uuid  and wanted_fileserver_uuid != "XXX" :
+                to_be_removed.append(volume)
+
+        for volume in to_be_removed :
+            volume_list.remove(volume)
+            
+        self.Logger.debug("get_volume: v=%s" % volume)
+        
+        # XXX Need a sync mechanism, in order to update Volume-entries, (since we only update if a volume has not been moved
+        # to another server)
+        if self._CFG.DB_CACHE :
+            for volume in volume_list :
+                self.DBManager.set_into_cache(Volume, volume, vid=volume.vid, fileserver_uuid=volume.fileserver_uuid)
+        return self.do_return(_thread_name, volume_list)
 
     def get_extended_volume_attributes(self, vid) :
-        cachedObj=self.DBManager.getFromCache(ExtVolAttr,vid=vid)
-        return cachedObj
+        cachedi_obj = self.DBManager.get_from_cache(ExtVolAttr, vid=vid)
+        return cached_obj
 
     def save_extended_volume_attributes(self, Obj):
-        cachedObj=self.DBManager.setIntoCache(ExtVolAttr,Obj,vid=Obj.vid)
-        return cachedObj
+        cached_obj = self.DBManager.set_into_cache(ExtVolAttr, Obj, vid=Obj.vid)
+        return cached_obj

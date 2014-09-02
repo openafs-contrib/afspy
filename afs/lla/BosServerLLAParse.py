@@ -6,7 +6,7 @@ import re
 from BosServerLLAError import BosServerLLAError
 from afs.model import BNode
 
-def pull_restart_times(ret, output, outerr, parse_param_list, logger):
+def get_restart_times(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
@@ -35,7 +35,7 @@ def push_restart_time(ret, output, outerr, parse_param_list, logger):
         raise BosServerLLAError(outerr, output)
     return obj
 
-def pull_db_servers(ret, output, outerr, parse_param_list, logger) :
+def get_db_servers(ret, output, outerr, parse_param_list, logger) :
     """
     parses result from method of same name in lla.BosServer
     """
@@ -59,7 +59,7 @@ def pull_db_servers(ret, output, outerr, parse_param_list, logger) :
     return obj
 
 
-def pull_bnodes(ret, output, outerr, parse_param_list, logger):
+def get_bnodes(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
@@ -142,7 +142,7 @@ def remove_user(ret, output, outerr, parse_param_list, logger):
          obj.superusers.remove(su)    
     return obj
 
-def pull_userlist(ret, output, outerr, parse_param_list, logger):
+def get_userlist(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """

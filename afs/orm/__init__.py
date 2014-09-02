@@ -16,9 +16,13 @@ def setup_options():
     # setup DB_CACHE options
     my_argparser.add_argument("--DB_CACHE",  default = "", \
         help = argparse.SUPPRESS)
-    my_argparser.add_argument("--DB_HISTORY_NUM_PER_DAY", default = 1, \
+    my_argparser.add_argument("--DB_TIME_TO_CACHE",  default = "", \
+        help = argparse.SUPPRESS)
+    my_argparser.add_argument("--DB_HISTORY", default = "", \
+        help = argparse.SUPPRESS)
+    my_argparser.add_argument("--DB_HISTORY_NUM_DAYS", \
         type = int, help = argparse.SUPPRESS)
-    my_argparser.add_argument("--DB_HISTORY_NUM_DAYS", default = 30, \
+    my_argparser.add_argument("--DB_HISTORY_MIN_INTERVAL_MINUTES", \
         type = int, help = argparse.SUPPRESS)
     my_argparser.add_argument("--DB_SID" , default = "", \
          help = argparse.SUPPRESS)
