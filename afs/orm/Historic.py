@@ -201,6 +201,7 @@ def setup_db_mappings(conf = None) :
         Column('creation_date', DateTime),
         Column('access_date', DateTime),
         Column('backup_date', DateTime),
+        Column('update_date', DateTime),
         Column('copy_date', DateTime),
         Column('flags', Integer ),
         Column('diskused', Integer ),
