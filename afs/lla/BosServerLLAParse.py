@@ -79,13 +79,12 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
               this_bnode.status = "disabled"
           else :
               this_bnode.status = "stopped"
-          if this_bnode.bnode_type == "fs"  :
-              idx += 2
-          else :
-              idx += 1
+          idx += 1
+          if "Auxiliary status is:" in output[idx] :
+              idx += 1 
           tokens = output[idx].split()
           if this_bnode.status == "running" :
-              this_bnode.started=" ".join(tokens[4:8])
+              this_bnode.start_date = " ".join(tokens[4:8])
               idx += 1 
               tokens = output[idx].split()
               if tokens[0] == "Last" and tokens[1] == "exit" :
@@ -104,7 +103,7 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
                   this_bnode.commands.append(cmd)
                   idx += 1 
               else : 
-                  raise RuntimeError("parse error at line %s" % output[idx])
+                  raise RuntimeError("parse error at line no %d : %s" % (idx, output[idx]))
               if idx >= len(output) : break
               tokens = output[idx].split()
           obj.bnodes.append(this_bnode)
