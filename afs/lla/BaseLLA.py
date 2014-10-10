@@ -107,8 +107,9 @@ class BaseLLA :
             return None
 
         raw_result = {}
-        for suffix in ["rc","out", "err", "pid" ] :
+        for suffix in ["rc", "out", "err", "pid" ] :
             f = file("%s/%s.%s" % (self.spool_dir, sp_ident, suffix))
+            raw_result[suffix] = []
             while 1 :
                 line = f.readline()
                 if not line : break
@@ -116,10 +117,7 @@ class BaseLLA :
                 line = line.strip()
                 if line == "" : 
                     continue
-                if not suffix in raw_result.keys() :
-                    raw_result[suffix] = [ line.strip() ]
-                else :
-                    raw_result[suffix].append(line.strip())
+                raw_result[suffix].append(line.strip())
             f.close()
             os.unlink("%s/%s.%s" % (self.spool_dir, sp_ident, suffix)) 
 
