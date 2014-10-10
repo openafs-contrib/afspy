@@ -35,7 +35,7 @@ class BNode(BaseModel):
         """
         BaseModel.__init__(self)
         ## DB-ID of owning bosserver
-        bos_db_id = bos_db_id
-        instance_name = instance_name
-        bnode_type = bnode_type
+        self.bos_db_id = bos_db_id
+        self.instance_name = instance_name
+        self.bnode_type = bnode_type
     
