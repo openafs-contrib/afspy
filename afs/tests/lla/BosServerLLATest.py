@@ -58,6 +58,12 @@ class EvaluateTestResults(unittest.TestCase) :
         now = time.localtime()
         current = time.strptime(res["current"], '%b %d %H:%M:%S %Y')
         self.assertTrue(current < now )
+        if res["backup"] != None :
+            backup = time.strptime(res["backup"], '%b %d %H:%M:%S %Y')
+            self.assertTrue( backup < now )
+        if res["old"] != None :
+            old = time.strptime(res["old"], '%b %d %H:%M:%S %Y')
+            self.assertTrue( old < now )
         return
 
     def eval_get_log(self, res) :
@@ -184,7 +190,6 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         test getting the date of a file
         """
         res = self.lla.get_filedate(self.bos_server, ["fileserver"])
-        self.assertTrue(res.has_key("current"))
         self.eval_get_filedate(res)
         return
 

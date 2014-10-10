@@ -167,11 +167,20 @@ def get_filedate(ret, output, outerr, parse_param_list, logger):
     if ret :
         raise BosServerLLAError(outerr, output)
     # File /usr/afs/bin/fileserver dated Thu Nov 21 14:16:14 2013, no .BAK file, no .OLD file.
+    # or 
+    # File /usr/afs/bin/fileserver dated Tue Jul  8 14:12:05 2014, .BAK file dated Fri Oct 10 10:07:38 2014, .OLD file dated Fri Oct 10 10:07:35 2014.
     if "does not exist" in output[0] :
         raise BosServerLLAError(output)
     tokens=output[0].split()
-    # XXX add also .BAK and .OLD file support
-    res_dict={"current" : " ".join(tokens[4:8])[:-1],} 
+    res_dict = { "current" : " ".join(tokens[4:8])[:-1],
+        "backup" : None, "old" : None } 
+    if not "no .BAK file" in output[0] :
+        res_dict["backup"] = " ".join(tokens[12:16])[:-1]
+        if not "no .OLD file" in output[0] :
+            res_dict["old"] = " ".join(tokens[20:24])[:-1]
+    else :
+        if not "no .OLD file" in output[0] :
+            res_dict["old"] = " ".join(tokens[15:19])[:-1]
     return res_dict
 
 def restart(ret, output, outerr, parse_param_list, logger):
