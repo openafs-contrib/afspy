@@ -123,6 +123,6 @@ class BaseModel(object):
         See http://stackoverflow.com/questions/12032260/ for more details.
         This is activated after the initialization in the models __init__ - method
         """ 
-        if name != "_sa_instance_state" and not hasattr(self, name):
+        if name != "_sa_instance_state" and not hasattr(self, name) and not name in self.unmapped_attributes_list :
             raise ValueError("Attribute %s is not a mapped column of object %s" % (name, self))
         super(BaseModel, self).__setattr__(name, value) 
