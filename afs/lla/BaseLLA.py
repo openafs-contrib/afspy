@@ -160,8 +160,8 @@ class BaseLLA :
             for line in _output + _outerr :
                 if "not authorized" in line.lower() :
                     return 13, "","Permission denied"
-            raise RuntimeError("cmd: \"%s\" failed with ret=%d and stderr=%s" % \
-                (' '.join(cmd_list), pipo.returncode, _outerr))
+            raise RuntimeError("cmd: \"%s\" failed with ret=%d, stdout=%s and stderr=%s" % \
+                (' '.join(cmd_list), pipo.returncode, _output, _outerr))
     
         # get rid of whitespace
         output = []
