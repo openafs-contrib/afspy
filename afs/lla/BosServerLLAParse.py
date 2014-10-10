@@ -26,7 +26,7 @@ def get_restart_times(ret, output, outerr, parse_param_list, logger):
         binary_restart_regex.match(output[1]).groups()[1].strip()
     return obj
 
-def push_restart_time(ret, output, outerr, parse_param_list, logger):
+def set_restart_time(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """

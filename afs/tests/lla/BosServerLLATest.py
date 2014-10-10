@@ -47,6 +47,14 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertEqual(self.bos_server.general_restart_time, res.general_restart_time)
         return
 
+    def eval_set_general_restart_time(self, res) :
+        self.assertEqual(self.bos_server.general_restart_time, res.general_restart_time)
+        return
+
+    def eval_set_newbinary_restart_time(self, res) :
+        self.assertEqual(self.bos_server.newbinary_restart_time, res.newbinary_restart_time)
+        return
+
     def eval_restart(self, res) :
         return
 
@@ -143,28 +151,40 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.eval_get_restart_times(res)
         return 
 
-    def test_push_binary_restart_times(self) :
+    def test_set_general_restart_time(self) :
         """
-        test pushing binary-restart-time from object to live-system
+        test setting general restart time from object to live-system
         """
-        if not afs.CONFIG.enable_modifying_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
-        obj = self.lla.push_restart_times(self.bos_server)
-        res = self.assertEqual(self.bos_server.newbinary_restart_time, obj.newbinary_restart_time)
-        self.assertEqual(self.bos_server.general_restart_time, obj.general_restart_time)
-        self.eval_push_binary_restart_times(res)
+        saved_general_restart_time = self.bos_server.general_restart_time
+        if saved_general_restart_time != "04:00 am" :
+            self.bos_server.general_restart_time = "04:00 am"
+        else :
+            self.bos_server.general_restart_time = "05:00 am"
+        res = self.lla.set_general_restart_time(self.bos_server)
+        self.eval_set_general_restart_time(res)
+        # set back to old values
+        self.bos_server.general_restart_time = saved_general_restart_time
+        res = self.lla.set_general_restart_time(self.bos_server)
+        self.eval_set_general_restart_time(res)
         return
 
-    def test_push_binary_restart_times(self) :
+    def test_set_newbinary_restart_time(self) :
         """
-        test pushing general restart time from object to live-system
+        test setting newbinary restart time from object to live-system
         """
-        if not afs.CONFIG.enable_modifying_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
-        res = self.lla.push_restart_times(self.bos_server)
-        self.eval_push_general_restart_times(res)
+        saved_newbinary_restart_time = self.bos_server.newbinary_restart_time
+        if saved_newbinary_restart_time != "04:00 am" :
+            self.bos_server.newbinary_restart_time = "04:00 am"
+        else :
+            self.bos_server.newbinary_restart_time = "05:00 am"
+        res = self.lla.set_newbinary_restart_time(self.bos_server)
+        self.eval_set_newbinary_restart_time(res)
+        # set back to old values
+        self.bos_server.newbinary_restart_time = saved_newbinary_restart_time
+        res = self.lla.set_newbinary_restart_time(self.bos_server)
+        self.eval_set_newbinary_restart_time(res)
         return
-   
+
     def test_restart(self) :
         """
         test restarting 
@@ -331,30 +351,48 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         self.eval_get_restart_times(res)
         return 
 
-    def test_set_binary_restart_times(self) :
+    def test_set_general_restart_time(self) :
         """
-        test pushing binary-restart-time from object to live-system
+        test setting general restart time from object to live-system
         """
-        if not afs.CONFIG.enable_modifying_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
-        sp_ident = self.lla.set_binary_restart_times(self.bos_server, async=True)
+        saved_general_restart_time = self.bos_server.general_restart_time
+        if saved_general_restart_time != "04:00 am" :
+            self.bos_server.general_restart_time = "04:00 am"
+        else :
+            self.bos_server.general_restart_time = "05:00 am"
+        sp_ident = self.lla.set_general_restart_time(self.bos_server, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_push_binary_restart_times(res)
+        self.eval_set_general_restart_time(res)
+        # set back to old values
+        self.bos_server.general_restart_time = saved_general_restart_time
+        sp_ident = self.lla.set_general_restart_time(self.bos_server, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_set_general_restart_time(res)
         return
 
-    def test_set_binary_restart_times(self) :
+    def test_set_newbinary_restart_time(self) :
         """
-        test pushing general restart time from object to live-system
+        test setting newbinary restart time from object to live-system
         """
-        if not afs.CONFIG.enable_modifying_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
-        sp_ident = self.lla.set_restart_times(self.bos_server, async=True)
+        saved_newbinary_restart_time = self.bos_server.newbinary_restart_time
+        if saved_newbinary_restart_time != "04:00 am" :
+            self.bos_server.newbinary_restart_time = "04:00 am"
+        else :
+            self.bos_server.newbinary_restart_time = "05:00 am"
+        sp_ident = self.lla.set_newbinary_restart_time(self.bos_server, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_push_general_restart_times(res)
+        self.eval_set_newbinary_restart_time(res)
+        # set back to old values
+        self.bos_server.newbinary_restart_time = saved_newbinary_restart_time
+        sp_ident = self.lla.set_newbinary_restart_time(self.bos_server, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_set_newbinary_restart_time(res)
         return
-   
+
     def test_restart(self) :
         """
         test restarting 

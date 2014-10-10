@@ -31,9 +31,9 @@ class BosServerLLA(BaseLLA) :
         """
         result_list = []
         # restart times
-        result_list.append(self.push_general_restart_time(bos_server, \
+        result_list.append(self.set_general_restart_time(bos_server, \
             ))
-        result_list.append(self.push_newbinary_restart_time(bos_server, \
+        result_list.append(self.set_newbinary_restart_time(bos_server, \
             ))
         # userlist
         superusers=self.get_userlist(bos_server).superusers
@@ -65,15 +65,6 @@ class BosServerLLA(BaseLLA) :
         bos_server = self.get_db_servers(bos_server)
         return bos_server
 
-    def push_restart_times(self, bos_server, _cfg = None) :
-        """
-        pushes general restart time onto bosserver as given in the object.
-        """
-        obj=self.push_general_restart_time(bos_server)
-        obj.newbinary_restart_time = bos_server.newbinary_restart_time
-        obj=self.push_newbinary_restart_time(obj)
-        return obj
-
     @exec_wrapper    
     def get_bnodes(self, bos_server, _cfg = None) :
         """
@@ -97,24 +88,24 @@ class BosServerLLA(BaseLLA) :
         return command_list, PM.get_restart_times
 
     @exec_wrapper    
-    def push_general_restart_time(self, bos_server, _cfg = None) :
+    def set_general_restart_time(self, bos_server, _cfg = None) :
         """
         pushes general restart time onto bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
             bos_server.servernames[0], "-time",  "%s" % \
             bos_server.general_restart_time,  "-general", "-cell" , "%s" % _cfg.cell ]
-        return command_list, PM.push_restart_time
+        return command_list, PM.set_restart_time
 
     @exec_wrapper    
-    def push_newbinary_restart_time(self, bos_server, _cfg = None) :
+    def set_newbinary_restart_time(self, bos_server, _cfg = None) :
         """
         pushes restart time for new binaries on bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
             bos_server.servernames[0], "-time",  "%s" % \
             bos_server.general_restart_time,  "-newbinary", "-cell" , "%s" % _cfg.cell ]
-        return command_list, PM.push_restart_time
+        return command_list, PM.set_restart_time
 
     @exec_wrapper    
     def add_user(self, bos_server, userlist, _cfg = None) :
