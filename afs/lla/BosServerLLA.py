@@ -20,38 +20,6 @@ class BosServerLLA(BaseLLA) :
         BaseLLA.__init__(self)
         return
 
-    #
-    # public interface to deal with a full bos_server object
-    #
-
-    def push_bos_server(self, bos_server, _cfg=None) :
-        """
-        pushes configuration of bos_server to AFS-cell
-        do not change bnodes
-        """
-        result_list = []
-        # restart times
-        result_list.append(self.set_general_restart_time(bos_server, \
-            ))
-        result_list.append(self.set_newbinary_restart_time(bos_server, \
-            ))
-        # userlist
-        superusers=self.get_userlist(bos_server).superusers
-        to_be_removed = []
-        to_be_added = []
-        for su in superusers :
-            if not su in bos_server.superusers :
-                to_be_removed.append(su)
-        if len(to_be_removed) > 0 :
-            self.remove_user(bos_server,to_be_removed)
-        for su in bos_server.superusers :
-            if not su in superusers :
-                to_be_added.append(su)
-        if len(to_be_added) > 0 :
-            self.add_user(bos_server,to_be_added)
-            
-        return  
-
     def get_bos_server(self, bos_server, _cfg = None) :
         """
         get a full bos_server object from server.
@@ -90,7 +58,7 @@ class BosServerLLA(BaseLLA) :
     @exec_wrapper    
     def set_general_restart_time(self, bos_server, _cfg = None) :
         """
-        pushes general restart time onto bosserver as given in the object.
+        sets general restart time onto bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
             bos_server.servernames[0], "-time",  "%s" % \
@@ -100,7 +68,7 @@ class BosServerLLA(BaseLLA) :
     @exec_wrapper    
     def set_newbinary_restart_time(self, bos_server, _cfg = None) :
         """
-        pushes restart time for new binaries on bosserver as given in the object.
+        sets restart time for new binaries on bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
             bos_server.servernames[0], "-time",  "%s" % \
@@ -111,7 +79,6 @@ class BosServerLLA(BaseLLA) :
     def add_user(self, bos_server, userlist, _cfg = None) :
         """
         adds userlist to bosserver*s superuserlist
-        should only be called by push_bos_server
         """
         if type(userlist) != types.ListType :
               raise BosServerLLAError("userlist must be a list of strings")
@@ -124,7 +91,6 @@ class BosServerLLA(BaseLLA) :
     def remove_user(self, bos_server, userlist, _cfg = None) :
         """
         removes userlist to bosserver*s superuserlist
-        should only be called by push_bos_server
         """
         if type(userlist) != types.ListType :
               raise BosServerLLAError("userlist must be a list of strings")
