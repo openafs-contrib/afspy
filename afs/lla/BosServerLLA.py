@@ -59,7 +59,6 @@ class BosServerLLA(BaseLLA) :
         """
         dns_info = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(bos_server.servernames[0])
         bos_server.servernames = dns_info["names"]
-        bos_server.servername = bos_server.servernames[0]
         bos_server.ipaddrs = dns_info["ipaddrs"]
         bos_server = self.get_bnodes(bos_server)
         bos_server = self.get_restart_times(bos_server)
@@ -81,7 +80,7 @@ class BosServerLLA(BaseLLA) :
         get list of BNode Objects from a server.
         """ 
         command_list = [_cfg.binaries["bos"], "status", "-server", \
-            "%s"  % bos_server.servername ,"-long", "-cell" , "%s" % _cfg.cell]
+            "%s"  % bos_server.servernames[0] ,"-long", "-cell" , "%s" % _cfg.cell]
         return command_list, PM.get_bnodes
 
     #
@@ -94,7 +93,7 @@ class BosServerLLA(BaseLLA) :
         get attributes restart times from bosserver into given object
         """
         command_list = [_cfg.binaries["bos"], "getrestart", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell]
         return command_list, PM.get_restart_times
 
     @exec_wrapper    
@@ -103,7 +102,7 @@ class BosServerLLA(BaseLLA) :
         pushes general restart time onto bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
-            bos_server.servername, "-time",  "%s" % \
+            bos_server.servernames[0], "-time",  "%s" % \
             bos_server.general_restart_time,  "-general", "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.push_restart_time
 
@@ -113,7 +112,7 @@ class BosServerLLA(BaseLLA) :
         pushes restart time for new binaries on bosserver as given in the object.
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
-            bos_server.servername, "-time",  "%s" % \
+            bos_server.servernames[0], "-time",  "%s" % \
             bos_server.general_restart_time,  "-newbinary", "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.push_restart_time
 
@@ -127,7 +126,7 @@ class BosServerLLA(BaseLLA) :
               raise BosServerLLAError("userlist must be a list of strings")
         usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "adduser", "-server", "%s"  % \
-            bos_server.servername,  "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
+            bos_server.servernames[0],  "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.add_user
     
     @exec_wrapper    
@@ -140,7 +139,7 @@ class BosServerLLA(BaseLLA) :
               raise BosServerLLAError("userlist must be a list of strings")
         usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "removeuser", "-server", \
-           "%s"  % bos_server.servername, "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
+           "%s"  % bos_server.servernames[0], "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.remove_user
     
     @exec_wrapper    
@@ -149,7 +148,7 @@ class BosServerLLA(BaseLLA) :
         get bosserver's superuserlist into given object
         """
         command_list = [_cfg.binaries["bos"], "listuser", "-server", \
-            "%s"  % bos_server.servername ]
+            "%s"  % bos_server.servernames[0] ]
         return command_list, PM.get_userlist
     
     @exec_wrapper    
@@ -159,7 +158,7 @@ class BosServerLLA(BaseLLA) :
         """
         filenames = " ".join(filelist)
         command_list = [_cfg.binaries["bos"], "getdate", "-server", \
-            "%s"  % bos_server.servername, "-file", "%s" % filenames, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-file", "%s" % filenames, "-cell" , "%s" % _cfg.cell ]
         if destdir != "" :
             command_list += ["-dir", "%s" % destdir]
         return command_list, PM.get_filedate
@@ -170,7 +169,7 @@ class BosServerLLA(BaseLLA) :
         get list of all database-servers known to a given AFS-server
         """
         command_list = [_cfg.binaries["bos"], "listhosts", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell]
         return command_list, PM.get_db_servers
 
     @exec_wrapper    
@@ -181,7 +180,7 @@ class BosServerLLA(BaseLLA) :
         optionally, restart bosserver itself as well
         """
         command_list = [_cfg.binaries["bos"], "restart", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell ]
         if bnodes == None :
             command_list += ["-all"]
         else :
@@ -199,7 +198,7 @@ class BosServerLLA(BaseLLA) :
         start previuosly stopped bnode(s) 
         """ 
         command_list = [_cfg.binaries["bos"], "start", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell, "-instance" ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell, "-instance" ]
         for _bnode in bnodes :
             command_list.append(_bnode.instance_name)
         return command_list, PM.start_bnodes
@@ -210,7 +209,7 @@ class BosServerLLA(BaseLLA) :
         stop running bnode(s) 
         """
         command_list = [_cfg.binaries["bos"], "stop", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell, "-instance" ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell, "-instance" ]
         for _bnode in bnodes :
             command_list.append(_bnode.instance_name)
         return command_list, PM.stop_bnodes
@@ -221,7 +220,7 @@ class BosServerLLA(BaseLLA) :
         execute shell command on server
         """
         command_list = [_cfg.binaries["bos"], "exec", "-server", \
-            "%s"  % bos_server.servername, "-cmd", "%s" % command, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-cmd", "%s" % command, "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.execute_shell
     
     @exec_wrapper    
@@ -230,7 +229,7 @@ class BosServerLLA(BaseLLA) :
         retrieve logfile from server
         """
         command_list = [_cfg.binaries["bos"], "getlog", "-server", \
-            "%s"  % bos_server.servername, "-file", "%s" % logfile, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-file", "%s" % logfile, "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.get_log
     
     @exec_wrapper    
@@ -240,7 +239,7 @@ class BosServerLLA(BaseLLA) :
         filetype must be one of "bak", "old", "core", "all"
         """ 
         command_list = [_cfg.binaries["bos"], "prune", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell, ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell, ]
         for _type in ["bak", "old", "core", "all" ] :
             if _type in filetypes :
                 command_list += ["-" + _type]
@@ -252,7 +251,7 @@ class BosServerLLA(BaseLLA) :
         start all bnodes on a server
         """
         command_list = [_cfg.binaries["bos"], "startup", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.startup
     
     @exec_wrapper    
@@ -261,7 +260,7 @@ class BosServerLLA(BaseLLA) :
         stop all bnodes on a server
         """
         command_list = [_cfg.binaries["bos"], "shutdown", "-server", \
-            "%s"  % bos_server.servername, "-cell" , "%s" % _cfg.cell ]
+            "%s"  % bos_server.servernames[0], "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.shutdown
     
     @exec_wrapper    
@@ -271,6 +270,6 @@ class BosServerLLA(BaseLLA) :
         no extra options implemented yet.
         """ 
         command_list = [_cfg.binaries["bos"], "salvage", "-server", \
-            "%s"  % bos_server.servername, "-partition", "%s" % \
+            "%s"  % bos_server.servernames[0], "-partition", "%s" % \
             volume.partition, "-volume", "%s" % volume.name, "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.salvage_volume

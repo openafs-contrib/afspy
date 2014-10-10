@@ -32,7 +32,7 @@ class BosServer(BaseModel):
     ## or convenience attributes
     ## bnodes: list of BNode objects
     ## servername short for servernames[0]
-    unmapped_attributes_list = ['bnodes', 'servername']
+    unmapped_attributes_list = ['bnodes', 'servernames']
 
     def __init__(self):
         """
