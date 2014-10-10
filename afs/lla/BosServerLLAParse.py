@@ -171,7 +171,7 @@ def get_filedate(ret, output, outerr, parse_param_list, logger):
         raise BosServerLLAError(output)
     tokens=output[0].split()
     # XXX add also .BAK and .OLD file support
-    res_dict={"current" : " ".join(tokens[4:8]),} 
+    res_dict={"current" : " ".join(tokens[4:8])[:-1],} 
     return res_dict
 
 def restart(ret, output, outerr, parse_param_list, logger):
