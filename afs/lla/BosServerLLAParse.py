@@ -126,6 +126,7 @@ def add_user(ret, output, outerr, parse_param_list, logger):
     if ret :
         raise BosServerLLAError(outerr, output)
     obj = parse_param_list["args"][0]
+    obj.superusers = []
     for su in parse_param_list["args"][1] :
          obj.superusers.append(su)    
     return obj
