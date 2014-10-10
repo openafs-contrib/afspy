@@ -236,7 +236,7 @@ def prune_log(ret, output, outerr, parse_param_list, logger):
     """
     if ret :
         raise BosServerLLAError(outerr, output)
-    return
+    return True
 
 def shutdown(ret, output, outerr, parse_param_list, logger):
     """

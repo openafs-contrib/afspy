@@ -94,6 +94,10 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertTrue(len(res) > 0)
         return
 
+    def eval_prune_log(self, res) :
+        self.assertEqual(res, True)
+        return
+
     def eval_salvage_volume(self, res) :
         self.assertTrue('bos: salvage completed' in res)
         return
@@ -127,6 +131,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")
+        self.files_to_prune = self.test_config.get("BosServerLLA","files_to_prune")
         self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
         self.volume_name = self.test_config.get("BosServerLLA","vol_name")
         self.volume_partition = self.test_config.get("BosServerLLA","vol_part")
@@ -250,7 +255,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_destructive_tests :
             raise unittest.SkipTest("destructive tests disabled.")
-        res = self.lla.prune_log(self.bos_server,"core") 
+        res = self.lla.prune_log(self.bos_server, self.files_to_prune) 
         self.eval_prune_log(res)
         return
 
@@ -332,6 +337,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")
+        self.files_to_prune = self.test_config.get("BosServerLLA","files_to_prune")
         self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
         self.volume_name = self.test_config.get("BosServerLLA","vol_name")
         self.volume_partition = self.test_config.get("BosServerLLA","vol_part")
@@ -490,7 +496,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_destructive_tests :
             raise unittest.SkipTest("destructive tests disabled.")
-        sp_ident = self.lla.prune_log(self.bos_server, "core", async=True) 
+        sp_ident = self.lla.prune_log(self.bos_server, self.files_to_prune, async=True) 
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_prune_log(res)
