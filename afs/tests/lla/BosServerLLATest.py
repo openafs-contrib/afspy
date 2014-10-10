@@ -78,6 +78,20 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertTrue(len(res) > 0)
         return
 
+    def eval_salvage_volume(self, res) :
+        self.assertTrue('bos: salvage completed' in res)
+        return
+
+    def eval_salvage_partition(self, res) :
+        self.assertTrue('bos: salvage completed' in res)
+        return
+
+    def eval_salvage_server(self, res) :
+        self.assertTrue('bos: salvage completed' in res)
+        return
+	
+	
+
 class TestBosServerLLAMethods(EvaluateTestResults):
     """
     Tests BosServerPeerLLA Methods
@@ -232,8 +246,31 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         vol = afs.model.Volume.Volume()
         vol.name = self.volume_name
         vol.partition = self.volume_partition
-        result = self.lla.salvage_volume(self.bos_server,vol)
+        res = self.lla.salvage(self.bos_server, volume=vol)
         self.eval_salvage_volume(res)
+        return
+
+    def test_salvage_partition(self) :
+        """
+        salvage a volume
+        """
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        vol = afs.model.Volume.Volume()
+        vol.name = self.volume_name
+        vol.partition = self.volume_partition
+        res = self.lla.salvage(self.bos_server, partition=vol.partition)
+        self.eval_salvage_partition(res)
+        return
+
+    def test_salvage_server(self) :
+        """
+        salvage a volume
+        """
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        res = self.lla.salvage(self.bos_server)
+        self.eval_salvage_server(res)
         return
    
     def test_shutdown_startup(self) :
@@ -448,12 +485,39 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         vol = afs.model.Volume.Volume()
         vol.name = self.volume_name
         vol.partition = self.volume_partition
-        sp_ident = self.lla.salvage_volume(self.bos_server, vol, async=True)
+        sp_ident = self.lla.salvage(self.bos_server, volume=vol, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_salvage_volume(res)
         return
-   
+
+    def test_salvage_partition(self) :
+        """
+        salvage all volumes on a partition
+        """
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        vol = afs.model.Volume.Volume()
+        vol.name = self.volume_name
+        vol.partition = self.volume_partition
+        sp_ident = self.lla.salvage(self.bos_server, partition=vol.partition, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_salvage_partition(res)
+        return
+
+    def test_salvage_server(self) :
+        """
+        salvage all volumes on this server
+        """
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        sp_ident = self.lla.salvage(self.bos_server, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_salvage_server(res)
+        return
+
     def test_shutdown_startup(self) :
         """
         test shutting down and starting up

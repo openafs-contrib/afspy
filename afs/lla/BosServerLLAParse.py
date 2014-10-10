@@ -88,14 +88,14 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
               idx += 1 
               tokens = output[idx].split()
               if tokens[0] == "Last" and tokens[1] == "exit" :
-                  this_bnode.last_exit = " ".join(tokens[3:] )
+                  this_bnode.last_exit_date = " ".join(tokens[3:] )
                   idx += 1 
                   tokens = output[idx].split()
               if tokens[0] == "Last" and tokens[1] == "error" :
-                  this_bnode.last_error_exit = " ".join(tokens[4:8])
+                  this_bnode.error_exit_date = " ".join(tokens[4:8])
                   idx += 1
                   tokens = output[idx].split()
-              this_bnode.commands=[]
+              this_bnode.commands = []
           while 1 :
               if tokens[0] == "Instance" : break
               if tokens[0] == "Command" :
@@ -110,14 +110,14 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
                        
     return obj 
 
-def salvage_volume(ret, output, outerr, parse_param_list, logger):
+def salvage(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
     obj = parse_param_list["args"][0]
     if ret :
         raise BosServerLLAError(outerr, output)
-    return obj
+    return output
 
 def add_user(ret, output, outerr, parse_param_list, logger):
     """

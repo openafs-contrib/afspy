@@ -221,12 +221,22 @@ class BosServerLLA(BaseLLA) :
         return command_list, PM.shutdown
     
     @exec_wrapper    
-    def salvage_volume(self, bos_server, volume, _cfg = None) :
+    def salvage(self, bos_server, partition=None, volume=None, _cfg = None) :
         """
-        salvage a volume on a server
-        no extra options implemented yet.
+        salvage volume(s) on a server
+        both partition and volume=None: all server
+        volume=None: one partition on server
         """ 
         command_list = [_cfg.binaries["bos"], "salvage", "-server", \
-            "%s"  % bos_server.servernames[0], "-partition", "%s" % \
-            volume.partition, "-volume", "%s" % volume.name, "-cell" , "%s" % _cfg.cell ]
-        return command_list, PM.salvage_volume
+            "%s"  % bos_server.servernames[0], "-forceDAFS", "-cell" , "%s" % _cfg.cell ]
+
+        if volume != None :
+            if partition != None :
+                raise RuntimeError("Cannot set partition and volume at the same time") 
+            command_list += [ "-partition", "%s" % volume.partition, "-volume", "%s" % volume.name ] 
+        if partition != None :
+            command_list += [ "-partition", "%s" % partition ]
+
+        if volume == None and partition == None :
+            command_list += [ "-all" ]
+        return command_list, PM.salvage
