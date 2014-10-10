@@ -107,8 +107,9 @@ class BaseLLA :
             return None
 
         raw_result = {}
-        for suffix in ["rc","out", "err", "pid" ] :
+        for suffix in ["rc", "out", "err", "pid" ] :
             f = file("%s/%s.%s" % (self.spool_dir, sp_ident, suffix))
+            raw_result[suffix] = []
             while 1 :
                 line = f.readline()
                 if not line : break
@@ -116,10 +117,7 @@ class BaseLLA :
                 line = line.strip()
                 if line == "" : 
                     continue
-                if not suffix in raw_result.keys() :
-                    raw_result[suffix] = [ line.strip() ]
-                else :
-                    raw_result[suffix].append(line.strip())
+                raw_result[suffix].append(line.strip())
             f.close()
             os.unlink("%s/%s.%s" % (self.spool_dir, sp_ident, suffix)) 
 
@@ -162,8 +160,8 @@ class BaseLLA :
             for line in _output + _outerr :
                 if "not authorized" in line.lower() :
                     return 13, "","Permission denied"
-            raise RuntimeError("cmd: \"%s\" failed with ret=%d and stderr=%s" % \
-                (' '.join(cmd_list), pipo.returncode, _outerr))
+            raise RuntimeError("cmd: \"%s\" failed with ret=%d, stdout=%s and stderr=%s" % \
+                (' '.join(cmd_list), pipo.returncode, _output, _outerr))
     
         # get rid of whitespace
         output = []

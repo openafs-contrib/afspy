@@ -23,16 +23,16 @@ class BosServer(BaseModel):
     ## rxdebug version string and builddate
     version = ""
     build_date = ""
-    ## Date of general restart Time
+    ## Date of general restart time
     general_restart_time = ""
-    ## Date of newbinary restart Time
+    ## Date of newbinary restart time
     newbinary_restart_time = ""
     ## list of attributes not to put into the DB
     ## these contain (lists of) independent objects
     ## or convenience attributes
     ## bnodes: list of BNode objects
     ## servername short for servernames[0]
-    unmapped_attributes_list = ['bnodes', 'servername']
+    unmapped_attributes_list = ['bnodes', 'servernames']
 
     def __init__(self):
         """

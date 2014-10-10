@@ -118,16 +118,16 @@ class historic_BosServer(BaseModel):
     ## rxdebug version string and builddate
     version = ""
     build_date = ""
-    ## Date of general restart Time
+    ## Date of general restart time
     general_restart_time = ""
-    ## Date of newbinary restart Time
+    ## Date of newbinary restart time
     newbinary_restart_time = ""
     ## list of attributes not to put into the DB
     ## these contain (lists of) independent objects
     ## or convenience attributes
     ## bnodes: list of BNode objects
     ## servername short for servernames[0]
-    unmapped_attributes_list = ['bnodes', 'servername']
+    unmapped_attributes_list = ['bnodes', 'servernames']
 
     ## pointer to current table entry
     real_db_id = -1
@@ -416,9 +416,9 @@ class historic_BNode(BaseModel):
         """
         BaseModel.__init__(self)
         ## DB-ID of owning bosserver
-        bos_db_id = bos_db_id
-        instance_name = instance_name
-        bnode_type = bnode_type
+        self.bos_db_id = bos_db_id
+        self.instance_name = instance_name
+        self.bnode_type = bnode_type
     
 
 #
