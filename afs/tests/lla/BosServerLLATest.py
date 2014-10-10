@@ -68,7 +68,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
         self.bos_server = afs.model.BosServer.BosServer()
-        self.bos_server.servername =  self.test_config.get("BosServerLLA","server")
+        self.bos_server.servernames =  [self.test_config.get("BosServerLLA","server"), ]
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")
@@ -237,7 +237,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
         self.bos_server = afs.model.BosServer.BosServer()
-        self.bos_server.servername =  self.test_config.get("BosServerLLA","server")
+        self.bos_server.servernames =  [self.test_config.get("BosServerLLA","server"), ]
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")

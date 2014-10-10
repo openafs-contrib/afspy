@@ -127,7 +127,7 @@ class historic_BosServer(BaseModel):
     ## or convenience attributes
     ## bnodes: list of BNode objects
     ## servername short for servernames[0]
-    unmapped_attributes_list = ['bnodes', 'servername']
+    unmapped_attributes_list = ['bnodes', 'servernames']
 
     ## pointer to current table entry
     real_db_id = -1
