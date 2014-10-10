@@ -58,6 +58,22 @@ class EvaluateTestResults(unittest.TestCase) :
     def eval_restart(self, res) :
         return
 
+    def eval_stop_bnode(self, res) :
+        self.assertEqual(res, True)
+        return
+
+    def eval_start_bnode(self, res) :
+        self.assertEqual(res, True)
+        return
+
+    def eval_startup(self, res) :
+        self.assertEqual(res, True)
+        return
+
+    def eval_shutdown(self, res) :
+        self.assertEqual(res, True)
+        return
+
     def eval_execute_shell(self, res) :
         self.assertEqual(res, True)
         return
@@ -111,6 +127,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")
+        self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
         self.volume_name = self.test_config.get("BosServerLLA","vol_name")
         self.volume_partition = self.test_config.get("BosServerLLA","vol_part")
         self.test_superuser = self.test_config.get("BosServerLLA","superuser")
@@ -204,7 +221,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         test restarting 
         """
         if not afs.CONFIG.enable_interrupting_tests :
-            raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
+            raise unittest.SkipTest("interrupting tests disabled.")
         res = self.lla.restart(self.bos_server, restart_bosserver=False)
         self.eval_restart(res)
         return
@@ -279,9 +296,10 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        res_shutdown = self.lla.shutdown(self.bos_server)
-        res_startup = self.lla.startup(self.bos_server)
-        self.eval_shutdown_startup(res_shutdwon, res_startup)
+        res = self.lla.shutdown(self.bos_server)
+        self.eval_shutdown(res)
+        res = self.lla.startup(self.bos_server)
+        self.eval_startup(res)
         return
 
     def test_start_stop_bnode(self) :
@@ -290,10 +308,11 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """ 
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        bnode=afs.model.BNode.BNode(instance_name="fs")
-        res_stop = self.lla.stop_bnodes(self.bos_server,[ bnode])
-        res_start = self.lla.start_bnodes(self.bos_server, [bnode])
-        self.eval_start_stop_bnode(res_stop, res_start)
+        bnode = afs.model.BNode.BNode(instance_name=self.start_stop_bnode)
+        res = self.lla.start_bnodes(self.bos_server, [bnode])
+        self.eval_stop_bnode(res)
+        res = self.lla.start_bnodes(self.bos_server,[ bnode])
+        self.eval_start_bnode(res)
         return
 
 class TestBosServerLLAMethods_async(EvaluateTestResults) :
@@ -313,6 +332,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
         self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
         self.logfile = self.test_config.get("BosServerLLA","logfile")
+        self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
         self.volume_name = self.test_config.get("BosServerLLA","vol_name")
         self.volume_partition = self.test_config.get("BosServerLLA","vol_part")
         self.test_superuser = self.test_config.get("BosServerLLA","superuser")
@@ -435,7 +455,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         test restarting 
         """
         if not afs.CONFIG.enable_interrupting_tests :
-            raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
+            raise unittest.SkipTest("interrupting tests disabled.")
         sp_ident = self.lla.restart(self.bos_server, restart_bosserver=False, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
@@ -525,11 +545,14 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
         sp_ident = self.lla.shutdown(self.bos_server, async=True)
-        res_shutdwon = self.lla.get_subprocess_result(sp_ident)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_shutdown(res)
+
         sp_ident = self.lla.startup(self.bos_server, async=True)
         self.lla.wait_for_subprocess(sp_ident)
-        res_startup = self.lla.get_subprocess_result(sp_ident)
-        self.eval_shutdown_startup(res_shutdwon, res_startup)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_startup(res)
         return
 
     def test_start_stop_bnode(self) :
@@ -538,14 +561,17 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """ 
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        bnode=afs.model.BNode.BNode(instance_name="fs")
+        bnode = afs.model.BNode.BNode(instance_name=self.start_stop_bnode)
         sp_ident = self.lla.stop_bnodes(self.bos_server,[ bnode], async=True)
         self.lla.wait_for_subprocess(sp_ident)
-        res_stop = self.lla.get_subprocess_result(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_stop_bnode(res)
+
         sp_ident = self.lla.start_bnodes(self.bos_server, [bnode], async=True)
         self.lla.wait_for_subprocess(sp_ident)
-        res_start = self.lla.get_subprocess_result(sp_ident, async=True)
-        self.eval_start_stop_bnode(res_stop, res_start)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_start_bnode(res)
+        return
 
 if __name__ == '__main__' :
     # disable DBCACHE stuff, since we are dealing with LLA only
