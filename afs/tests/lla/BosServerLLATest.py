@@ -6,6 +6,7 @@ unit-test module for the BosServerLLA
 
 from ConfigParser import ConfigParser
 import sys
+import time
 import unittest
 from afs.tests.BaseTest import parse_commandline
 import afs.lla.BosServerLLA
@@ -50,8 +51,18 @@ class EvaluateTestResults(unittest.TestCase) :
         return
 
     def eval_execute_shell(self, res) :
+        self.assertEqual(res, True)
         return
 
+    def eval_get_filedate(self, res) :
+        now = time.localtime()
+        current = time.strptime(res["current"], '%b %d %H:%M:%S %Y')
+        self.assertTrue(current < now )
+        return
+
+    def eval_get_log(self, res) :
+        self.assertEqual(res, True)
+        return
 
 class TestBosServerLLAMethods(EvaluateTestResults):
     """
@@ -165,7 +176,6 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         if not afs.CONFIG.enable_harmless_auth_tests :
             raise unittest.SkipTest("modifying tests disabled.")
         res = self.lla.execute_shell(self.bos_server,"/bin/ls")
-        self.assertEqual(rest, True)
         self.eval_execute_shell(res)
         return
 
@@ -175,7 +185,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         res = self.lla.get_filedate(self.bos_server, ["fileserver"])
         self.assertTrue(res.has_key("current"))
-        self.eval_execute_shell(res)
+        self.eval_get_filedate(res)
         return
 
     def test_prune_log(self) :
@@ -371,7 +381,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         sp_ident = self.lla.get_filedate(self.bos_server, ["fileserver"], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_execute_shell(res)
+        self.eval_get_filedate(res)
         return
 
     def test_prune_log(self) :
