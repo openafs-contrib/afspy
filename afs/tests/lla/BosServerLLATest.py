@@ -67,7 +67,7 @@ class EvaluateTestResults(unittest.TestCase) :
         return
 
     def eval_get_log(self, res) :
-        self.assertEqual(res, True)
+        self.assertTrue(len(res) > 0)
         return
 
 class TestBosServerLLAMethods(EvaluateTestResults):
