@@ -13,6 +13,7 @@ import unittest
 
 from afs.tests.BaseTest import parse_commandline
 import afs.lla.VolServerLLA 
+import afs.lla.VLDBLLA
 import afs
 
 class EvaluateTestResults(unittest.TestCase) :
@@ -48,7 +49,7 @@ class EvaluateTestResults(unittest.TestCase) :
         return
 
     def eval_vos_convert(self, res) :
-        self.assertEqual(res, True)
+        self.assertEqual(res, self.tmp_volume)
         return
 
     def eval_vos_create(self, res) :
@@ -72,6 +73,7 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         called automagically
         """
         self.lla = afs.lla.VolServerLLA.VolServerLLA()
+        self.vldb_lla = afs.lla.VLDBLLA.VLDBLLA()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
         self.fileserver = self.test_config.get("VolServerLLA", "FS")
@@ -139,6 +141,19 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         self.eval_vos_set_blockquota(res, saved_vol.maxquota)
         return
 
+    def test_vos_convert(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        res = self.lla.create(self.tmp_volume)
+        res = self.vldb_lla.addsite(self.tmp_volume, self.tmp_volume.servername, self.tmp_volume.partition)
+        res = self.lla.release(self.tmp_volume)
+        res = self.lla.remove(self.tmp_volume)
+        res = self.lla.convert(self.tmp_volume)
+        self.eval_vos_convert(res)
+        res = self.lla.remove(self.tmp_volume)
+        self.eval_vos_remove(res)
+        return
+
 class TestVolServerLLAMethods_async(EvaluateTestResults):
     """
     Tests VolServerLLA Methods
@@ -151,6 +166,7 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         called automagically
         """
         self.lla = afs.lla.VolServerLLA.VolServerLLA()
+        self.vldb_lla = afs.lla.VLDBLLA.VLDBLLA()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
         self.fileserver = self.test_config.get("VolServerLLA", "FS")
@@ -227,7 +243,9 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
     def test_vos_set_blockquota(self) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        saved_vol = self.lla.examine(self.volume) 
+        sp_ident = self.lla.examine(self.volume, async=True) 
+        self.lla.wait_for_subprocess(sp_ident)
+        saved_vol = self.lla.get_subprocess_result(sp_ident)
         sp_ident = self.lla.set_blockquota(self.volume, 1000, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
@@ -236,6 +254,31 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_vos_set_blockquota(res, saved_vol.maxquota)
+        return
+
+    def test_vos_convert(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        sp_ident = self.lla.create(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        sp_ident = self.vldb_lla.addsite(self.tmp_volume, self.tmp_volume.servername, self.tmp_volume.partition, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        sp_ident = self.lla.release(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        sp_ident = self.lla.remove(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        sp_ident = self.lla.convert(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_convert(res)
+        sp_ident = self.lla.remove(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_remove(res)
         return
 
 if __name__ == '__main__' :
