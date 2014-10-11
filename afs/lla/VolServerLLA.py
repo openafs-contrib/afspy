@@ -20,15 +20,30 @@ class VolServerLLA(BaseLLA) :
         BaseLLA.__init__(self)
         return
 
+    def get_name_or_id(self, param) :
+        try: 
+            if param.vid != None :
+                name_or_id = "%s" % param.vid
+            elif param.name != None :
+                name_or_id = param.name
+            else :
+                raise RuntimeError("Volume name or id required.")
+        except AttributeError :
+            name_or_id = param   
+        return name_or_id
+
     @exec_wrapper
     def move(self, volume, dst_server, dst_partition, _cfg = None ) :
         """
         moves a volume to a new Destination. 
         """
-        command_list = [_cfg.binaries["vos"], "move", "%s" % volume.vid, \
+        name_or_id = self.get_name_or_id(volume)
+        command_list = [_cfg.binaries["vos"], "move", "%s" % name_or_id, \
             "-fromserver", volume.servername, "-frompartition" , \
             volume.partition, "-toserver" , "%s" % dst_server, "-topartition", \
             "%s" % dst_partition,  "-cell", _cfg.cell ]
+        volume.servername = dst_server
+        volume.partition = dst_partition
         return command_list, PM.move
 
     @exec_wrapper
@@ -38,15 +53,7 @@ class VolServerLLA(BaseLLA) :
         Also accepts volume_name. 
         This is just implemented as a reminder
         """
-        try: 
-            if volume.vid != None :
-                name_or_id = volume.vid
-            elif volume.name != None :
-                name_or_id = volume.name
-            else :
-                raise RuntimeError("Volume name or id required.")
-        except AttributeError :
-            name_or_id = volume   
+        name_or_id = self.get_name_or_id(volume)
 
         command_list = [_cfg.binaries["vos"], "release","%s" % name_or_id, \
             "-cell", _cfg.cell]
@@ -68,7 +75,7 @@ class VolServerLLA(BaseLLA) :
         """
         Dumps a volume into a file
         """
-        name_or_id = PM._get_name_or_id(volume)
+        name_or_id = self.get_name_or_id(volume)
         if os.path.exists(dump_file) and not force :
             raise RuntimeError("Dumpfile %s exists. Not overwriting." % dump_file)
         command_list = [_cfg.binaries["vos"], "dump", "-id" , \
@@ -93,7 +100,7 @@ class VolServerLLA(BaseLLA) :
         """
         converts this RO-Volume to a RW
         """
-        name_or_id = PM._get_name_or_id(volume)
+        name_or_id = self.get_name_or_id(volume)
         command_list = [_cfg.binaries["vos"], "convertROtoRW", "-server", \
             volume.servername, "-partition", volume.partition, "-id", \
             name_or_id, "-cell", _cfg.cell]
@@ -114,7 +121,7 @@ class VolServerLLA(BaseLLA) :
         """
         remove this Volume from the Server
         """
-        name_or_id = PM._get_name_or_id(volume)
+        name_or_id = self.get_name_or_id(volume)
         command_list = [_cfg.binaries["vos"], "remove", "-server", \
             volume.servername, "-partition", volume.partition, "-id", \
             name_or_id, "-cell", _cfg.cell ]
@@ -125,7 +132,7 @@ class VolServerLLA(BaseLLA) :
         """
         returns volume object filled by vos examine from vol-server. 
         """
-        name_or_id = PM._get_name_or_id(volume)
+        name_or_id = self.get_name_or_id(volume)
         command_list = [_cfg.binaries["vos"], "examine", "%s"  % name_or_id, \
             "-format", "-cell", _cfg.cell]
         return command_list, PM.examine
