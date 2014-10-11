@@ -5,8 +5,10 @@ Unittest for the LLA module VolumeLLA
 """
 
 from ConfigParser import ConfigParser
+import datetime
 import os
 import sys
+import time
 import unittest
 
 from afs.tests.BaseTest import parse_commandline
@@ -28,8 +30,9 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertEqual(res, True)
         return
 
-    def eval_vos_release(self, res) :
+    def eval_vos_release(self, res, res_ro, before_date) :
         self.assertEqual(res, True)
+        self.assertTrue(res_ro.creation_date >= before_date)
         return
 
     def eval_vos_set_blockquota(self, res) :
@@ -77,6 +80,10 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         self.volume.vid = int(self.test_config.get("VolServerLLA", "VolID"))
         self.volume.servername = self.test_config.get("VolServerLLA", "FS")
         self.volume.partition = self.test_config.get("VolServerLLA", "Part")
+        self.ro_volume = afs.model.Volume.Volume()
+        self.ro_volume.vid = int(self.test_config.get("VolServerLLA", "ROVolID"))
+        self.ro_volume.servername = self.test_config.get("VolServerLLA", "FS")
+        self.ro_volume.partition = self.test_config.get("VolServerLLA", "Part")
         self.dump_file = self.test_config.get("VolServerLLA", "DumpFile")
         self.tmp_volume = afs.model.Volume.Volume()
         self.tmp_volume.name = self.test_config.get("VolServerLLA", "TmpVolName")
@@ -110,6 +117,18 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         self.eval_vos_remove(res)
         return
 
+    def test_vos_release(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        before_date = datetime.datetime.now()
+        # before_date has a higher resolution than creation_date of the ro.
+        # thus we need to wait to make sure before_Dat is smaller.
+        time.sleep(1)
+        res = self.lla.release(self.volume)
+        res_ro = self.lla.examine(self.ro_volume)
+        self.eval_vos_release(res, res_ro, before_date)
+        return
+
 class TestVolServerLLAMethods_async(EvaluateTestResults):
     """
     Tests VolServerLLA Methods
@@ -131,6 +150,10 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         self.volume.vid = int(self.test_config.get("VolServerLLA", "VolID"))
         self.volume.servername = self.test_config.get("VolServerLLA", "FS")
         self.volume.partition = self.test_config.get("VolServerLLA", "Part")
+        self.ro_volume = afs.model.Volume.Volume()
+        self.ro_volume.vid = int(self.test_config.get("VolServerLLA", "ROVolID"))
+        self.ro_volume.servername = self.test_config.get("VolServerLLA", "FS")
+        self.ro_volume.partition = self.test_config.get("VolServerLLA", "Part")
         self.tmp_volume = afs.model.Volume.Volume()
         self.tmp_volume.name = self.test_config.get("VolServerLLA", "TmpVolName")
         self.tmp_volume.servername = self.volume.servername
@@ -173,6 +196,22 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_vos_remove(res)
+        return
+
+    def test_vos_release(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        before_date = datetime.datetime.now()
+        # before_date has a higher resolution than creation_date of the ro.
+        # thus we need to wait to make sure before_Dat is smaller.
+        time.sleep(1)
+        sp_ident = self.lla.release(self.volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        sp_ident = self.lla.examine(self.ro_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res_ro = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_release(res, res_ro, before_date)
         return
 
 if __name__ == '__main__' :

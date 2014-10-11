@@ -134,7 +134,7 @@ def release(ret, output, outerr, parse_param_list, logger):
     obj = parse_param_list["args"][0]
     if ret:
         raise VolServerLLAError("Error", outerr)
-    return obj
+    return True
 
 def set_blockquota(ret, output, outerr, parse_param_list, logger):
     """
