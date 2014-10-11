@@ -49,6 +49,10 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertTrue(found_uuid)
         return
 
+    def eval_get_volume_list(self, res) :
+        self.assertTrue(len(res) > 0)
+        return
+
 class TestVLDBLLAMethods(EvaluateTestResults) :
     """
     Tests VLDBLLA Methods
@@ -100,6 +104,11 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
     def test_get_fileserver_list(self) :
         res = self.lla.get_fileserver_list()
         self.eval_get_fileserver_list(res)
+        return
+
+    def test_get_volume_list(self) :
+        res = self.lla.get_volume_list()
+        self.eval_get_volume_list(res)
         return
 
 class TestVLDBLLAMethods_async(EvaluateTestResults):
@@ -170,6 +179,13 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_fileserver_list(res)
+        return
+
+    def test_get_volume_list(self) :
+        sp_ident = self.lla.get_volume_list(async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_get_volume_list(res)
         return
 
 if __name__ == '__main__' :

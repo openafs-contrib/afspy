@@ -41,16 +41,18 @@ class VLDBLLA(BaseLLA) :
         return command_list, PM.get_fileserver_uuid
 
     @exec_wrapper
-    def getVolumeList(self, name_or_ip, part="", noresolve=False, _cfg=None) :
+    def get_volume_list(self, name_or_ip="" , part="", noresolve=False, _cfg=None) :
         """
         Return list of volumes on a server
         """
-        CmdList=[_cfg.binaries["vos"],"listvldb", "-server", "%s" % name_or_ip, "-cell","%s" % _cfg.cell ]
+        command_list = [_cfg.binaries["vos"],"listvldb", "-cell","%s" % _cfg.cell ]
+        if name_or_ip != "" :
+            command_list += [ "-server", "%s" % name_or_ip ]  
         if part != "" :
-            CmdList += ["-part", "%s" % part]
+            command_list += ["-part", "%s" % part]
         if noresolve :
-            CmdList.append("-noresolve")
-        return CmdList,PM.getVolumeList
+            command_list.append("-noresolve")
+        return command_list, PM.get_volume_list
 
     @exec_wrapper
     def syncVLDb(self, name_or_ip, part="", volume="",_cfg=None):
