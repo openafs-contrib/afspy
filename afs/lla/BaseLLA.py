@@ -143,8 +143,11 @@ class BaseLLA :
         executes shell command as syncronuos subprocess
         """
 
-        self.logger.info("executing command: '%s'" % ' '.join(cmd_list))
-
+        try :
+            self.logger.info("executing command: '%s'" % ' '.join(cmd_list))
+        except :
+            raise RuntimeError("command_list %s contains non-string elements." % cmd_list)
+            
         if stdin == "" :
             pipo = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, \
                  stderr = subprocess.PIPE)
