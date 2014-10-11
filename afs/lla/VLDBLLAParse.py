@@ -83,12 +83,12 @@ def getVolumeList(rc,output,outerr,parseParamList,Logger) :
 def unlock(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)
-    raise VLDBLLAError("Not Implemented.")
+    return True
 
 def lock(rc,output,outerr,parseParamList,Logger) :
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)
-    raise VLDBLLAError("Not Implemented.")
+    return True
 
 def syncVLDB(rc,output,outerr,parseParamList,Logger) :
     if rc :

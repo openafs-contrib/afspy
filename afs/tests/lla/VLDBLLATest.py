@@ -29,6 +29,14 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertEqual(res, True)
         return
 
+    def eval_vos_lock(self, res) :
+        self.assertEqual(res, True)
+        return
+    
+    def eval_vos_unlock(self, res) :
+        self.assertEqual(res, True)
+        return
+
 class TestVLDBLLAMethods(EvaluateTestResults) :
     """
     Tests VLDBLLA Methods
@@ -58,6 +66,15 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
         self.eval_vos_addsite(res) 
         res = self.lla.remsite(self.tmp_volume)
         self.eval_vos_remsite(res) 
+        self.vols_lla.remove(self.tmp_volume)
+        return
+
+    def test_vos_lock_unlock(self) :
+        self.vols_lla.create(self.tmp_volume)
+        res = self.lla.lock(self.tmp_volume)
+        self.eval_vos_lock(res)
+        res = self.lla.unlock(self.tmp_volume)
+        self.eval_vos_unlock(res)
         self.vols_lla.remove(self.tmp_volume)
         return
    
@@ -97,6 +114,21 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         res = self.lla.get_subprocess_result(sp_ident)
         self.assertTrue(res != None)
         self.eval_vos_remsite(res)
+        self.vols_lla.remove(self.tmp_volume)
+        return
+
+    def test_vos_lock_unlock(self) :
+        self.vols_lla.create(self.tmp_volume)
+
+        sp_ident = self.lla.lock(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_lock(res)
+
+        sp_ident = self.lla.unlock(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_unlock(res)
         self.vols_lla.remove(self.tmp_volume)
         return
 

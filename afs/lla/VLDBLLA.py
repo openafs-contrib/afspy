@@ -10,6 +10,19 @@ class VLDBLLA(BaseLLA) :
     def __init__(self) :
         BaseLLA.__init__(self)
         return
+
+    def get_name_or_id(self, param) :
+        # XXX code replication from VolServerLLA
+        try: 
+            if param.vid != None :
+                name_or_id = "%s" % param.vid
+            elif param.name != None :
+                name_or_id = param.name
+            else :
+                raise RuntimeError("Volume name or id required.")
+        except AttributeError :
+            name_or_id = param   
+        return name_or_id
     
     @exec_wrapper
     def getFsServList(self, noresolve=False, _cfg=None):
@@ -75,7 +88,8 @@ class VLDBLLA(BaseLLA) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % volume.servername, "-partition", "%s" % volume.partition, "-id", "%s" % volume.name, "-cell",  "%s" % _cfg.cell ]
+        name_or_id = self.get_name_or_id(volume)
+        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % volume.servername, "-partition", "%s" % volume.partition, "-id", "%s" % name_or_id, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.addsite
     
     @exec_wrapper
@@ -83,22 +97,25 @@ class VLDBLLA(BaseLLA) :
         """
         removes entry for a RO-Volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % volume.servername, "-partition", "%s" % volume.partition, "-id", "%s" % volume.name, "-cell",  "%s" % _cfg.cell ]
+        name_or_id = self.get_name_or_id(volume)
+        CmdList=[_cfg.binaries["vos"], "remsite","-server", "%s" % volume.servername, "-partition", "%s" % volume.partition, "-id", "%s" % name_or_id, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.remsite
         
     @exec_wrapper
-    def lock(self,ID, _cfg=None) :
+    def lock(self, volume, _cfg=None) :
         """
         locks volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.cell]
+        name_or_id = self.get_name_or_id(volume)
+        CmdList=[_cfg.binaries["vos"], "lock","-id" ,"%s" % name_or_id, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.lock
     
     @exec_wrapper
-    def unlock(self,ID, _cfg=None) :
+    def unlock(self, volume, _cfg=None) :
         """
         unlocks volume in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "unlock","-id" ,"%s" % ID, "-cell",  "%s" % _cfg.cell]
+        name_or_id = self.get_name_or_id(volume)
+        CmdList=[_cfg.binaries["vos"], "unlock","-id" ,"%s" % name_or_id, "-cell",  "%s" % _cfg.cell]
         return CmdList,PM.unlock
     
