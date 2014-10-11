@@ -160,7 +160,7 @@ def restore(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise RuntimeError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
     return obj
 
 def convert(ret, output, outerr, parse_param_list, logger):
