@@ -36,7 +36,7 @@ class VLDBLLA(BaseLLA) :
 
     @exec_wrapper
     def get_fileserver_uuid(self, name_or_ip, _cfg=None) :
-        CmdList=[_cfg.binaries["vos"],"listaddrs", "-host",name_or_ip,"-printuuid", "-cell","%s" % _cfg.cell ]
+        CmdList=[_cfg.binaries["vos"], "listaddrs", "-host", name_or_ip, "-printuuid", "-cell","%s" % _cfg.cell ]
 
         return CmdList,PM.get_fileserver_uuid
 

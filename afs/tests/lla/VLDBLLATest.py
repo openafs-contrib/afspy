@@ -37,6 +37,10 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertEqual(res, True)
         return
 
+    def eval_get_fileserver_uuid(self, res) :
+        self.assertEqual(res, self.fileserver_uuid)
+        return
+
 class TestVLDBLLAMethods(EvaluateTestResults) :
     """
     Tests VLDBLLA Methods
@@ -56,6 +60,8 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
         self.tmp_volume.name = self.test_config.get("VLDBLLA", "TmpVolName")
         self.tmp_volume.servername = self.test_config.get("VLDBLLA", "FS")
         self.tmp_volume.partition = self.test_config.get("VLDBLLA","Part")
+        self.fileserver_name = self.test_config.get("VLDBLLA", "FS")
+        self.fileserver_uuid = self.test_config.get("VLDBLLA", "FS_UUID")
         return
 
     def test_vos_addsite_remsite(self) :
@@ -77,6 +83,11 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
         self.eval_vos_unlock(res)
         self.vols_lla.remove(self.tmp_volume)
         return
+
+    def test_get_fileserver_uuid(self):
+        res = self.lla.get_fileserver_uuid(self.fileserver_name)
+        self.eval_get_fileserver_uuid(res)
+        return
    
 class TestVLDBLLAMethods_async(EvaluateTestResults):
     """
@@ -97,6 +108,8 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         self.tmp_volume.name = self.test_config.get("VLDBLLA", "TmpVolName")
         self.tmp_volume.servername = self.test_config.get("VLDBLLA", "FS")
         self.tmp_volume.partition = self.test_config.get("VLDBLLA","Part")
+        self.fileserver_name = self.test_config.get("VLDBLLA", "FS")
+        self.fileserver_uuid = self.test_config.get("VLDBLLA", "FS_UUID")
         return
 
     def test_vos_addsite_remsite(self) :
@@ -130,6 +143,13 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_vos_unlock(res)
         self.vols_lla.remove(self.tmp_volume)
+        return
+
+    def test_get_fileserver_uuid(self):
+        sp_ident = self.lla.get_fileserver_uuid(self.fileserver_name, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_get_fileserver_uuid(res)
         return
 
 if __name__ == '__main__' :
