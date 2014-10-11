@@ -67,14 +67,14 @@ class VLDBLLA(BaseLLA) :
         return command_list, PM.sync_vldb
         
     @exec_wrapper
-    def syncServ(self, name_or_ip, part="",_cfg=None):
+    def sync_serv(self, name_or_ip, part="",_cfg=None):
         """
         Verifies VLDB that entries pointing to a specified site are really on that Fileserver/Partition
         """
-        CmdList=[_cfg.binaries["vos"], "syncserv", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
+        command_list = [_cfg.binaries["vos"], "syncserv", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
         if part != "" :
-            CmdList += [ "-part", "%s" % part]
-        return CmdList,PM.syncServ
+            command_list += [ "-part", "%s" % part]
+        return command_list, PM.sync_serv
     
     @exec_wrapper
     def setaddrs(self, UUID, hostlist, _cfg=None): 
