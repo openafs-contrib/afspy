@@ -34,9 +34,21 @@ class VolServerLLA(BaseLLA) :
     @exec_wrapper
     def release(self, volume, _cfg=None) :
         """
-        release this volume
+        release this volume. 
+        Also accepts volume_name. 
+        This is just implemented as a reminder
         """
-        command_list = [_cfg.binaries["vos"], "release","%s" % volume.vid, \
+        try: 
+            if volume.vid != None :
+                name_or_id = volume.vid
+            elif volume.name != None :
+                name_or_id = volume.name
+            else :
+                raise RuntimeError("Volume name or id required.")
+        except AttributeError :
+            name_or_id = volume   
+
+        command_list = [_cfg.binaries["vos"], "release","%s" % name_or_id, \
             "-cell", _cfg.cell]
         return command_list, PM.release
     
@@ -64,14 +76,16 @@ class VolServerLLA(BaseLLA) :
         return command_list, PM.dump
 
     @exec_wrapper
-    def restore(self, volume, dump_file, _cfg = None) :
+    def restore(self, volume, dump_file, flags=[], _cfg = None) :
         """
         Restores this (abstract) volume from a file.
-        aborts if the volume already exists.
+        by default, abors if the volume already exists.
         """
+        if not "-overwrite" in flags :
+            flags += [  "-overwrite", "abort"  ]
         command_list = [_cfg.binaries["vos"], "restore", "-server", \
             volume.servername, "-partition", volume.partition, "-name", \
-            volume.name, "-file", dump_file, "-overwrite", "abort", "-cell", _cfg.cell]
+            volume.name, "-file", dump_file, "-cell", _cfg.cell] + flags
         return command_list, PM.restore
     
     @exec_wrapper
