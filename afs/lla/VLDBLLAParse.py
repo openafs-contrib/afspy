@@ -1,9 +1,9 @@
 from VLDBLLAError import VLDBLLAError
 import afs
 
-def getFsServList(rc,output,outerr,parseParamList,Logger):
-    noresolve=parseParamList["kwargs"]["noresolve"]
-    _cfg=parseParamList["kwargs"]["_cfg"]
+def get_fileserver_list(rc, output, outerr, parseParamList, Logger):
+    noresolve = parseParamList["kwargs"]["noresolve"]
+    _cfg = parseParamList["kwargs"]["_cfg"]
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)
     servers = []
@@ -15,7 +15,7 @@ def getFsServList(rc,output,outerr,parseParamList,Logger):
             server['uuid'] = splits[1]
             i = i + 1
             try :
-                DNSInfo=afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(output[i])
+                DNSInfo = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(output[i])
             except :
                 server['name_or_ip'] = output[i]
                 Logger.warn("Cannot resolv name_or_ip \'%s\'. Leaving it as it is." % output[i]  )

@@ -41,6 +41,14 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertEqual(res, self.fileserver_uuid)
         return
 
+    def eval_get_fileserver_list(self, res) :
+        found_uuid = False
+        for vol_dict in res :
+            if self.fileserver_uuid == vol_dict["uuid"] :
+                found_uuid = True 
+        self.assertTrue(found_uuid)
+        return
+
 class TestVLDBLLAMethods(EvaluateTestResults) :
     """
     Tests VLDBLLA Methods
@@ -84,11 +92,16 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
         self.vols_lla.remove(self.tmp_volume)
         return
 
-    def test_get_fileserver_uuid(self):
+    def test_get_fileserver_uuid(self) :
         res = self.lla.get_fileserver_uuid(self.fileserver_name)
         self.eval_get_fileserver_uuid(res)
         return
-   
+
+    def test_get_fileserver_list(self) :
+        res = self.lla.get_fileserver_list()
+        self.eval_get_fileserver_list(res)
+        return
+
 class TestVLDBLLAMethods_async(EvaluateTestResults):
     """
     Tests VLDBLLA Methods
@@ -150,6 +163,13 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_fileserver_uuid(res)
+        return
+
+    def test_get_fileserver_list(self) :
+        sp_ident = self.lla.get_fileserver_list(async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_get_fileserver_list(res)
         return
 
 if __name__ == '__main__' :

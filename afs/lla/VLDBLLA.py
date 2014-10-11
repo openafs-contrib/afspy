@@ -25,20 +25,20 @@ class VLDBLLA(BaseLLA) :
         return name_or_id
     
     @exec_wrapper
-    def getFsServList(self, noresolve=False, _cfg=None):
+    def get_fileserver_list(self, noresolve=False, _cfg=None):
         """
         get list of dicts of all fileservers registered in the VLDB
         """
-        CmdList=[_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.cell]
+        command_list = [_cfg.binaries["vos"],"listaddrs", "-printuuid", "-cell","%s" % _cfg.cell]
         if noresolve :
-            CmdList.append("-noresolve")
-        return CmdList,PM.getFsServList
+            command_list.append("-noresolve")
+        return command_list, PM.get_fileserver_list
 
     @exec_wrapper
     def get_fileserver_uuid(self, name_or_ip, _cfg=None) :
-        CmdList=[_cfg.binaries["vos"], "listaddrs", "-host", name_or_ip, "-printuuid", "-cell","%s" % _cfg.cell ]
+        command_list = [_cfg.binaries["vos"], "listaddrs", "-host", name_or_ip, "-printuuid", "-cell","%s" % _cfg.cell ]
 
-        return CmdList,PM.get_fileserver_uuid
+        return command_list, PM.get_fileserver_uuid
 
     @exec_wrapper
     def getVolumeList(self, name_or_ip, part="", noresolve=False, _cfg=None) :
