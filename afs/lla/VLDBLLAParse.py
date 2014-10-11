@@ -105,10 +105,10 @@ def addsite(rc, output ,outerr, parseParamList, Logger) :
         raise VLDBLLAError("Error: %s " %  outerr)
     return True
 
-def remsite(rc,output,outerr,parseParamList,Logger) :
+def remsite(rc, output, outerr, parseParamList, Logger) :
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)
-    raise VLDBLLAError("Not Implemented.")
+    return True
 
 def syncServ(rc,output,outerr,parseParamList,Logger) :
     if rc :
