@@ -85,12 +85,12 @@ class VolServerLLA(BaseLLA) :
         return command_list, PM.convert
 
     @exec_wrapper
-    def create(self, volume, maxquota, _cfg = None) :
+    def create(self, volume, maxquota=5000, _cfg = None) :
         """
         create a Volume
         """
         command_list = [_cfg.binaries["vos"], "create", "-server", \
-            volume.server, "-partition", volume.partition, "-name", \
+            volume.servername, "-partition", volume.partition, "-name", \
             volume.name , "-maxquota", "%s" % maxquota, "-cell", _cfg.cell]
         return command_list, PM.create
     

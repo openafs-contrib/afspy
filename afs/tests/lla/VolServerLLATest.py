@@ -101,6 +101,15 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         self.eval_vos_remove(res)
         return
 
+    def test_vos_create_remove(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        res = self.lla.create(self.tmp_volume)
+        self.eval_vos_create(res)
+        res = self.lla.remove(self.tmp_volume)
+        self.eval_vos_remove(res)
+        return
+
 class TestVolServerLLAMethods_async(EvaluateTestResults):
     """
     Tests VolServerLLA Methods
@@ -147,6 +156,19 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_vos_restore(res)
         os.unlink(self.dump_file)
+        sp_ident = self.lla.remove(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_remove(res)
+        return
+
+    def test_vos_create_remove(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        sp_ident = self.lla.create(self.tmp_volume, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_create(res)
         sp_ident = self.lla.remove(self.tmp_volume, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
