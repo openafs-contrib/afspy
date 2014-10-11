@@ -95,11 +95,6 @@ def sync_vldb(rc, output, outerr, parseParamList, Logger) :
         raise VLDBLLAError("Error: %s " %  outerr)
     return True
 
-def setaddrs(rc,output,outerr,parseParamList,Logger) :
-    if rc :
-        raise VLDBLLAError("Error: %s " %  outerr)
-    raise VLDBLLAError("Not Implemented.")
-
 def addsite(rc, output ,outerr, parseParamList, Logger) :
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)

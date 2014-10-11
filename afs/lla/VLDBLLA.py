@@ -77,15 +77,6 @@ class VLDBLLA(BaseLLA) :
         return command_list, PM.sync_serv
     
     @exec_wrapper
-    def setaddrs(self, UUID, hostlist, _cfg=None): 
-        """
-        set the list of IP address for a given UUID in the VLDB
-        Usage: vos setaddrs -uuid <uuid of server> -host <address of host>+ [-cell <cell name>] [-noauth] [-localauth] [-verbose] [-encrypt] [-noresolve] [-help]
-        """
-        CmdList=[_cfg.binaries["vos"], "setaddrs","-uuid", "%s" % UUID, "-host", "%s" % " ".join(hostlist),  "-cell",  "%s" % _cfg.cell ]
-        return CmdList,PM.setaddrs
-        
-    @exec_wrapper
     def addsite(self, volume, _cfg=None) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
