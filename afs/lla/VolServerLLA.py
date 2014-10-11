@@ -48,6 +48,7 @@ class VolServerLLA(BaseLLA) :
         command_list = [_cfg.binaries["vos"], "setfield", "-id" , \
             "%s" % volume.vid, "-maxquota", "%s" % blockquota, \
             "-cell", _cfg.cell]
+        volume.maxquota = blockquota
         return command_list, PM.set_blockquota
         
     @exec_wrapper

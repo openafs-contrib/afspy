@@ -35,8 +35,8 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertTrue(res_ro.creation_date >= before_date)
         return
 
-    def eval_vos_set_blockquota(self, res) :
-        self.assertEqual(res, True)
+    def eval_vos_set_blockquota(self, res, expected_quota) :
+        self.assertEqual(res.maxquota, expected_quota)
         return
 
     def eval_vos_dump(self, res) :
@@ -129,6 +129,16 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         self.eval_vos_release(res, res_ro, before_date)
         return
 
+    def test_vos_set_blockquota(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        saved_vol = self.lla.examine(self.volume) 
+        res = self.lla.set_blockquota(self.volume, 1000)
+        self.eval_vos_set_blockquota(res, 1000)
+        res = self.lla.set_blockquota(self.volume, saved_vol.maxquota)
+        self.eval_vos_set_blockquota(res, saved_vol.maxquota)
+        return
+
 class TestVolServerLLAMethods_async(EvaluateTestResults):
     """
     Tests VolServerLLA Methods
@@ -212,6 +222,20 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res_ro = self.lla.get_subprocess_result(sp_ident)
         self.eval_vos_release(res, res_ro, before_date)
+        return
+
+    def test_vos_set_blockquota(self) :
+        if not afs.CONFIG.enable_modifying_tests :
+            raise unittest.SkipTest("modifying tests disabled.")
+        saved_vol = self.lla.examine(self.volume) 
+        sp_ident = self.lla.set_blockquota(self.volume, 1000, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_set_blockquota(res, 1000)
+        sp_ident = self.lla.set_blockquota(self.volume, saved_vol.maxquota, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_vos_set_blockquota(res, saved_vol.maxquota)
         return
 
 if __name__ == '__main__' :
