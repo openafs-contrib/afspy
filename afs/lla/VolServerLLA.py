@@ -2,6 +2,9 @@
 Provides Methods to query and modify live AFS-Volumes
 Makes use of the model object Volume.
 """
+
+import os
+
 from afs.lla.BaseLLA import BaseLLA, exec_wrapper
 import VolServerLLAParse as PM
 from VolServerLLAError import VolServerLLAError
@@ -48,11 +51,13 @@ class VolServerLLA(BaseLLA) :
         return command_list, PM.set_blockquota
         
     @exec_wrapper
-    def dump(self, volume, dump_file, _cfg = None) :
+    def dump(self, volume, dump_file, force=False, _cfg = None) :
         """
         Dumps a volume into a file
         """
         name_or_id = PM._get_name_or_id(volume)
+        if os.path.exists(dump_file) and not force :
+            raise RuntimeError("Dumpfile %s exists. Not overwriting." % dump_file)
         command_list = [_cfg.binaries["vos"], "dump", "-id" , \
             name_or_id, "-file", dump_file, "-cell", _cfg.cell]
         return command_list, PM.dump
@@ -61,10 +66,11 @@ class VolServerLLA(BaseLLA) :
     def restore(self, volume, dump_file, _cfg = None) :
         """
         Restores this (abstract) volume from a file.
+        aborts if the volume already exists.
         """
         command_list = [_cfg.binaries["vos"], "restore", "-server", \
             volume.servername, "-partition", volume.partition, "-name", \
-            volume.name, "-file", dump_file, "-cell", _cfg.cell]
+            volume.name, "-file", dump_file, "-overwrite", "abort", "-cell", _cfg.cell]
         return command_list, PM.restore
     
     @exec_wrapper
@@ -95,7 +101,7 @@ class VolServerLLA(BaseLLA) :
         """
         name_or_id = PM._get_name_or_id(volume)
         command_list = [_cfg.binaries["vos"], "remove", "-server", \
-            volume.server, "-partition", volume.partition, "-id", \
+            volume.servername, "-partition", volume.partition, "-id", \
             name_or_id, "-cell", _cfg.cell ]
         return command_list, PM.remove
    

@@ -8,6 +8,7 @@ import afs.util.misc
 from datetime import datetime
 from VolServerLLAError import VolServerLLAError
 from afs.model import Volume 
+import afs
 
 def examine(ret, output, outerr, parse_param_list, logger):
     """
@@ -17,6 +18,7 @@ def examine(ret, output, outerr, parse_param_list, logger):
     if ret:
         raise VolServerLLAError("Error", outerr)
 
+    _cfg = parse_param_list["kwargs"]["_cfg"] 
     logger.debug("examine: got=%s" % output)
 
     line_no = 0
@@ -107,10 +109,12 @@ def examine(ret, output, outerr, parse_param_list, logger):
             line_num += 1
     if obj.servername != None  :
         for vol in volume_list :
-            if vol.servername == obj.servername :
+            DNSInfo = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(vol.servername)
+            # strictly, we should only check in "names". But DNS is a mess anyway.
+            if obj.servername in DNSInfo["names"] or obj.servername in DNSInfo["ipaddrs"] :
                 return vol
         raise VolServerLLAError("volume %s not on server %s partition %s" % \
-            (obj.name, obj.servername, obj.partition))
+            (obj.vid, obj.servername, obj.partition))
     # return whole list if server/partition unspecified
     return volume_list
 
@@ -148,7 +152,7 @@ def dump(ret, output, outerr, parse_param_list, logger):
     obj = parse_param_list["args"][0]
     if ret:
         raise VolServerLLAError("Error", outerr)
-    return obj
+    return True
 
 def restore(ret, output, outerr, parse_param_list, logger):
     """
@@ -184,7 +188,7 @@ def remove(ret, output, outerr, parse_param_list, logger):
     obj = parse_param_list["args"][0]
     if ret:
         raise VolServerLLAError("Error", outerr)
-    return obj
+    return True
 
 def _get_name_or_id(volume) :
     """
