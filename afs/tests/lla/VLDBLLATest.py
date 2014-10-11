@@ -53,6 +53,10 @@ class EvaluateTestResults(unittest.TestCase) :
         self.assertTrue(len(res) > 0)
         return
 
+    def eval_sync_vldb(self, res) :
+        self.assertTrue(res)
+        return
+
 class TestVLDBLLAMethods(EvaluateTestResults) :
     """
     Tests VLDBLLA Methods
@@ -109,6 +113,11 @@ class TestVLDBLLAMethods(EvaluateTestResults) :
     def test_get_volume_list(self) :
         res = self.lla.get_volume_list()
         self.eval_get_volume_list(res)
+        return
+
+    def test_sync_vldb(self) :
+        res = self.lla.sync_vldb(self.fileserver_name)
+        self.eval_sync_vldb(res)
         return
 
 class TestVLDBLLAMethods_async(EvaluateTestResults):
@@ -186,6 +195,13 @@ class TestVLDBLLAMethods_async(EvaluateTestResults):
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_volume_list(res)
+        return
+
+    def test_sync_vldb(self) :
+        sp_ident = self.lla.sync_vldb(self.fileserver_name, async=True)
+        self.lla.wait_for_subprocess(sp_ident)
+        res = self.lla.get_subprocess_result(sp_ident)
+        self.eval_sync_vldb(res)
         return
 
 if __name__ == '__main__' :

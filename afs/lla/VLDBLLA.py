@@ -55,16 +55,16 @@ class VLDBLLA(BaseLLA) :
         return command_list, PM.get_volume_list
 
     @exec_wrapper
-    def syncVLDb(self, name_or_ip, part="", volume="",_cfg=None):
+    def sync_vldb(self, name_or_ip, part="", volume="", _cfg=None):
         """
         Check that volumes residing at given Fileserver/partition have a correct  VLDB entries.
         """
-        CmdList=[_cfg.binaries["vos"], "syncvldb", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
+        command_list = [_cfg.binaries["vos"], "syncvldb", "-server", "%s" % name_or_ip ,  "-cell",  "%s" % _cfg.cell ]
         if part != "" :
-            CmdList += [ "-part", "%s" % part]
+            command_list += [ "-part", "%s" % part]
         if volume != "" :
-            CmdList += [ "-volume", "%s" % volume]
-        return CmdList,PM.syncVLDB
+            command_list += [ "-volume", "%s" % volume]
+        return command_list, PM.sync_vldb
         
     @exec_wrapper
     def syncServ(self, name_or_ip, part="",_cfg=None):

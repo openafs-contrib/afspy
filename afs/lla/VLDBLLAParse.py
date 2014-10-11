@@ -90,10 +90,10 @@ def lock(rc, output, outerr, parseParamList, Logger) :
         raise VLDBLLAError("Error: %s " %  outerr)
     return True
 
-def syncVLDB(rc,output,outerr,parseParamList,Logger) :
+def sync_vldb(rc, output, outerr, parseParamList, Logger) :
     if rc :
         raise VLDBLLAError("Error: %s " %  outerr)
-    raise VLDBLLAError("Not Implemented.")
+    return True
 
 def setaddrs(rc,output,outerr,parseParamList,Logger) :
     if rc :
