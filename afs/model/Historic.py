@@ -294,6 +294,7 @@ class historic_Volume(BaseModel) :
     creation_date = datetime.fromtimestamp(0)
     access_date = datetime.fromtimestamp(0)
     backup_date = datetime.fromtimestamp(0)
+    update_date = datetime.fromtimestamp(0)
     copy_date = datetime.fromtimestamp(0)
     flags = 0
     diskused = -1

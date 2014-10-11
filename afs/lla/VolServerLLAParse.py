@@ -8,6 +8,7 @@ import afs.util.misc
 from datetime import datetime
 from VolServerLLAError import VolServerLLAError
 from afs.model import Volume 
+import afs
 
 def examine(ret, output, outerr, parse_param_list, logger):
     """
@@ -15,8 +16,9 @@ def examine(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
 
+    _cfg = parse_param_list["kwargs"]["_cfg"] 
     logger.debug("examine: got=%s" % output)
 
     line_no = 0
@@ -107,10 +109,12 @@ def examine(ret, output, outerr, parse_param_list, logger):
             line_num += 1
     if obj.servername != None  :
         for vol in volume_list :
-            if vol.servername == obj.servername :
+            DNSInfo = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(vol.servername)
+            # strictly, we should only check in "names". But DNS is a mess anyway.
+            if obj.servername in DNSInfo["names"] or obj.servername in DNSInfo["ipaddrs"] :
                 return vol
         raise VolServerLLAError("volume %s not on server %s partition %s" % \
-            (obj.name, obj.servername, obj.partition))
+            (obj.vid, obj.servername, obj.partition))
     # return whole list if server/partition unspecified
     return volume_list
 
@@ -120,7 +124,7 @@ def move(ret, output, outerr, parse_param_list, logger) :
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
     return obj
 
 def release(ret, output, outerr, parse_param_list, logger):
@@ -129,8 +133,8 @@ def release(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
-    return obj
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
+    return True
 
 def set_blockquota(ret, output, outerr, parse_param_list, logger):
     """
@@ -138,7 +142,7 @@ def set_blockquota(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
     return obj
 
 def dump(ret, output, outerr, parse_param_list, logger):
@@ -147,8 +151,8 @@ def dump(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
-    return obj
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
+    return True
 
 def restore(ret, output, outerr, parse_param_list, logger):
     """
@@ -156,7 +160,7 @@ def restore(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
     return obj
 
 def convert(ret, output, outerr, parse_param_list, logger):
@@ -165,7 +169,7 @@ def convert(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
     return obj
 
 def create(ret, output, outerr, parse_param_list, logger):
@@ -174,8 +178,8 @@ def create(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
-    return obj
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
+    return True
 
 def remove(ret, output, outerr, parse_param_list, logger):
     """
@@ -183,18 +187,6 @@ def remove(ret, output, outerr, parse_param_list, logger):
     """
     obj = parse_param_list["args"][0]
     if ret:
-        raise VolServerLLAError("Error", outerr)
-    return obj
+        raise VolServerLLAError("ret=%s, output=%s, outerr=%s" % (ret, output, outerr))
+    return True
 
-def _get_name_or_id(volume) :
-    """
-    return name_or_id from volume object.  name takes precedence.
-    it is an error if none of name or vid is set
-    """
-    if (volume.name) :
-        name_or_id = volume.name
-    elif (volume.vid) :
-        name_or_id = "%s" % volume.vid
-    else :
-        raise VolServerLLAError("Neither name nor vid set in volume object")
-    return name_or_id 

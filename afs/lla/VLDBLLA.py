@@ -71,11 +71,11 @@ class VLDBLLA(BaseLLA) :
         return CmdList,PM.setaddrs
         
     @exec_wrapper
-    def addsite(self,VolName,DstServer,DstPartition, _cfg=None) :
+    def addsite(self, volume, dst_server, dst_partition, _cfg=None) :
         """
         adds entry for a RO-Volume on Dst/Part in VLDB
         """
-        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % DstServer, "-partition", "%s" % DstPartition, "-id", "%s" % VolName, "-cell",  "%s" % _cfg.cell ]
+        CmdList=[_cfg.binaries["vos"], "addsite","-server", "%s" % dst_server, "-partition", "%s" % dst_partition, "-id", "%s" % volume.name, "-cell",  "%s" % _cfg.cell ]
         return CmdList,PM.addsite
     
     @exec_wrapper

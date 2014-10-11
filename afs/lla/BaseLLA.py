@@ -143,8 +143,11 @@ class BaseLLA :
         executes shell command as syncronuos subprocess
         """
 
-        self.logger.info("executing command: '%s'" % ' '.join(cmd_list))
-
+        try :
+            self.logger.info("executing command: '%s'" % ' '.join(cmd_list))
+        except :
+            raise RuntimeError("command_list %s contains non-string elements." % cmd_list)
+            
         if stdin == "" :
             pipo = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, \
                  stderr = subprocess.PIPE)
@@ -196,7 +199,7 @@ class BaseLLA :
         for c in random.sample(range(1000000), 5) :
             sp_ident += chr(c % 26 +ord('a'))
         ret = subprocess.call([afs.CONFIG.binaries["async_executioner"],"%s/%s" % (self.spool_dir, sp_ident)] + cmd_list)
-        self.logger.debug("Called Executioner with [%s,%s/%s,%s], ret= %d" % (afs.CONFIG.binaries["async_executioner"], self.spool_dir, sp_ident, cmd_list,  ret))
+        self.logger.info("Called Executioner with [%s,%s/%s,%s], ret=%d" % (afs.CONFIG.binaries["async_executioner"], self.spool_dir, sp_ident, cmd_list,  ret))
         
         return sp_ident 
 
