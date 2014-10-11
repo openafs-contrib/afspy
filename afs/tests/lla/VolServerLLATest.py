@@ -147,7 +147,7 @@ class TestVolServerLLAMethods(EvaluateTestResults) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
         res = self.lla.create(self.tmp_volume)
-        res = self.vldb_lla.addsite(self.tmp_volume, self.tmp_volume.servername, self.tmp_volume.partition)
+        res = self.vldb_lla.addsite(self.tmp_volume)
         res = self.lla.release(self.tmp_volume)
         res = self.lla.remove(self.tmp_volume)
         res = self.lla.convert(self.tmp_volume)
@@ -277,7 +277,7 @@ class TestVolServerLLAMethods_async(EvaluateTestResults):
         res = self.lla.get_subprocess_result(sp_ident)
         self.assertTrue(res != None)
         # note the different lla for addsite!
-        sp_ident = self.vldb_lla.addsite(self.tmp_volume, self.tmp_volume.servername, self.tmp_volume.partition, async=True)
+        sp_ident = self.vldb_lla.addsite(self.tmp_volume, async=True)
         self.vldb_lla.wait_for_subprocess(sp_ident)
         res = self.vldb_lla.get_subprocess_result(sp_ident)
         self.assertTrue(res != None)
