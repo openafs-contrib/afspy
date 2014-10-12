@@ -166,7 +166,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         test reading a logfile
         """ 
         if not afs.CONFIG.enable_harmless_auth_tests :
-            raise unittest.SkipTest("tests requiring authentication disabled.")
+            raise unittest.SkipTest("harmless tests requiring authorization disabled.")
         res = self.lla.get_log(self.bos_server, self.logfile)
         self.eval_get_log(res)
         return
@@ -236,7 +236,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         test executing a shell command
         """
         if not afs.CONFIG.enable_harmless_auth_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
+            raise unittest.SkipTest("harmless tests requiring authorization disabled.")
         res = self.lla.execute_shell(self.bos_server,"/bin/ls")
         self.eval_execute_shell(res)
         return
@@ -380,7 +380,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         test reading a logfile
         """ 
         if not afs.CONFIG.enable_harmless_auth_tests :
-            raise unittest.SkipTest("tests requiring authentication disabled.")
+            raise unittest.SkipTest("harmless tests requiring authorization disabled.")
         sp_ident = self.lla.get_log(self.bos_server, self.logfile, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
@@ -473,7 +473,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         test executing a shell command
         """
         if not afs.CONFIG.enable_harmless_auth_tests :
-            raise unittest.SkipTest("modifying tests disabled.")
+            raise unittest.SkipTest("harmless tests requiring authorization disabled.")
         sp_ident = self.lla.execute_shell(self.bos_server, "/bin/ls", async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
