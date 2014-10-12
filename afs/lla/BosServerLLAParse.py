@@ -2,7 +2,9 @@
 functions for parsing 
 output from shell commands executed by lla.BosServer
 """
+import datetime
 import re
+
 from BosServerLLAError import BosServerLLAError
 from afs.model import BNode
 
@@ -85,15 +87,15 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
           if "Auxiliary status is:" in output[idx] :
               idx += 1 
           tokens = output[idx].split()
-          this_bnode.start_date = " ".join(tokens[4:8])
+          this_bnode.start_date = datetime.datetime.strptime(" ".join(tokens[4:9]), "%a %b %d %H:%M:%S %Y")
           idx += 1 
           tokens = output[idx].split()
           if tokens[0] == "Last" and tokens[1] == "exit" :
-              this_bnode.last_exit_date = " ".join(tokens[3:] )
+              this_bnode.last_exit_date = datetime.datetime.strptime(" ".join(tokens[3:]), "%a %b %d %H:%M:%S %Y")
               idx += 1 
               tokens = output[idx].split()
           if tokens[0] == "Last" and tokens[1] == "error" :
-              this_bnode.error_exit_date = " ".join(tokens[4:8])
+              this_bnode.error_exit_date = datetime.datetime.strptime(" ".join(tokens[4:9]).replace(",",""), "%a %b %d %H:%M:%S %Y")
               idx += 1
               tokens = output[idx].split()
           this_bnode.commands = []
@@ -111,7 +113,6 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
               if idx >= len(output) : break
               tokens = output[idx].split()
           obj.bnodes.append(this_bnode)
-                       
     return obj 
 
 def salvage(ret, output, outerr, parse_param_list, logger):
@@ -244,6 +245,10 @@ def shutdown(ret, output, outerr, parse_param_list, logger):
     """
     if ret :
         raise BosServerLLAError(outerr, output)
+    # bos doesnt return proper code
+    for line in output :
+        if "you are not authorized for this operation" in line :
+            raise BosServerLLAError(output)
     return True
 
 def startup(ret, output, outerr, parse_param_list, logger):
@@ -252,6 +257,10 @@ def startup(ret, output, outerr, parse_param_list, logger):
     """
     if ret :
         raise BosServerLLAError(outerr, output)
+    # bos doesnt return proper code
+    for line in output :
+        if "you are not authorized for this operation" in line :
+            raise BosServerLLAError(output)
     return True
 
 #
