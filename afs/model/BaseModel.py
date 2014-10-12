@@ -36,16 +36,19 @@ class BaseModel(object):
         """
         complex_attrs = {}
         for attr, value in self.__dict__.iteritems() :
-            LOGGER.debug("updateAppRepr: attr=%s, value=%s" % (attr, value))
+            LOGGER.debug("update_app_repr: attr=%s, value=%s" % (attr, value))
             if attr[-3:] == "_js" :
-                if len(value) == 0 :
+                try :
+                    if len(value) == 0 :
+                        complex_attrs[attr[:-3]] = '""'
+                    else :
+                        complex_attrs[attr[:-3]] = json.loads(value)
+                except:
                     complex_attrs[attr[:-3]] = '""'
-                else :
-                    complex_attrs[attr[:-3]] = json.loads(value)
-                LOGGER.debug("updateAppRepr: complxAttr=%s" %\
+                LOGGER.debug("update_app_repr: complex_attr=%s" %\
                                   (complex_attrs[attr[:-3]]))
         for attr, value in complex_attrs.iteritems() :
-            LOGGER.debug("updateAppRepr: setting %s=%s, type=%s" %\
+            LOGGER.debug("update_app_repr: setting %s=%s, type=%s" %\
                               (attr, value, type(value)))
             setattr(self, attr, value)
         return
@@ -55,8 +58,9 @@ class BaseModel(object):
         update the all attributes holding json represenations of complex attributes
         """
         json_reprs = {}
-        LOGGER.debug("in updateDBRepr" )
+        LOGGER.debug("in update_db_repr" )
         for attr, value in self.__dict__.iteritems() :
+            LOGGER.debug("update_db_repr: attr=%s, value=%s" % (attr, value))
             ignore = False
             if attr[0] == "_" : continue
             if isinstance(value, datetime.datetime) :
@@ -110,7 +114,7 @@ class BaseModel(object):
                     continue
             if attr == self : continue
             if attr in self.unmapped_attributes_list : 
-                repr += "(%s=%s,)"  % (attr, eval("self.%s" % attr))
+                repr += "(%s=%s,), "  % (attr, eval("self.%s" % attr))
             else :
                 repr += "%s=%s, " % (attr, eval("self.%s" % attr))
         repr += ")>"
