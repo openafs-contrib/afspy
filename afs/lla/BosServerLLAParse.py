@@ -12,7 +12,6 @@ def get_restart_times(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     general_restart_regex = re.compile("Server (\S+) restarts (?:at)?(.*)")
     binary_restart_regex = re.compile(\
         "Server (\S+) restarts for new binaries (?:at)?(.*)")
@@ -22,30 +21,29 @@ def get_restart_times(ret, output, outerr, parse_param_list, logger):
     if len(output) != 2 :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     
-    obj.general_restart_time = \
+    restart_times = {}
+    restart_times["general"] = \
         general_restart_regex.match(output[0]).groups()[1].strip()
-    obj.newbinary_restart_time = \
+    restart_times["newbinary"] = \
         binary_restart_regex.match(output[1]).groups()[1].strip()
-    return obj
+    return restart_times
 
 def set_restart_time(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
-    return obj
+    return True
 
 def get_db_servers(ret, output, outerr, parse_param_list, logger) :
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     dbserver_regex = re.compile("Host (\d+) is (\S+)")
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
-    obj.db_servers = []
+    db_servers = []
     for line in output :
         match_obj = dbserver_regex.match(line)
         if match_obj :
@@ -57,8 +55,8 @@ def get_db_servers(ret, output, outerr, parse_param_list, logger) :
             else :
                 server['hostname'] = host
                 server['isClone'] = 0
-            obj.db_servers.append(server)
-    return obj
+            db_servers.append(server)
+    return db_servers
 
 
 def get_bnodes(ret, output, outerr, parse_param_list, logger):
@@ -67,8 +65,7 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
     """
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
-    obj = parse_param_list["args"][0]
-    obj.bnodes = []
+    bnodes = []
     idx = 0
     while 1 :
       if idx >= len(output) : break
@@ -112,14 +109,13 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
                   raise BosServerLLAError("parse error at line no %d : %s" % (idx, output[idx]))
               if idx >= len(output) : break
               tokens = output[idx].split()
-          obj.bnodes.append(this_bnode)
-    return obj 
+          bnodes.append(this_bnode)
+    return bnodes 
 
 def salvage(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return output
@@ -161,7 +157,6 @@ def get_filedate(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     # File /usr/afs/bin/fileserver dated Thu Nov 21 14:16:14 2013, no .BAK file, no .OLD file.
@@ -201,7 +196,6 @@ def stop_bnodes(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return True

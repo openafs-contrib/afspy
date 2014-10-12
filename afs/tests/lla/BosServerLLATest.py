@@ -19,7 +19,7 @@ class EvaluateTestResults(unittest.TestCase) :
     def eval_get_db_servers(self, res) :
         found_clone = False
         found_srv = False
-        for srv in self.bos_server.db_servers :
+        for srv in res :
             if srv["hostname"] == self.test_db_server_clone and srv["isClone"] == 1 :
                 found_clone = True
             if srv["hostname"] == self.test_db_server and srv["isClone"] == 0 :
@@ -30,29 +30,24 @@ class EvaluateTestResults(unittest.TestCase) :
             self.fail("Did not find server in dbserver list")    
         return 
 
-    def eval_get_user_list(self, res, should_include=None, should_not_include=None) :
+    def eval_get_superuser_list(self, res, should_include=None, should_not_include=None) :
         if should_include != None :
-            self.assertIn(should_include, self.bos_server.superusers)
+            self.assertIn(should_include, res)
         if should_not_include != None :
-            self.assertNotIn(should_not_include, self.bos_server.superusers)
-        # XXX check for basic user_list, needs to be defined in Test.cfg
+            self.assertNotIn(should_not_include, res)
         return
 
-    def eval_get_bnodes(self, res) :
-        self.assertTrue(len(res.bnodes) > 0)
+    def eval_get_bnodes(self, bnodes) :
+        self.assertTrue(len(bnodes) > 0)
         return
 
-    def eval_get_restart_times(self, res) :
-        self.assertEqual(self.bos_server.newbinary_restart_time, res.newbinary_restart_time)
-        self.assertEqual(self.bos_server.general_restart_time, res.general_restart_time)
+    def eval_get_restart_times(self, restart_times) :
+        self.assertEqual(self.bos_server_restart_time["general"], restart_times["general"])
+        self.assertEqual(self.bos_server_restart_time["newbinary"], restart_times["newbinary"])
         return
 
-    def eval_set_general_restart_time(self, res) :
-        self.assertEqual(self.bos_server.general_restart_time, res.general_restart_time)
-        return
-
-    def eval_set_newbinary_restart_time(self, res) :
-        self.assertEqual(self.bos_server.newbinary_restart_time, res.newbinary_restart_time)
+    def eval_set_restart_time(self, restart_times, time_type, expected) :
+        self.assertEqual(restart_times[time_type], expected)
         return
 
     def eval_restart(self, res) :
@@ -126,10 +121,11 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.lla = afs.lla.BosServerLLA.BosServerLLA()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
-        self.bos_server = afs.model.BosServer.BosServer()
-        self.bos_server.servernames =  [self.test_config.get("BosServerLLA","server"), ]
-        self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
-        self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
+        self.bos_server_name =  self.test_config.get("BosServerLLA","server") 
+        self.bos_server_restart_time =  { 
+            "newbinary" : self.test_config.get("BosServerLLA","newbinary_restart_time"),
+            "general" : self.test_config.get("BosServerLLA","general_restart_time") 
+        }
         self.logfile = self.test_config.get("BosServerLLA","logfile")
         self.files_to_prune = self.test_config.get("BosServerLLA","files_to_prune")
         self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
@@ -140,24 +136,26 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         self.test_db_server_clone = self.test_config.get("BosServerLLA","db_server_clone")
         return
   
-    def test_get_user_list(self) :
+    def test_get_superuser_list(self) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        res = self.lla.get_userlist(self.bos_server) 
-        self.eval_get_user_list(res)
+        res = self.lla.get_superuserlist(self.bos_server_name)
+        self.eval_get_superuser_list(res)
         return
 
-    def test_add_remove_user(self) :
+    def test_add_remove_superuser(self) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        res = self.lla.add_user(self.bos_server,[self.test_superuser, ])
-        self.eval_get_user_list(res, should_include=self.test_superuser)
-        res = self.lla.remove_user(self.bos_server,[self.test_superuser, ])
-        self.eval_get_user_list(res, should_not_include=self.test_superuser)
+        res = self.lla.add_superuser(self.bos_server_name,[self.test_superuser, ])
+        superuser_list = self.lla.get_superuserlist(self.bos_server_name)
+        self.eval_get_superuser_list(superuser_list, should_include=self.test_superuser)
+        self.lla.remove_superuser(self.bos_server_name,[self.test_superuser, ])
+        superuser_list = self.lla.get_superuserlist(self.bos_server_name)
+        self.eval_get_superuser_list(superuser_list, should_not_include=self.test_superuser)
         return
 
     def test_get_db_servers(self) :
-        res = self.lla.get_db_servers(self.bos_server)
+        res = self.lla.get_db_servers(self.bos_server_name)
         self.eval_get_db_servers(res)
         return 
 
@@ -167,7 +165,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """ 
         if not afs.CONFIG.enable_harmless_auth_tests :
             raise unittest.SkipTest("harmless tests requiring authorization disabled.")
-        res = self.lla.get_log(self.bos_server, self.logfile)
+        res = self.lla.get_log(self.bos_server_name, self.logfile)
         self.eval_get_log(res)
         return
 
@@ -175,7 +173,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         test geting in bnodes
         """ 
-        res = self.lla.get_bnodes(self.bos_server)
+        res = self.lla.get_bnodes(self.bos_server_name)
         self.eval_get_bnodes(res)
         return
      
@@ -183,42 +181,28 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         test retrieving restart times into object
         """ 
-        res = self.lla.get_restart_times(self.bos_server)
+        res = self.lla.get_restart_times(self.bos_server_name)
         self.eval_get_restart_times(res)
         return 
 
-    def test_set_general_restart_time(self) :
+    def test_set_restart_time(self) :
         """
         test setting general restart time from object to live-system
         """
-        saved_general_restart_time = self.bos_server.general_restart_time
-        if saved_general_restart_time != "04:00 am" :
-            self.bos_server.general_restart_time = "04:00 am"
-        else :
-            self.bos_server.general_restart_time = "05:00 am"
-        res = self.lla.set_general_restart_time(self.bos_server)
-        self.eval_set_general_restart_time(res)
-        # set back to old values
-        self.bos_server.general_restart_time = saved_general_restart_time
-        res = self.lla.set_general_restart_time(self.bos_server)
-        self.eval_set_general_restart_time(res)
-        return
-
-    def test_set_newbinary_restart_time(self) :
-        """
-        test setting newbinary restart time from object to live-system
-        """
-        saved_newbinary_restart_time = self.bos_server.newbinary_restart_time
-        if saved_newbinary_restart_time != "04:00 am" :
-            self.bos_server.newbinary_restart_time = "04:00 am"
-        else :
-            self.bos_server.newbinary_restart_time = "05:00 am"
-        res = self.lla.set_newbinary_restart_time(self.bos_server)
-        self.eval_set_newbinary_restart_time(res)
-        # set back to old values
-        self.bos_server.newbinary_restart_time = saved_newbinary_restart_time
-        res = self.lla.set_newbinary_restart_time(self.bos_server)
-        self.eval_set_newbinary_restart_time(res)
+        saved_restart_time = self.lla.get_restart_times(self.bos_server_name)
+        for time_type in ["general", "newbinary" ] :
+            if saved_restart_time[time_type] != "4:00 am" :
+                time_string = "4:00 am"
+            else :
+                time_string = "5:00 am"
+            res = self.lla.set_restart_time(self.bos_server_name, time_type, time_string)
+            new_times = self.lla.get_restart_times(self.bos_server_name)
+            self.eval_set_restart_time(new_times, time_type, time_string)
+            # set back to old values
+            time_string = saved_restart_time[time_type]
+            res = self.lla.set_restart_time(self.bos_server_name, time_type, time_string)
+            new_times = self.lla.get_restart_times(self.bos_server_name)
+            self.eval_set_restart_time(new_times, time_type, time_string)
         return
 
     def test_restart(self) :
@@ -227,7 +211,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("interrupting tests disabled.")
-        res = self.lla.restart(self.bos_server, restart_bosserver=False)
+        res = self.lla.restart(self.bos_server_name, "-all", restart_bosserver=False)
         self.eval_restart(res)
         return
 
@@ -237,7 +221,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_harmless_auth_tests :
             raise unittest.SkipTest("harmless tests requiring authorization disabled.")
-        res = self.lla.execute_shell(self.bos_server,"/bin/ls")
+        res = self.lla.execute_shell(self.bos_server_name,"/bin/ls")
         self.eval_execute_shell(res)
         return
 
@@ -245,7 +229,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         test getting the date of a file
         """
-        res = self.lla.get_filedate(self.bos_server, ["fileserver"])
+        res = self.lla.get_filedate(self.bos_server_name, ["fileserver"])
         self.eval_get_filedate(res)
         return
 
@@ -255,7 +239,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_destructive_tests :
             raise unittest.SkipTest("destructive tests disabled.")
-        res = self.lla.prune_log(self.bos_server, self.files_to_prune) 
+        res = self.lla.prune_log(self.bos_server_name, self.files_to_prune) 
         self.eval_prune_log(res)
         return
 
@@ -265,10 +249,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        vol = afs.model.Volume.Volume()
-        vol.name = self.volume_name
-        vol.partition = self.volume_partition
-        res = self.lla.salvage(self.bos_server, volume=vol)
+        res = self.lla.salvage(self.bos_server_name, partition=self.volume_partition, volume=self.volume_name)
         self.eval_salvage_volume(res)
         return
 
@@ -278,10 +259,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        vol = afs.model.Volume.Volume()
-        vol.name = self.volume_name
-        vol.partition = self.volume_partition
-        res = self.lla.salvage(self.bos_server, partition=vol.partition)
+        res = self.lla.salvage(self.bos_server_name, partition=self.volume_partition)
         self.eval_salvage_partition(res)
         return
 
@@ -291,7 +269,7 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        res = self.lla.salvage(self.bos_server)
+        res = self.lla.salvage(self.bos_server_name)
         self.eval_salvage_server(res)
         return
    
@@ -301,9 +279,9 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        res = self.lla.shutdown(self.bos_server)
+        res = self.lla.shutdown(self.bos_server_name)
         self.eval_shutdown(res)
-        res = self.lla.startup(self.bos_server)
+        res = self.lla.startup(self.bos_server_name)
         self.eval_startup(res)
         return
 
@@ -313,10 +291,9 @@ class TestBosServerLLAMethods(EvaluateTestResults):
         """ 
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        bnode = afs.model.BNode.BNode(instance_name=self.start_stop_bnode)
-        res = self.lla.start_bnodes(self.bos_server, [bnode])
+        res = self.lla.start_bnodes(self.bos_server_name, [self.start_stop_bnode])
         self.eval_stop_bnode(res)
-        res = self.lla.start_bnodes(self.bos_server,[ bnode])
+        res = self.lla.start_bnodes(self.bos_server_name,[ self.start_stop_bnode])
         self.eval_start_bnode(res)
         return
 
@@ -327,15 +304,15 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         setup test environment
         called automagically.
-        Same as in sync-case, but the attribute self.async
         """
         self.lla = afs.lla.BosServerLLA.BosServerLLA()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
-        self.bos_server = afs.model.BosServer.BosServer()
-        self.bos_server.servernames =  [self.test_config.get("BosServerLLA","server"), ]
-        self.bos_server.newbinary_restart_time = self.test_config.get("BosServerLLA","newbinary_restart_time")
-        self.bos_server.general_restart_time = self.test_config.get("BosServerLLA","general_restart_time")
+        self.bos_server_name =  self.test_config.get("BosServerLLA","server") 
+        self.bos_server_restart_time =  { 
+            "newbinary" : self.test_config.get("BosServerLLA","newbinary_restart_time"),
+            "general" : self.test_config.get("BosServerLLA","general_restart_time") 
+        }
         self.logfile = self.test_config.get("BosServerLLA","logfile")
         self.files_to_prune = self.test_config.get("BosServerLLA","files_to_prune")
         self.start_stop_bnode = self.test_config.get("BosServerLLA","start_stop_bnode")
@@ -346,30 +323,34 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         self.test_db_server_clone = self.test_config.get("BosServerLLA","db_server_clone")
         return
 
-    def test_get_user_list(self) :
+    def test_get_superuser_list(self) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        sp_ident = self.lla.get_userlist(self.bos_server, async=True) 
+        sp_ident = self.lla.get_superuserlist(self.bos_server_name, async=True) 
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_get_user_list(res)
+        self.eval_get_superuser_list(res)
         return
 
-    def test_add_remove_user(self) :
+    def test_add_remove_superuser(self) :
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        sp_ident = self.lla.add_user(self.bos_server, [self.test_superuser, ], async=True)
+        sp_ident = self.lla.add_superuser(self.bos_server_name, [self.test_superuser, ], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_get_user_list(res, should_include=self.test_superuser)
-        sp_ident = self.lla.remove_user(self.bos_server, [self.test_superuser, ], async=True)
+        self.assertTrue(res)
+        superuser_list = self.lla.get_superuserlist(self.bos_server_name)
+        self.eval_get_superuser_list(superuser_list, should_include=self.test_superuser)
+        sp_ident = self.lla.remove_superuser(self.bos_server_name, [self.test_superuser, ], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_get_user_list(res, should_not_include=self.test_superuser)
+        self.assertTrue(res)
+        superuser_list = self.lla.get_superuserlist(self.bos_server_name)
+        self.eval_get_superuser_list(superuser_list, should_not_include=self.test_superuser)
         return
 
     def test_get_db_servers(self) :
-        sp_ident = self.lla.get_db_servers(self.bos_server, async=True)
+        sp_ident = self.lla.get_db_servers(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_db_servers(res)
@@ -381,14 +362,14 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """ 
         if not afs.CONFIG.enable_harmless_auth_tests :
             raise unittest.SkipTest("harmless tests requiring authorization disabled.")
-        sp_ident = self.lla.get_log(self.bos_server, self.logfile, async=True)
+        sp_ident = self.lla.get_log(self.bos_server_name, self.logfile, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.assertTrue(len(res) > 0)
         return
 
     def test_get_db_servers(self) :
-        sp_ident = self.lla.get_db_servers(self.bos_server, async=True)
+        sp_ident = self.lla.get_db_servers(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_db_servers(res)
@@ -398,7 +379,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         test geting in bnodes
         """ 
-        sp_ident = self.lla.get_bnodes(self.bos_server, async=True)
+        sp_ident = self.lla.get_bnodes(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_bnodes(res)
@@ -408,52 +389,36 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         test retrieving restart times into object
         """ 
-        sp_ident = self.lla.get_restart_times(self.bos_server, async=True)
+        sp_ident = self.lla.get_restart_times(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_restart_times(res)
         return 
 
-    def test_set_general_restart_time(self) :
+    def test_set_restart_time(self) :
         """
         test setting general restart time from object to live-system
         """
-        saved_general_restart_time = self.bos_server.general_restart_time
-        if saved_general_restart_time != "04:00 am" :
-            self.bos_server.general_restart_time = "04:00 am"
-        else :
-            self.bos_server.general_restart_time = "05:00 am"
-        sp_ident = self.lla.set_general_restart_time(self.bos_server, async=True)
-        self.lla.wait_for_subprocess(sp_ident)
-        res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_set_general_restart_time(res)
-        # set back to old values
-        self.bos_server.general_restart_time = saved_general_restart_time
-        sp_ident = self.lla.set_general_restart_time(self.bos_server, async=True)
-        self.lla.wait_for_subprocess(sp_ident)
-        res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_set_general_restart_time(res)
-        return
-
-    def test_set_newbinary_restart_time(self) :
-        """
-        test setting newbinary restart time from object to live-system
-        """
-        saved_newbinary_restart_time = self.bos_server.newbinary_restart_time
-        if saved_newbinary_restart_time != "04:00 am" :
-            self.bos_server.newbinary_restart_time = "04:00 am"
-        else :
-            self.bos_server.newbinary_restart_time = "05:00 am"
-        sp_ident = self.lla.set_newbinary_restart_time(self.bos_server, async=True)
-        self.lla.wait_for_subprocess(sp_ident)
-        res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_set_newbinary_restart_time(res)
-        # set back to old values
-        self.bos_server.newbinary_restart_time = saved_newbinary_restart_time
-        sp_ident = self.lla.set_newbinary_restart_time(self.bos_server, async=True)
-        self.lla.wait_for_subprocess(sp_ident)
-        res = self.lla.get_subprocess_result(sp_ident)
-        self.eval_set_newbinary_restart_time(res)
+        saved_restart_time = self.lla.get_restart_times(self.bos_server_name)
+        for time_type in ["general", "newbinary" ] :
+            if saved_restart_time[time_type] != "4:00 am" :
+                time_string = "4:00 am"
+            else :
+                time_string = "5:00 am"
+            sp_ident = self.lla.set_restart_time(self.bos_server_name, time_type, time_string, async=True)
+            self.lla.wait_for_subprocess(sp_ident)
+            res = self.lla.get_subprocess_result(sp_ident)
+            self.assertTrue(res != None)
+            new_times = self.lla.get_restart_times(self.bos_server_name)
+            self.eval_set_restart_time(new_times, time_type, time_string)
+            # set back to old values
+            time_string = saved_restart_time[time_type]
+            sp_ident = self.lla.set_restart_time(self.bos_server_name, time_type, time_string, async=True)
+            self.lla.wait_for_subprocess(sp_ident)
+            res = self.lla.get_subprocess_result(sp_ident)
+            self.assertTrue(res != None)
+            new_times = self.lla.get_restart_times(self.bos_server_name)
+            self.eval_set_restart_time(new_times, time_type, time_string)
         return
 
     def test_restart(self) :
@@ -462,7 +427,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("interrupting tests disabled.")
-        sp_ident = self.lla.restart(self.bos_server, restart_bosserver=False, async=True)
+        sp_ident = self.lla.restart(self.bos_server_name, "-all", restart_bosserver=False, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_restart(res)
@@ -474,7 +439,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_harmless_auth_tests :
             raise unittest.SkipTest("harmless tests requiring authorization disabled.")
-        sp_ident = self.lla.execute_shell(self.bos_server, "/bin/ls", async=True)
+        sp_ident = self.lla.execute_shell(self.bos_server_name, "/bin/ls", async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_execute_shell(res)
@@ -484,7 +449,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         test getting the date of a file
         """
-        sp_ident = self.lla.get_filedate(self.bos_server, ["fileserver"], async=True)
+        sp_ident = self.lla.get_filedate(self.bos_server_name, ["fileserver"], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_get_filedate(res)
@@ -496,7 +461,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_destructive_tests :
             raise unittest.SkipTest("destructive tests disabled.")
-        sp_ident = self.lla.prune_log(self.bos_server, self.files_to_prune, async=True) 
+        sp_ident = self.lla.prune_log(self.bos_server_name, self.files_to_prune, async=True) 
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_prune_log(res)
@@ -508,10 +473,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        vol = afs.model.Volume.Volume()
-        vol.name = self.volume_name
-        vol.partition = self.volume_partition
-        sp_ident = self.lla.salvage(self.bos_server, volume=vol, async=True)
+        sp_ident = self.lla.salvage(self.bos_server_name, partition=self.volume_partition, volume=self.volume_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_salvage_volume(res)
@@ -523,10 +485,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        vol = afs.model.Volume.Volume()
-        vol.name = self.volume_name
-        vol.partition = self.volume_partition
-        sp_ident = self.lla.salvage(self.bos_server, partition=vol.partition, async=True)
+        sp_ident = self.lla.salvage(self.bos_server_name, partition=self.volume_partition, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_salvage_partition(res)
@@ -538,7 +497,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_modifying_tests :
             raise unittest.SkipTest("modifying tests disabled.")
-        sp_ident = self.lla.salvage(self.bos_server, async=True)
+        sp_ident = self.lla.salvage(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_salvage_server(res)
@@ -550,12 +509,12 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        sp_ident = self.lla.shutdown(self.bos_server, async=True)
+        sp_ident = self.lla.shutdown(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_shutdown(res)
 
-        sp_ident = self.lla.startup(self.bos_server, async=True)
+        sp_ident = self.lla.startup(self.bos_server_name, async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_startup(res)
@@ -567,13 +526,12 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
         """ 
         if not afs.CONFIG.enable_interrupting_tests :
             raise unittest.SkipTest("enable_interrupting_tests tests disabled.")
-        bnode = afs.model.BNode.BNode(instance_name=self.start_stop_bnode)
-        sp_ident = self.lla.stop_bnodes(self.bos_server,[ bnode], async=True)
+        sp_ident = self.lla.stop_bnodes(self.bos_server_name,[ self.start_stop_bnode], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_stop_bnode(res)
 
-        sp_ident = self.lla.start_bnodes(self.bos_server, [bnode], async=True)
+        sp_ident = self.lla.start_bnodes(self.bos_server_name, [self.start_stop_bnode], async=True)
         self.lla.wait_for_subprocess(sp_ident)
         res = self.lla.get_subprocess_result(sp_ident)
         self.eval_start_bnode(res)
