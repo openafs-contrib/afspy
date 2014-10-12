@@ -31,6 +31,7 @@ class BosServerLLA(BaseLLA) :
         bos_server = self.get_bnodes(bos_server)
         bos_server = self.get_restart_times(bos_server)
         bos_server = self.get_db_servers(bos_server)
+        bos_server = self.get_userlist(bos_server)
         return bos_server
 
     @exec_wrapper    
@@ -72,7 +73,7 @@ class BosServerLLA(BaseLLA) :
         """
         command_list = [_cfg.binaries["bos"], "setrestart", "-server", "%s"  % \
             bos_server.servernames[0], "-time",  "%s" % \
-            bos_server.general_restart_time,  "-newbinary", "-cell" , "%s" % _cfg.cell ]
+            bos_server.newbinary_restart_time,  "-newbinary", "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.set_restart_time
 
     @exec_wrapper    
