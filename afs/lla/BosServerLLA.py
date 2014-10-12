@@ -31,7 +31,7 @@ class BosServerLLA(BaseLLA) :
         bos_server = self.get_bnodes(bos_server)
         bos_server = self.get_restart_times(bos_server)
         bos_server = self.get_db_servers(bos_server)
-        bos_server = self.get_userlist(bos_server)
+        bos_server = self.get_superuserlist(bos_server)
         return bos_server
 
     @exec_wrapper    
@@ -77,37 +77,41 @@ class BosServerLLA(BaseLLA) :
         return command_list, PM.set_restart_time
 
     @exec_wrapper    
-    def add_user(self, bos_server, userlist, _cfg = None) :
+    def add_superuser(self, bos_server, userlist, _cfg = None) :
         """
         adds userlist to bosserver*s superuserlist
         """
         if type(userlist) != types.ListType :
               raise BosServerLLAError("userlist must be a list of strings")
+        if len(userlist) == 0 :
+            raise BosServerLLAError("userlist empty.")
         usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "adduser", "-server", "%s"  % \
             bos_server.servernames[0],  "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
-        return command_list, PM.add_user
+        return command_list, PM.add_superuser
     
     @exec_wrapper    
-    def remove_user(self, bos_server, userlist, _cfg = None) :
+    def remove_superuser(self, bos_server, userlist, _cfg = None) :
         """
         removes userlist to bosserver*s superuserlist
         """
         if type(userlist) != types.ListType :
-              raise BosServerLLAError("userlist must be a list of strings")
+            raise BosServerLLAError("userlist must be a list of strings")
+        if len(userlist) == 0 :
+            raise BosServerLLAError("userlist empty.")
         usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "removeuser", "-server", \
            "%s"  % bos_server.servernames[0], "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
-        return command_list, PM.remove_user
+        return command_list, PM.remove_superuser
     
     @exec_wrapper    
-    def get_userlist(self, bos_server, _cfg = None) :
+    def get_superuserlist(self, bos_server, _cfg = None) :
         """
         get bosserver's superuserlist into given object
         """
         command_list = [_cfg.binaries["bos"], "listuser", "-server", \
             "%s"  % bos_server.servernames[0] ]
-        return command_list, PM.get_userlist
+        return command_list, PM.get_superuserlist
     
     @exec_wrapper    
     def get_filedate(self, bos_server, filelist, destdir="", _cfg = None) :
