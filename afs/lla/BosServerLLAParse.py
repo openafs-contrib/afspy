@@ -142,6 +142,8 @@ def get_superuserlist(ret, output, outerr, parse_param_list, logger):
     """
     if ret :
         raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    if len(output) == 0 :
+         return []
     superusers = []
     # first line 
     for su in output[0].split()[2:] :
