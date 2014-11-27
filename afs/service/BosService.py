@@ -38,14 +38,17 @@ class BosService (BaseService):
             if cached :
                 cached_BosServer = self.DBManager.get_from_cache_by_list_element(BosServer, BosServer.servernames_js, this_BosServer.servernames[0], True)
                 if cached_BosServer != None :
-                    # XXX get BNodes
-                    cached_BosServer.bnodes = []
+                    cached_BosServer.bnodes = self.DBManager.get_from_cache(BNode, mustBeUnique=False, bos_db_id=cached_BosServer.db_id)
                     self.Logger.debug("get_bosserver: returning cached object")
                     return cached_BosServer
-        this_BosServer = self._bosserver_lla.get_bos_server(this_BosServer, _cfg=self._CFG)
+
+        # get from live_system
+        this_BosServer = self._bosserver_lla.get_bos_server(this_BosServer.servernames[0], _cfg=self._CFG)
+
         # update cache if present
         if self._CFG.DB_CACHE :
             cached_BosServer = self.DBManager.set_into_cache_by_list_element(BosServer, this_BosServer, BosServer.servernames_js, this_BosServer.servernames[0])
+            # get Bnodes as well
             for bn in this_BosServer.bnodes :
                 bn.bos_db_id = cached_BosServer.db_id
                 self.DBManager.set_into_cache(BNode, bn, bos_db_id=bn.bos_db_id, instance_name=bn.instance_name)
@@ -55,18 +58,42 @@ class BosService (BaseService):
     # modifying methods
     #
 
-    def startup(self, obj_or_param) :
-        this_bosserver = self.get_object(obj_or_param)
-        return 
+    def set_restart_times(self, bosserver) :
+        self._bosserver_lla.set_restart_time(bosserver.servernames[0], "general", bosserver.restart_times["general"])
+        self._bosserver_lla.set_restart_time(bosserver.servernames[0], "newbinary", bosserver.restart_times["newbinary"])
+        return
 
-    def shutdown(self, obj_or_param) :
-        this_bosserver = self.get_object(obj_or_param)
-        return 
+    def set_superusers(self, bosserver, remove=False) :
+        """
+        add / remove users to match the superusers in the object  
+        """
+        current_superusers = self._bosserver_lla.get_superuserlist(bosserver.servernames[0])
+        self.Logger.debug("set_superusers: current_superuser_list=%s" % current_superusers)
+        to_be_removed = []
+        for user in current_superusers :
+            if not user in bosserver.superusers :
+                to_be_removed.append(user) 
+        if len(to_be_removed) > 0  and remove :
+            self.Logger.warn("set_superusers: to_be_removed=%s" % to_be_removed)
+            bosserver = self._bosserver_lla.remove_superuser(bosserver.servernames[0], to_be_removed)
 
-    def set_general_restart_time(self, bos_server ) :
-        this_bosserver = self.get_object(obj_or_param)
-        return 
+        to_be_added = []
+        for user in bosserver.superusers :
+            if not user in current_superusers :
+                to_be_added.append(user) 
+        if len(to_be_added) > 0:
+            self.Logger.warn("set_superusers: to_be_added=%s" % to_be_added)
+            bosserver = self._bosserver_lla.add_superuser(bosserver.servernames[0], to_be_added)
+        return bosserver
 
-    def set_binary_restart_time(self, bos_server) :
-        this_bosserver = self.get_object(obj_or_param)
-        return 
+    #
+    # interrupting methods
+    #
+
+    def startup(self, bosserver) :
+        self._bosserver_lla.startup(bosserver.servernames[0])
+        return self.get_bos_server(bosserver, cached=False)
+
+    def shutdown(self, bosserver) :
+        self._bosserver_lla.shutdown(bosserver.servernames[0])
+        return self.get_bos_server(bosserver, cached=False)

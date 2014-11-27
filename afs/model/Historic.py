@@ -118,10 +118,9 @@ class historic_BosServer(BaseModel):
     ## rxdebug version string and builddate
     version = ""
     build_date = ""
-    ## Date of general restart time
-    general_restart_time = ""
-    ## Date of newbinary restart time
-    newbinary_restart_time = ""
+    ## dict containing general and binary restart times
+    restart_times = {}
+    restart_times_js = "{}"
     ## list of attributes not to put into the DB
     ## these contain (lists of) independent objects
     ## or convenience attributes

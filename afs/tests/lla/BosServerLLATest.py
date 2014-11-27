@@ -540,6 +540,7 @@ class TestBosServerLLAMethods_async(EvaluateTestResults) :
 if __name__ == '__main__' :
     # disable DBCACHE stuff, since we are dealing with LLA only
     parse_commandline()
+    sys.stderr.write("cell=%s\n" % afs.CONFIG.cell)
     sys.stderr.write("\n===\n=== testing direct fork ===\n===\n\n")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestBosServerLLAMethods)
     unittest.TextTestRunner(verbosity = 2).run(suite)

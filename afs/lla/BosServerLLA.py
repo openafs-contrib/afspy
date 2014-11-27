@@ -29,10 +29,10 @@ class BosServerLLA(BaseLLA) :
         bos_server = BosServer.BosServer()
         bos_server.servernames = dns_info["names"]
         bos_server.ipaddrs = dns_info["ipaddrs"]
-        bos_server = self.get_bnodes(bos_server)
-        bos_server = self.get_restart_times(bos_server)
-        bos_server = self.get_db_servers(bos_server)
-        bos_server = self.get_superuserlist(bos_server)
+        bos_server.bnodes = self.get_bnodes(bos_server_name)
+        bos_server.restart_times = self.get_restart_times(bos_server_name)
+        bos_server.db_servers = self.get_db_servers(bos_server_name)
+        bos_server.superusers = self.get_superuserlist(bos_server_name)
         return bos_server
 
     @exec_wrapper    
@@ -40,6 +40,7 @@ class BosServerLLA(BaseLLA) :
         """
         get list of BNode Objects from a server.
         """ 
+        import sys
         command_list = [_cfg.binaries["bos"], "status", "-server", \
             "%s"  % bos_server_name,"-long", "-cell" , "%s" % _cfg.cell]
         return command_list, PM.get_bnodes
@@ -79,9 +80,8 @@ class BosServerLLA(BaseLLA) :
               raise BosServerLLAError("userlist must be a list of strings")
         if len(userlist) == 0 :
             raise BosServerLLAError("userlist empty.")
-        usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "adduser", "-server", "%s"  % \
-            bos_server_name,  "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
+            bos_server_name, "-user" ]  + userlist  + [ "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.add_superuser
     
     @exec_wrapper    
@@ -93,9 +93,8 @@ class BosServerLLA(BaseLLA) :
             raise BosServerLLAError("userlist must be a list of strings")
         if len(userlist) == 0 :
             raise BosServerLLAError("userlist empty.")
-        usernames = " ".join(userlist)
         command_list = [_cfg.binaries["bos"], "removeuser", "-server", \
-           "%s"  % bos_server_name, "-user",  "%s" % usernames, "-cell" , "%s" % _cfg.cell ]
+           "%s"  % bos_server_name, "-user" ]  + userlist  + [ "-cell" , "%s" % _cfg.cell ]
         return command_list, PM.remove_superuser
     
     @exec_wrapper    
