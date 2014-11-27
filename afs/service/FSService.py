@@ -74,6 +74,9 @@ class FSService (BaseService):
             if self._CFG.DB_CACHE :
                 # update cache
                 ext_attr = ExtPartAttr()
+                ext_attr.num_vol_rw = 0
+                ext_attr.num_vol_ro = 0
+                ext_attr.num_vol_bk = 0
                 for v in this_vols :
                     if v.type == "RW" :
                         ext_attr.num_vol_rw += 1
@@ -93,7 +96,7 @@ class FSService (BaseService):
                     fileserver_uuid=this_fileserver.uuid, name=part)    
 
         if kw.get("async", True) :
-            self.task_results[thread.get_ident()] = vols
+            self.task_results[kw["_thread_name"]] = vols
         else : 
             return vols
     
@@ -101,6 +104,7 @@ class FSService (BaseService):
     # File Server Section
     ###############################################
     
+    @task_wrapper
     def get_fileserver(self, name_or_ip, **kw):
         """
         Retrieve Fileserver Object by hostname or IP or uuid
@@ -172,8 +176,8 @@ class FSService (BaseService):
                     uuid, name=part.name)
                 self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, fileserver_uuid=\
                     uuid, name=part.name)
-        # Projects are only available in the DB_CACHE
-        this_fileserver.projects = []
         self.Logger.debug("get_file_server: returning: %s" % this_fileserver)
-        return this_fileserver
-
+        if kw.get("async", True) :
+            self.task_results[kw["_thread_name"]] = this_fileserver
+        else : 
+            return this_fileserver

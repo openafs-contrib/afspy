@@ -36,7 +36,9 @@ class TestFSServiceSetMethods_async(unittest.TestCase):
         self.FsUUID = self.test_config.get("FSService", "FSUUID")
         self.FsPartitions = self.test_config.get("FSService", "Partitions").split(",")
         self.FsPartitions.sort()
-        self.fileserver=self.FSService.get_fileserver(self.FsName, async=True, cached=False)
+        task_ident=self.FSService.get_fileserver(self.FsName, async=True, cached=False)
+        self.FSService.wait_for_task(task_ident)
+        self.fileserver = self.FSService.get_task_result(task_ident)
         
     def test_partition_list(self) :
         parts = []
