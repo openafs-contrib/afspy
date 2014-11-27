@@ -156,6 +156,11 @@ def parse_configs(my_parser=None):
         afs.CONFIG.binaries[key] = value
     file_.close()
 
+    # if we have no cell up to now, get cell from client-config or fail.
+    # same is true for binaries
+    if afs.CONFIG.cell == "" :
+        raise RuntimeError("could not determine which cell to use. Needs to be implemented.")
+
     # setup LookupUtil
     afs.LOOKUP_UTIL[afs.CONFIG.cell] = \
         afs.util.LookupUtil.LookupUtil()
