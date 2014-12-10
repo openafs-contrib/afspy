@@ -22,22 +22,22 @@ class TestCellServiceSetMethods(unittest.TestCase):
         self.CellService = CellService.CellService()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
-        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
-        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
+        self.numFSs = int(self.test_config.get("CellService", "numFSs"))
+        self.allDBIPs = self.test_config.get("CellService", "allDBIPs").split(",")
         self.allDBIPs.sort()
         if "," in self.test_config.get("CellService", "realDBHostnames") :
-            self.realDBHostnames=self.test_config.get("CellService", "realDBHostnames").split(",")
+            self.realDBHostnames = self.test_config.get("CellService", "realDBHostnames").split(",")
             self.realDBHostnames.sort()
         else :
-            self.realDBHostnames = []
+            self.realDBHostnames = [self.test_config.get("CellService", "realDBHostnames")]
         if "," in self.test_config.get("CellService", "cloneDBHostnames") :
-            self.cloneDBHostnames=self.test_config.get("CellService", "cloneDBHostnames").split(",")
+            self.cloneDBHostnames = self.test_config.get("CellService", "cloneDBHostnames").split(",")
             self.cloneDBHostnames.sort()
         else :
-            self.cloneDBHostnames = []
-        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
-        self.FS=self.test_config.get("CellService", "FS")
-        self.FsUUID=self.test_config.get("CellService", "FsUUID")
+            self.cloneDBHostnames = [self.test_config.get("CellService","cloneDBHostnames")]
+        self.minUbikDBVersion = self.test_config.get("CellService", "minUbikDBVersion")
+        self.FS = self.test_config.get("CellService", "FS")
+        self.FsUUID = self.test_config.get("CellService", "FsUUID")
         self.CellInfo = self.CellService.get_cell_info(cached=False)
         return
     
@@ -62,7 +62,7 @@ class TestCellServiceSetMethods(unittest.TestCase):
 
     def test_PTDBVersion_live(self):
         DBVersion = self.CellInfo.ptdb_version
-        self.assertTrue((DBVersion>self.minUbikDBVersion))
+        self.assertTrue((DBVersion > self.minUbikDBVersion))
         return
 
     def test_PTDBSyncSite_live(self):
@@ -71,12 +71,12 @@ class TestCellServiceSetMethods(unittest.TestCase):
         return
         
     def test_VLDBVersion_live(self):
-        DBVersion=self.CellInfo.vldb_version
-        self.assertTrue((DBVersion>self.minUbikDBVersion))
+        DBVersion = self.CellInfo.vldb_version
+        self.assertTrue((DBVersion > self.minUbikDBVersion))
         return
 
     def test_VLDBSyncSite_live(self):
-        DBSyncSite=self.CellInfo.vldb_sync_site
+        DBSyncSite = self.CellInfo.vldb_sync_site
         self.assertTrue((DBSyncSite in self.allDBIPs))
         return
 
@@ -93,23 +93,23 @@ class TestCellServiceCachedMethods(unittest.TestCase):
         self.CellService = CellService.CellService()
         self.test_config = ConfigParser()
         self.test_config.read(afs.CONFIG.setup)
-        self.numFSs=int(self.test_config.get("CellService", "numFSs"))
-        self.allDBIPs=self.test_config.get("CellService", "allDBIPs").split(",")
-        self.allDBIPs.sort()
+        self.num_fileserver = int(self.test_config.get("CellService", "num_fileserver"))
+        self.all_db_ips = self.test_config.get("CellService", "all_db_ips").split(",")
+        self.all_db_ips.sort()
         if "," in self.test_config.get("CellService", "realDBHostnames") :
-            self.realDBHostnames=self.test_config.get("CellService", "realDBHostnames").split(",")
-            self.realDBHostnames.sort()
+            self.real_db_hostnames = self.test_config.get("CellService", "real_db_hostnames").split(",")
+            self.real_db_hostnames.sort()
         else :
-            self.realDBHostnames = []
-        if "," in self.test_config.get("CellService", "cloneDBHostnames") :
-            self.cloneDBHostnames=self.test_config.get("CellService", "cloneDBHostnames").split(",")
-            self.cloneDBHostnames.sort()
+            self.realDBHostnames = [self.test_config.get("CellService", "realDBHostnames")]
+        if "," in self.test_config.get("CellService", "clone_db_hostnames") :
+            self.clone_db_hostnames = self.test_config.get("CellService", "clone_db_hostnames").split(",")
+            self.clone_db_hostnames.sort()
         else :
-            self.cloneDBHostnames = []
-        self.minUbikDBVersion=self.test_config.get("CellService", "minUbikDBVersion")
-        self.FS=self.test_config.get("CellService", "FS")
-        self.FsUUID=self.test_config.get("CellService", "FsUUID")
-        self.CellInfo = self.CellService.get_cell_info(cached=True)
+            self.cloneDBHostnames = [self.test_config.get("CellService","cloneDBHostnames")]
+        self.min_ubik_db_version = self.test_config.get("CellService", "min_ubik_db_version")
+        self.fileserver = self.test_config.get("CellService", "FS")
+        self.fileserver_uuid = self.test_config.get("CellService", "FsUUID")
+        self.cell_info = self.CellService.get_cell_info(cached=True)
         return
 
     @classmethod
