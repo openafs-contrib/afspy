@@ -52,25 +52,26 @@ class CellService(BaseService):
         cell.used_kb = 0
         cell.free_kb = 0
         for f in cell.file_servers :
-            num_vol_rw, num_vol_ro, num_vol_bk, num_vol_offline = self.FS.getNumVolumes(name_or_ip=f, cached=False)
-            cell.num_vol_rw += num_vol_rw
-            cell.num_vol_ro += num_vol_ro
-            cell.num_vol_bk += num_vol_bk
-            cell.num_vol_offline += num_vol_offline
-            partitions = self.FS.getPartitions(f) 
-            for p in partitions :
-                cell.size_kb += partitions[p]["size"]
-                cell.free_kb += partitions[p]["free"]
-                cell.used_kb += partitions[p]["used"]
-        cell.num_users, cell.num_groups = self.getPTInfo()
+            fs = self.FS.get_fileserver(f, cached=cached)
+            fs = self.FS.get_details(fs, cached=cached)
+            for p in fs.parts  :
+                cell.num_vol_rw += p.ExtAttr.num_vol_rw
+                cell.num_vol_ro += p.ExtAttr.num_vol_ro
+                cell.num_vol_bk += p.ExtAttr.num_vol_bk
+                cell.num_vol_offline += p.ExtAttr.num_vol_offline
+                cell.size_kb += p.size_kb
+                cell.free_kb += p.free_kb
+                cell.used_kb += p.used_kb
+        cell.num_users, cell.num_groups = self.get_pt_info()
         # some information are only available if DB_CACHE is used.
-        cell.allocated_kb, cell.allocated_stale_kb = -1, -1
+        cell.allocated_kb, cell.allocated_stale_kb = self.get_allocated_space()
         cell.projects = [] # Projects are in DB_CACHE only
 
         if self._CFG.DB_CACHE :
             for p in self.PS.getProjectList() :
                 cell.projects.append(p.name)
-            cell.allocated_kb, cell.allocated_stale_kb = self.getAllocated()
+            # XXX stale stuff should be refactored out.
+            cell.allocated_kb, cell.allocated_stale_kb = self.get_allocated_space()
             self.Logger.debug("Cell=%s" % cell)
             self.DBManager.set_into_cache(Cell, cell, name=self._CFG.cell)
         return cell
@@ -83,9 +84,9 @@ class CellService(BaseService):
         """
         Return FileServers as a list of hostnames for each fileserver
         """
-        FileServers=[]
+        FileServers = []
         self.Logger.debug("refreshing FileServers from live system")
-        for na in self._vlLLA.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True) :
+        for na in self._vlLLA.get_fileserver_list(_cfg=self._CFG, _user=_user, noresolve=True) :
             DNSInfo=afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(na['name_or_ip'])
             FileServers.append(DNSInfo['names'][0])
         self.Logger.debug("get_fileservers: returning %s" % FileServers)
@@ -102,10 +103,11 @@ class CellService(BaseService):
 
         # get one fileserver and from that one the DBServList
         # we need to make sure to get the IP
-        for f in self._vlLLA.getFsServList(_cfg=self._CFG, _user=_user, noresolve=True ) :
-            if  f["name_or_ip"] in self._CFG.ignoreIPList : continue
+        for f in self._vlLLA.get_fileserver_list(_cfg=self._CFG, _user=_user, noresolve=True ) :
+            if f["name_or_ip"] in self._CFG.ignoreIPList : continue
             break
-        _bos_server = self.BosS.pull_bos_server(f["name_or_ip"], cached=False)
+
+        _bos_server = self.BosS.get_bos_server(f["name_or_ip"], cached=False)
        
         self.Logger.debug("returning %s" % _bos_server.db_servers)
         return _bos_server.db_servers
@@ -117,5 +119,17 @@ class CellService(BaseService):
         shortInfo = self._ubikLLA.get_short_info(name_or_ip, Port, _cfg=self._CFG, _user=_user)
         # we get DBState only from SyncSite  
         if not shortInfo["isSyncSite"] : 
-             shortInfo = self._ubikLLA.get_short_info(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
-        return (shortInfo["SyncSite"],shortInfo["SyncSiteDBVersion"],shortInfo["DBState"])
+            shortInfo = self._ubikLLA.get_short_info(shortInfo["SyncSite"], Port, _cfg=self._CFG,_user=_user)
+        return (shortInfo["SyncSite"], shortInfo["SyncSiteDBVersion"], shortInfo["DBState"])
+
+    def get_pt_info(self) :
+        """
+        return (num_users, num_groups) of the cell
+        """
+        return (-1, -1)
+
+    def get_allocated_space(self) :
+        """
+        return ()
+        """
+        return (-1, -1)
