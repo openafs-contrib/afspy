@@ -131,6 +131,11 @@ def parse_configs(my_parser=None):
         # setup DB_HISTORY
         if afs.CONFIG.DB_HISTORY :
             afs.orm.Historic.setup_db_mappings(afs.CONFIG) 
+ 
+        if afs.CONFIG.DB_HISTORY_NUM_DAYS :
+            afs.CONFIG.DB_HISTORY_NUM_DAYS = int(afs.CONFIG.DB_HISTORY_NUM_DAYS)
+        else :
+            afs.CONFIG.DB_HISTORY_NUM_DAYS = 3
 
     # setup binary-pathes
     afs.CONFIG.binaries = {}
