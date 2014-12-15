@@ -109,7 +109,7 @@ class CellService(BaseService):
 
         _bos_server = self.BosS.get_bos_server(f["name_or_ip"], cached=False)
        
-        self.Logger.debug("returning %s" % _bos_server.db_servers)
+        self.Logger.debug("get_dbservers: returning %s" % _bos_server.db_servers)
         return _bos_server.db_servers
 
     def get_ubik_db_info(self, name_or_ip, Port, _user=""):
