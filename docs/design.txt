@@ -27,9 +27,9 @@ LLA
 
  * Two ways of executing afs-commands :
   * normal exec() (default)
-    * LLA return objects.
+    * LLA return lists, dicts, bool or model-objects.
       * these objects do not need to have all attributes set.
-      the service is required to fill in the gaps.
+        the service is required to fill in the gaps.
   * fully detached 
     * LLA return handle to async command.
     * provides methods to query status detached commands.
@@ -48,7 +48,7 @@ Service
 
  * A service returns an object, list of objects or NONE (if the request was not really invalid)
 
-   * Objects returned by a service can be lazy
+   * Objects returned by a service can be lazy (future feature)
   
    * Objects are by default first looked up in the cache and returned if they are not too old.
 

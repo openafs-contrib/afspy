@@ -63,6 +63,12 @@ def parse_configs(my_parser=None):
     else :
         afs.CONFIG.DB_CACHE = False
 
+    # cast DB_HISTORY to Boolean
+    if afs.CONFIG.DB_HISTORY.upper() == "TRUE" :  
+        afs.CONFIG.DB_HISTORY = True
+    else :
+        afs.CONFIG.DB_HISTORY = False
+
     # LogLevels
     # don't do any logging with globalLogLevel == off
     # if empty loglevel, set to NOTSET
@@ -131,6 +137,11 @@ def parse_configs(my_parser=None):
         # setup DB_HISTORY
         if afs.CONFIG.DB_HISTORY :
             afs.orm.Historic.setup_db_mappings(afs.CONFIG) 
+ 
+        if afs.CONFIG.DB_HISTORY_NUM_DAYS :
+            afs.CONFIG.DB_HISTORY_NUM_DAYS = int(afs.CONFIG.DB_HISTORY_NUM_DAYS)
+        else :
+            afs.CONFIG.DB_HISTORY_NUM_DAYS = 3
 
     # setup binary-pathes
     afs.CONFIG.binaries = {}
@@ -155,6 +166,11 @@ def parse_configs(my_parser=None):
                 (key,binconfig))
         afs.CONFIG.binaries[key] = value
     file_.close()
+
+    # if we have no cell up to now, get cell from client-config or fail.
+    # same is true for binaries
+    if afs.CONFIG.cell == "" :
+        raise RuntimeError("could not determine which cell to use. Needs to be implemented.")
 
     # setup LookupUtil
     afs.LOOKUP_UTIL[afs.CONFIG.cell] = \

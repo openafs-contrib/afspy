@@ -11,10 +11,10 @@ import sys
 
 class BaseService(object):
     """
-    Provides implementation for basic methods for all Service.
+    Provides implementation for basic methods for all Services.
     """
     
-    def __init__(self,conf=None, LLAList=[]):
+    def __init__(self, conf=None, LLAList=[]):
         
         # CONF INIT
         if conf:
@@ -27,7 +27,7 @@ class BaseService(object):
         numericLogLevel = getattr(logging,classLogLevel, 0)
         self.Logger=logging.getLogger("afs.service.%s" % self.__class__.__name__)
         self.Logger.setLevel(numericLogLevel)
-        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, conf))      
+        self.Logger.debug("initializing %s-Object with conf=%s" % (self.__class__.__name__, self._CFG))
         
         # DB INIT 
         if self._CFG.DB_CACHE :

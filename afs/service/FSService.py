@@ -36,13 +36,12 @@ class FSService (BaseService):
 
     
     @task_wrapper
-    def get_volumes(self, obj_or_param, **kw ):
+    def get_details(self, obj_or_param, **kw ):
         """
-        Return list of volumes
+        add partition-objs and the extraneous attributes to the partitions
         """
         cached = kw.get("cached", True)
         _user = kw.get("_user", "")
-        part = kw.get("part", "")
 
         this_fileserver = self.get_object(obj_or_param, cached)
 
@@ -51,63 +50,58 @@ class FSService (BaseService):
 
         vols = []
         if cached :
-            if part :
-                vols = self.DBManager.get_from_cache(Volume, mustBeUnique=False, fileserver_uuid=this_fileserver.uuid, partition = part ) 
-            else :
-                vols = self.DBManager.get_from_cache(Volume, mustBeUnique=False, fileserver_uuid=this_fileserver.uuid) 
-            return vols
+            vols = self.DBManager.get_from_cache(Volume, mustBeUnique=False, fileserver_uuid=this_fileserver.uuid) 
+            this_fileserver.volumes = vols
+            return this_fileserver
                 
-
-       
-        if part != "" :
-            this_partition_names = [part] 
-        else :
-            this_partition_names = [] 
-            for part in this_fileserver.parts: 
-                this_partition_names.append(part.name)
-
         vols = []
-        for part in this_partition_names :    
-            this_vols = self._fsLLA.get_volume_list(this_fileserver, part=part, \
+        for part in this_fileserver.parts :    
+            this_vols = self._fsLLA.get_volume_list(this_fileserver, part=part.name, \
                 _cfg=self._CFG, _user=_user)
             vols += this_vols
+        
+            part.ExtAttr = ExtPartAttr()
+            part.ExtAttr.num_vol_rw = 0
+            part.ExtAttr.num_vol_ro = 0
+            part.ExtAttr.num_vol_bk = 0
+            part.ExtAttr.num_vol_offline = 0
+            part.ExtAttr.name = part.name
+            part.ExtAttr.fileserver_uuid = this_fileserver.uuid
+            for v in this_vols :
+                if v.type == "RW" :
+                    part.ExtAttr.num_vol_rw += 1
+                elif v.type == "RO" :
+                    part.ExtAttr.num_vol_ro += 1
+                elif v.type == "BK" :
+                    part.ExtAttr.num_vol_bk += 1
+                else :
+                    raise RuntimeError("wrong volume type '%s' found" % v.type)
+                v.fileserver_uuid = this_fileserver.uuid
+                v.partition = part.name
+            # update cache
             if self._CFG.DB_CACHE :
-                # update cache
-                ext_attr = ExtPartAttr()
-                for v in this_vols :
-                    if v.type == "RW" :
-                        ext_attr.num_vol_rw += 1
-                    elif v.type == "RO" :
-                        ext_attr.num_vol_ro += 1
-                    elif v.type == "BK" :
-                        ext_attr.num_vol_bk += 1
-                    else :
-                        raise RuntimeError("wrong volume type '%s' found" % v.type)
-                    v.fileserver_uuid = this_fileserver.uuid
-                    v.partition = part
-                    self.DBManager.set_into_cache(Volume, v, mustBeUnique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part);
+                self.DBManager.set_into_cache(Volume, v, mustBeUnique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part.name);
 
-                ext_attr.name = part
-                ext_attr.fileserver_uuid = this_fileserver.uuid
-                self.DBManager.set_into_cache(ExtPartAttr, ext_attr, mustBeUnique=True, \
-                    fileserver_uuid=this_fileserver.uuid, name=part)    
+                self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, mustBeUnique=True, \
+                    fileserver_uuid=this_fileserver.uuid, name=part.name)    
 
         if kw.get("async", True) :
-            self.task_results[thread.get_ident()] = vols
+            self.task_results[kw["_thread_name"]] = this_fileserver
         else : 
-            return vols
+            return this_fileserver
     
     ###############################################
     # File Server Section
     ###############################################
     
+    @task_wrapper
     def get_fileserver(self, name_or_ip, **kw):
         """
         Retrieve Fileserver Object by hostname or IP or uuid
         and update DBCache, if enabled 
         """
         self.Logger.debug("get_fileserver: called with name_or_ip=%s, kw=%s"\
-            % (name_or_ip,kw))
+            % (name_or_ip, kw))
         uuid = kw.get("uuid", "")
         cached = kw.get("cached", True)
         _user = kw.get("_user", "")
@@ -172,8 +166,8 @@ class FSService (BaseService):
                     uuid, name=part.name)
                 self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, fileserver_uuid=\
                     uuid, name=part.name)
-        # Projects are only available in the DB_CACHE
-        this_fileserver.projects = []
-        self.Logger.debug("get_file_server: returning: %s" % this_fileserver)
-        return this_fileserver
-
+        self.Logger.debug("get_fileserver: returning: %s" % this_fileserver)
+        if kw.get("async", True) :
+            self.task_results[kw["_thread_name"]] = this_fileserver
+        else : 
+            return this_fileserver

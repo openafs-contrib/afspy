@@ -58,6 +58,7 @@ def get_short_info(rc, output, outerr, parseParamList, Logger) :
         idx += 1
         # "I am currently managing write trans 1348069670.115422006"
         if "I am currently managing" in output[idx] : idx += 1 
+        if "The last trans I handled was" in output[idx] : idx += 1
         # "Sync site's db version is 1348069670.41445"
         resDict["SyncSiteDBVersion"] = output[idx].split()[5]
     else :

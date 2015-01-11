@@ -235,21 +235,21 @@ class DBManager :
         if object_session(Obj) != None : 
             self.DbSession.expunge(Obj)
         # get a mapped object
-        mapped_object = self.get_from_cache_by_dict_value(Class, Attr, Elem)
+        mapped_object = self.get_from_cache_by_dict_value(Class, Attr, Elem, fresh_only=False)
         if mapped_object == None :
             mapped_object = Class()
         updated_obj = self.do_set_into_cache(Obj, mapped_object)
-        return self.get_from_cache_by_dict_value(Class, Attr, Elem)
+        return self.get_from_cache_by_dict_value(Class, Attr, Elem, fresh_only=False)
 
     def set_into_cache_by_list_element(self, Class, Obj, Attr, Elem) :
         if object_session(Obj) != None : 
             self.DbSession.expunge(Obj)
         # get a mapped object
-        mapped_object = self.get_from_cache_by_list_element(Class, Attr, Elem)
+        mapped_object = self.get_from_cache_by_list_element(Class, Attr, Elem, fresh_only=False)
         if mapped_object == None :
             mapped_object=Class()
         updated_obj = self.do_set_into_cache(Obj, mapped_object)
-        return self.get_from_cache_by_list_element(Class, Attr,Elem)
+        return self.get_from_cache_by_list_element(Class, Attr, Elem, fresh_only=False)
 
 
     def obj_has_changed(self, obj, latest_archived_obj) :
@@ -345,6 +345,7 @@ class DBManager :
         Delete Object from cache
         """
         cached_obj = self.get_from_cache(Class, fresh_only=False, **unique)
+        self.Logger.debug("delete_from_cache: unique=%s gave obj=%s" % (unique, cached_obj) ) 
 
         if cached_obj :
             self.DbSession.delete(cached_obj)

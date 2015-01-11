@@ -96,8 +96,7 @@ def setup_db_mappings(conf = None) :
         Column('ipaddrs_js', TEXT),
         Column('superusers_js', TEXT),
         Column('db_servers_js', TEXT),
-        Column('newbinary_restart_time', String(32) ),
-        Column('general_restart_time', String(32) ),
+        Column('restart_times_js', String(256) ),
         Column('version', String(32) ),
         Column('build_date', String(32) ),
         Column('db_creation_date', DateTime),
@@ -168,10 +167,10 @@ def setup_db_mappings(conf = None) :
         Column('allocated_stale', BigInteger ),
         Column('owner', String(255)),
         Column('unlimited_volumes', Integer ),
-        Column('num_vol_rw', Integer, nullable = False, default = 0),
-        Column('num_vol_ro', Integer, nullable = False, default = 0),
-        Column('num_vol_bk', Integer, nullable = False, default = 0),
-        Column('num_vol_offline', Integer, nullable = False, default = 0),
+        Column('num_vol_rw', Integer),
+        Column('num_vol_ro', Integer),
+        Column('num_vol_bk', Integer),
+        Column('num_vol_offline', Integer),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
         )
@@ -247,7 +246,7 @@ def setup_db_mappings(conf = None) :
         Column('name', String(255)),
         Column('contact', String(255)),
         Column('owner', String(255)),
-        Column('specificity', Integer),
+        Column('parent_db_id', Integer),
         Column('description', String(1023)),
         Column('rw_locations_js', TEXT),
         Column('ro_locations_js', TEXT),
@@ -261,6 +260,7 @@ def setup_db_mappings(conf = None) :
         Column('num_min_ro', Integer),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
+            UniqueConstraint('name', name='uix_1'),
         )
 
     #Map Table to object

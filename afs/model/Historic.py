@@ -104,30 +104,29 @@ class historic_BosServer(BaseModel):
     """
 
     ## list of DNS-hostnames
-    servernames = None
+    servernames = []
     servernames_js = ""
     ## list of ipaddrs
-    ipaddrs = None
+    ipaddrs = []
     ipaddrs_js = ""
     ## list of superusers
-    superusers = None
+    superusers = []
     superusers_js = ""
     ## list of cell hosts (dbservers)
-    db_servers = None
+    db_servers = []
     db_servers_js = ""
     ## rxdebug version string and builddate
     version = ""
     build_date = ""
-    ## Date of general restart time
-    general_restart_time = ""
-    ## Date of newbinary restart time
-    newbinary_restart_time = ""
+    ## dict containing general and binary restart times
+    restart_times = {}
+    restart_times_js = "{}"
     ## list of attributes not to put into the DB
     ## these contain (lists of) independent objects
     ## or convenience attributes
     ## bnodes: list of BNode objects
     ## servername short for servernames[0]
-    unmapped_attributes_list = ['bnodes', 'servernames']
+    unmapped_attributes_list = ['bnodes']
 
     ## pointer to current table entry
     real_db_id = -1
@@ -347,8 +346,9 @@ class historic_Project(BaseModel):
     min_size_kb = -1
     ## maximum Size for a volume
     max_size_kb = -1
-    ## specificity can be used for project hierachies
-    specificity = 0
+    ## Projects are organized in trees. db_id of a parent project.
+    ## -1 means that this is the root project
+    parent_db_id = -1
     ## contact
     contact = ""
     ## owner
@@ -362,22 +362,32 @@ class historic_Project(BaseModel):
     ## list of "server-uuid,partition" pairs for RW-Volumes, json encoded
     rw_serverparts_js = "[]"
     rw_serverparts = []
-    ## list of "server-uuid,partition" pairs for RO-Volumes, json encoded
-    ro_serverparts_js = ""
+    ## list of "server-uuid, partition" pairs for RO-Volumes, json encoded
+    ro_serverparts_js = "[]"
     ro_serverparts = []
     ## free form description
     description = ""
     ## minimum number of RO-replicas
     num_min_ro = 1
+    ## list of attributes not to put into the DB
+    unmapped_attributes_list =  []
 
     ## pointer to current table entry
     real_db_id = -1
 
     def __init__(self) :
         """
-        initialize an empty object
+        initialize an empty object.
+        The app-representation of compley attributes must be initialized to its type here.
         """
         BaseModel.__init__(self)
+        self.volname_regex = []
+        self.additional_volnames = []
+        self.excluded_volnames = []
+        self.rw_locations = []
+        self.ro_locations = []
+        self.rw_serverparts = []
+        self.ro_serverparts = []
 
 #
 # BNode

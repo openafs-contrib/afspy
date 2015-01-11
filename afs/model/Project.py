@@ -28,8 +28,9 @@ class Project(BaseModel):
     min_size_kb = -1
     ## maximum Size for a volume
     max_size_kb = -1
-    ## specificity can be used for project hierachies
-    specificity = 0
+    ## Projects are organized in trees. db_id of a parent project.
+    ## -1 means that this is the root project
+    parent_db_id = -1
     ## contact
     contact = ""
     ## owner
@@ -43,16 +44,26 @@ class Project(BaseModel):
     ## list of "server-uuid,partition" pairs for RW-Volumes, json encoded
     rw_serverparts_js = "[]"
     rw_serverparts = []
-    ## list of "server-uuid,partition" pairs for RO-Volumes, json encoded
-    ro_serverparts_js = ""
+    ## list of "server-uuid, partition" pairs for RO-Volumes, json encoded
+    ro_serverparts_js = "[]"
     ro_serverparts = []
     ## free form description
     description = ""
     ## minimum number of RO-replicas
     num_min_ro = 1
+    ## list of attributes not to put into the DB
+    unmapped_attributes_list =  []
 
     def __init__(self) :
         """
-        initialize an empty object
+        initialize an empty object.
+        The app-representation of compley attributes must be initialized to its type here.
         """
         BaseModel.__init__(self)
+        self.volname_regex = []
+        self.additional_volnames = []
+        self.excluded_volnames = []
+        self.rw_locations = []
+        self.ro_locations = []
+        self.rw_serverparts = []
+        self.ro_serverparts = []

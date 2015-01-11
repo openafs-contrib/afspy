@@ -2,7 +2,9 @@
 functions for parsing 
 output from shell commands executed by lla.BosServer
 """
+import datetime
 import re
+
 from BosServerLLAError import BosServerLLAError
 from afs.model import BNode
 
@@ -10,40 +12,38 @@ def get_restart_times(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     general_restart_regex = re.compile("Server (\S+) restarts (?:at)?(.*)")
     binary_restart_regex = re.compile(\
         "Server (\S+) restarts for new binaries (?:at)?(.*)")
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     
     if len(output) != 2 :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     
-    obj.general_restart_time = \
+    restart_times = {}
+    restart_times["general"] = \
         general_restart_regex.match(output[0]).groups()[1].strip()
-    obj.newbinary_restart_time = \
+    restart_times["newbinary"] = \
         binary_restart_regex.match(output[1]).groups()[1].strip()
-    return obj
+    return restart_times
 
 def set_restart_time(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
-        raise BosServerLLAError(outerr, output)
-    return obj
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    return True
 
 def get_db_servers(ret, output, outerr, parse_param_list, logger) :
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     dbserver_regex = re.compile("Host (\d+) is (\S+)")
     if ret :
-        raise BosServerLLAError(outerr, output)
-    obj.db_servers = []
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    db_servers = []
     for line in output :
         match_obj = dbserver_regex.match(line)
         if match_obj :
@@ -55,8 +55,8 @@ def get_db_servers(ret, output, outerr, parse_param_list, logger) :
             else :
                 server['hostname'] = host
                 server['isClone'] = 0
-            obj.db_servers.append(server)
-    return obj
+            db_servers.append(server)
+    return db_servers
 
 
 def get_bnodes(ret, output, outerr, parse_param_list, logger):
@@ -64,9 +64,8 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
-    obj = parse_param_list["args"][0]
-    obj.bnodes = []
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    bnodes = []
     idx = 0
     while 1 :
       if idx >= len(output) : break
@@ -85,15 +84,15 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
           if "Auxiliary status is:" in output[idx] :
               idx += 1 
           tokens = output[idx].split()
-          this_bnode.start_date = " ".join(tokens[4:8])
+          this_bnode.start_date = datetime.datetime.strptime(" ".join(tokens[4:9]), "%a %b %d %H:%M:%S %Y")
           idx += 1 
           tokens = output[idx].split()
           if tokens[0] == "Last" and tokens[1] == "exit" :
-              this_bnode.last_exit_date = " ".join(tokens[3:] )
+              this_bnode.last_exit_date = datetime.datetime.strptime(" ".join(tokens[3:]), "%a %b %d %H:%M:%S %Y")
               idx += 1 
               tokens = output[idx].split()
           if tokens[0] == "Last" and tokens[1] == "error" :
-              this_bnode.error_exit_date = " ".join(tokens[4:8])
+              this_bnode.error_exit_date = datetime.datetime.strptime(" ".join(tokens[4:9]).replace(",",""), "%a %b %d %H:%M:%S %Y")
               idx += 1
               tokens = output[idx].split()
           this_bnode.commands = []
@@ -107,75 +106,66 @@ def get_bnodes(ret, output, outerr, parse_param_list, logger):
                   import sys
                   for ii in range(len(output)) :
                       sys.stderr.write("%d: %s\n" % (ii, output[ii].strip()))
-                  raise RuntimeError("parse error at line no %d : %s" % (idx, output[idx]))
+                  raise BosServerLLAError("parse error at line no %d : %s" % (idx, output[idx]))
               if idx >= len(output) : break
               tokens = output[idx].split()
-          obj.bnodes.append(this_bnode)
-                       
-    return obj 
+          bnodes.append(this_bnode)
+    return bnodes 
 
 def salvage(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return output
 
-def add_user(ret, output, outerr, parse_param_list, logger):
+def add_superuser(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
-    obj = parse_param_list["args"][0]
-    obj.superusers = []
-    for su in parse_param_list["args"][1] :
-         obj.superusers.append(su)    
-    return obj
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    return True
 
-def remove_user(ret, output, outerr, parse_param_list, logger):
+def remove_superuser(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
-        raise BosServerLLAError(outerr, output)
-    for su in parse_param_list["args"][1] :
-         obj.superusers.remove(su)    
-    return obj
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    return True
 
-def get_userlist(ret, output, outerr, parse_param_list, logger):
+def get_superuserlist(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
-    obj = parse_param_list["args"][0]
-    obj.superusers = []
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
+    if len(output) == 0 :
+         return []
+    superusers = []
     # first line 
     for su in output[0].split()[2:] :
          if len(su) == 0 : continue
-         obj.superusers.append(su)
+         superusers.append(su)
     for line in output[1:] :
         for su in line.split() :
             if len(su) == 0 : continue
-            obj.superusers.append(su)
-    return obj
+            superusers.append(su)
+    return superusers
 
 def get_filedate(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     # File /usr/afs/bin/fileserver dated Thu Nov 21 14:16:14 2013, no .BAK file, no .OLD file.
     # or 
     # File /usr/afs/bin/fileserver dated Tue Jul  8 14:12:05 2014, .BAK file dated Fri Oct 10 10:07:38 2014, .OLD file dated Fri Oct 10 10:07:35 2014.
     if "does not exist" in output[0] :
-        raise BosServerLLAError(output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     tokens=output[0].split()
     res_dict = { "current" : " ".join(tokens[4:8])[:-1],
         "backup" : None, "old" : None } 
@@ -193,7 +183,7 @@ def restart(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return True
 
 def start_bnodes(ret, output, outerr, parse_param_list, logger):
@@ -201,16 +191,15 @@ def start_bnodes(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return True
 
 def stop_bnodes(ret, output, outerr, parse_param_list, logger):
     """
     parses result from method of same name in lla.BosServer
     """
-    obj = parse_param_list["args"][0]
     if ret :
-        raise RuntimeError("%s, %s" % (output, outerr) ) 
+        raise BosServerLLAError("%s, %s" % (output, outerr) ) 
     return True
 
 def execute_shell(ret, output, outerr, parse_param_list, logger):
@@ -218,7 +207,7 @@ def execute_shell(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) )
     return True
 
 def get_log(ret, output, outerr, parse_param_list, logger):
@@ -226,7 +215,7 @@ def get_log(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) )
     ## we just get the LogFile as array of lines
     return output[1:]
 
@@ -235,7 +224,7 @@ def prune_log(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) )
     return True
 
 def shutdown(ret, output, outerr, parse_param_list, logger):
@@ -243,7 +232,11 @@ def shutdown(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) )
+    # bos doesnt return proper code
+    for line in output :
+        if "you are not authorized for this operation" in line :
+            raise BosServerLLAError(output)
     return True
 
 def startup(ret, output, outerr, parse_param_list, logger):
@@ -251,7 +244,11 @@ def startup(ret, output, outerr, parse_param_list, logger):
     parses result from method of same name in lla.BosServer
     """
     if ret :
-        raise BosServerLLAError(outerr, output)
+        raise BosServerLLAError("%s, %s" % (output, outerr) )
+    # bos doesnt return proper code
+    for line in output :
+        if "you are not authorized for this operation" in line :
+            raise BosServerLLAError(output)
     return True
 
 #
