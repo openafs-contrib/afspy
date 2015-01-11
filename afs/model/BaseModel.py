@@ -113,6 +113,7 @@ class BaseModel(object):
                 if not attr.startswith("db_") :
                     continue
             if attr == self : continue
+            if attr.startswith("_") : continue
             if attr in self.unmapped_attributes_list : 
                 repr += "(%s=%s,), "  % (attr, eval("self.%s" % attr))
             else :
