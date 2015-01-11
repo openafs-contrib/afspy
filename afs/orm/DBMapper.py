@@ -316,7 +316,7 @@ def setup_db_mappings(conf = None) :
         Column('name', String(255)),
         Column('contact', String(255)),
         Column('owner', String(255)),
-        Column('specificity', Integer),
+        Column('parent_db_id', Integer),
         Column('description', String(1023)),
         Column('rw_locations_js', TEXT),
         Column('ro_locations_js', TEXT),
@@ -330,6 +330,7 @@ def setup_db_mappings(conf = None) :
         Column('num_min_ro', Integer),
         Column('db_creation_date', DateTime),
         Column('db_update_date', DateTime),
+            UniqueConstraint('name', name='uix_1'),
         )
 
     #Map Table to object
