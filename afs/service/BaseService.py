@@ -11,7 +11,7 @@ import sys
 
 class BaseService(object):
     """
-    Provides implementation for basic methods for all Service.
+    Provides implementation for basic methods for all Services.
     """
     
     def __init__(self, conf=None, LLAList=[]):

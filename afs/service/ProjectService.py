@@ -18,41 +18,210 @@ class ProjectService(BaseService):
     def __init__(self, conf=None):
         BaseService.__init__(self, conf, LLAList=["fs"])
         if not self._CFG.DB_CACHE:
-            raise ProjectServiceError('Error, Projects work only with a DBCache defined ',None)
-        self.ModelObj=Project()
+            raise ProjectServiceError('Error, Projects work only with a DBCache defined ', None)
+        self.ModelObj = Project()
         self._VS = VolumeService()
         self._FS = FSService()
         return
-        
-    def getProjectByName(self, name) :
+
+    def get_object(self, obj_or_param) :
         """
-        return ProjectObj from Projectname
+        turn a input parameter which might be a project name into an object.
+        do nothing if input is already an object
         """
-        thisProject=self.DBManager.get_from_cache(Project,name=name)
-        return thisProject
-   
-    def deleteProject(self,name_or_obj) :
+        if isinstance(obj_or_param, Project) :
+            this_Project = obj_or_param
+        else : 
+            this_Project = self.DBManager.get_from_cache(Project, fresh_only=False, name=obj_or_param)
+            self.Logger.debug("get_object: name %s gave %s" % (obj_or_param, this_Project))
+
+        return this_Project
+
+#
+# methods accessing project objects 
+#
+    
+    def create_project(self, name, description, owner="", rw_locations=[], ro_locations=[]) :
+        """
+        create an empty project
+        """
+        this_project = Project()
+        this_project.name = name
+        this_project.description = description
+        this_project.owner = owner
+        this_project.rw_locations = rw_locations
+        this_project.ro_locations = ro_locations
+        # store_project adds db_id
+        return self.store_project(this_project)
+
+    def delete_project(self, name_or_obj) :
         """
         remove on project from the database. 
         take name as string or ProjectObject
         """
-        if  isinstance(name_or_obj, basestring) :
-            PrjName = name_or_obj
+        this_Project = self.get_object(name_or_obj)
+        return self.DBManager.delete_from_cache(Project, name=this_Project.name)
+
+    def store_project(self, this_Project):
+        """
+        store object into DBCache
+        """
+        self.Logger.debug("store_project: Obj=%s" % (this_Project))
+        this_Project.update_db_repr()
+        self.DBManager.set_into_cache(Project, this_Project, name=this_Project.name)
+        # we need to return the object from the DB to set db_id. 
+        return self.get_object(this_Project.name)
+
+    def get_project_by_name(self, name) :
+        """
+        return ProjectObj from Projectname
+        """
+        self.Logger.debug("get_project_by_name: called with name='%s'" % name)
+        # Note: fresh_only must be false for all get_from_cache operations,
+        # otherwise we get None
+        this_Project = self.DBManager.get_from_cache(Project, fresh_only=False, name="%s" % name)
+        return this_Project
+   
+    def get_project_list(self) :
+        """
+        return list of ProjectObjects
+        """
+        project_list = self.DBManager.get_from_cache(Project, fresh_only=False, mustBeUnique=False) 
+        if project_list == None :
+            project_list = []
+        return project_list
+
+    def get_server_partitions(self, obj_or_param) :
+        """
+        return lists of (fs-name, part) tuples
+        for RW and RO.
+        So basically it is like rw_serverparts and ro_serverparts, but the 
+        uuids replaced by hostnames.
+        """
+        this_Project = self.get_object(obj_or_param)
+        if not this_Project : return None
+        rw_list = [] 
+        ro_list = []
+        for serv_uuid, part in this_Project.rw_serverparts :
+            fs_name = afs.LOOKUP_UTIL[self._CFG.cell].get_hostname_by_fsuuid(serv_uuid)
+            rw_list.append((fs_name,part),)
+        for serv_uuid, part in this_Project.ro_serverparts :
+            fs_name = afs.LOOKUP_UTIL[self._CFG.cell].get_hostname_by_fsuuid(serv_uuid)
+            ro_list.append((fs_name,part),)
+        return rw_list, ro_list
+
+    def add_server_partition(self, obj_or_param, server_partition, volume_type) :
+        """
+        assign a server_partition to a project
+        """
+        this_Project = self.get_object(obj_or_param)
+        fs_name, part = server_partition
+        serv_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(fs_name)
+        part = afs.util.misc.canonicalize_partition(part)
+        if volume_type == "RW" :
+            this_Project.rw_serverparts.append((serv_uuid, part))
+        elif volume_type == "RO" :
+            this_Project.ro_serverparts.append((serv_uuid, part))
         else :
-            try :
-                PrjName = name_or_obj.name
-            except :
-                raise ProjectServiceError("Name of prj (string) or Project instance required.") 
-        return self.DBManager.deleteFromCache(Project,name=PrjName)
-        
-    def getProjectsByVolumeName(self, volname):
+            raise RuntimeError("assign_server_partition: Invalid volume_type '%s'" % volume_type)
+        self.store_project(this_Project)
+        return this_Project
+
+    def remove_server_partition(self, obj_or_param, server_partition, volume_type) :
+        """
+        remove server_partition assignment from a project
+        """
+        this_Project = self.get_object(obj_or_param)
+        self.Logger.debug("called with: server_partition=%s, this_Project=%s" % (server_partition, this_Project) )
+        fs_name, part = server_partition
+        serv_uuid = afs.LOOKUP_UTIL[self._CFG.cell].get_fsuuid(fs_name)
+        part = afs.util.misc.canonicalize_partition(part)
+        if volume_type == "RW" :
+            this_Project.rw_serverparts.remove((serv_uuid, part))
+        elif volume_type == "RO" :
+            this_Project.ro_serverparts.remove((serv_uuid, part))
+        else :
+            raise RuntimeError("resign_server_partition: Invalid volume_type '%s'" % volume_type)
+        self.store_project(this_Project)
+        return this_Project
+
+    def add_location(self, obj_or_param, location, volume_type) :
+        """
+        add a location 
+        """
+        this_project = self.get_object(obj_or_param)
+        if volume_type == "RW" :
+            this_project.rw_locations.append(location)
+        elif volume_type == "RO" :
+            this_project.ro_locations.append(location)
+        else :
+            raise RuntimeError("add_location: Invalid volume_type '%s'" % volume_type)
+        self.store_project(this_project)
+        return this_project
+
+    def remove_location(self, obj_or_param, location, volume_type) :
+        """
+        remove a location 
+        """
+        this_project = self.get_object(obj_or_param)
+        if volume_type == "RW" :
+            this_project.rw_locations.remove(location)
+        elif volume_type == "RO" :
+            this_project.ro_locations.remove(location)
+        else :
+            raise RuntimeError("remove_location: Invalid volume_type '%s'" % volume_type)
+        self.store_project(this_project)
+        return this_project
+
+    def set_parent(self, obj_or_param, parent_obj_or_param) :
+        """
+        set the parent of an object
+        """
+        this_project = self.get_object(obj_or_param)
+        parent_project = self.get_object(parent_obj_or_param)  
+        this_project.parent_db_id = parent_project.db_id
+        self.store_project(this_project)
+        return this_project
+
+    def remove_parent(self, obj_or_param) :
+        """         
+        remove the parent of a project
+        """         
+        this_project = self.get_object(obj_or_param)
+        this_project.parent_db_id = -1
+        self.store_project(this_project)
+        return this_project 
+
+    def get_parent(self, obj_or_param) :
+        """
+        return the parent project object
+        """
+        this_project = self.get_object(obj_or_param)
+        parent_project = self.DBManager.get_from_cache(Project, fresh_only=False, mustBeUnique=True, db_id = this_project.parent_db_id)
+        return parent_project 
+
+    def set_owner(self, obj_or_param, owner) :
+        """
+        set the owner attribute
+        """
+        this_project = self.get_object(obj_or_param)
+        this_project.owner = owner
+        self.store_project(this_project)
+        return this_project
+
+
+#
+# methods scanning cell 
+#
+    
+    def get_projects_by_volume_name(self, volname):
         """
         return List of Projects Objs from VolumeName.
         This list is sorted by the Nesting Level of the projects
         """
         unsortedList=[]
         sortedList=[]
-        for p in self.DBManager.get_from_cache(Project,mustBeUnique=False) :
+        for p in self.DBManager.get_from_cache(Project, fresh_only=False, mustBeUnique=False) :
             pDict=p.getDict()
             for rx in pDict["volnameRegEx"] :
                 if re.compile(rx).match(volname) :
@@ -71,27 +240,7 @@ class ProjectService(BaseService):
                 sortedList.append(p)
         return sortedList
 
-    def getAssignedServers(self,prjname) :
-        """
-        return lists of (fs-name,part) tuples
-        for RW and RO.
-        So basically it is like rw_serverparts and ro_serverparts, but the 
-        uuids replaced by hostnames.
-        """
-        thisProject=self.getProjectByName(prjname)
-        if not thisProject : return None
-        RWList = [] 
-        ROList = []
-        for serv_uuid,part in thisProject.rw_serverparts :
-            FsName=afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
-            RWList.append((FsName,part),)
-        for serv_uuid,part in thisProject.ro_serverparts :
-            FsName=afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
-            ROList.append((FsName,part),)
-        return RWList,ROList
-
-
-    def getProjectsOnServer(self, name_or_obj) :
+    def get_projects_on_server(self, name_or_obj) :
         """
         return dict[Partition] of lists of [ProjectNames] for a fileserver
         """
@@ -103,27 +252,27 @@ class ProjectService(BaseService):
                 FSName = name_or_obj.hostnames[0]
             except :
                 raise ProjectServiceError("Name of server (string) or Fileserver-Instance required.")
-        FSUUID=afs.LookupUtil[self._CFG.cell].getFSUUID(FSName)
+        FSUUID=afs.LOOKUP_UTIL[self._CFG.cell].getFSUUID(FSName)
         if cached :
-            resDict={}
+            res_dict={}
             for p in self._FS.getPartitions(FSName) :
-                resDict[p]=[]
-                for prj in self.DBManager.get_from_cache(ProjectSpread, mustBeUnique=False, serv_uuid=FSUUID, part=p) :
-                    resDict[p].append(prj)
-            return resDict
+                res_dict[p]=[]
+                for prj in self.DBManager.get_from_cache(ProjectSpread, fresh_only=False, mustBeUnique=False, serv_uuid=FSUUID, part=p) :
+                    res_dict[p].append(prj)
+            return res_dict
  
-    def getServerSpread(self, prjname, cached = True):
+    def get_server_spread(self, prjname, cached = True):
         """
         return dict of lists of ProjectSpread Objects :
         [VolType]=[ProjectSpread]
         """
-        thisProject=self.getProjectByName(prjname)
-        if not thisProject : return None
+        this_Project=self.getProjectByName(prjname)
+        if not this_Project : return None
         ResDict = {"RW" : [], "RO" : [], "BK" : []}
 
         if cached :
             for vol_type in ResDict :
-                ResDict[vol_type]=self.DBManager.get_from_cache(ProjectSpread, mustBeUnique=False, vol_type=vol_type, project_id = thisProject.id)
+                ResDict[vol_type]=self.DBManager.get_from_cache(ProjectSpread, fresh_only=False, mustBeUnique=False, vol_type=vol_type, project_id = this_Project.id)
             return ResDict
               
         VolIDList = self.getVolumeIDs(prjname)
@@ -148,7 +297,7 @@ class ProjectService(BaseService):
 
                     if thisPrjSPObj == None :
                         thisPrjSPObj = ProjectSpread()
-                        thisPrjSPObj.project_id = thisProject.id
+                        thisPrjSPObj.project_id = this_Project.id
                         thisPrjSPObj.part = Part
                         thisPrjSPObj.serv_uuid = FSUUID    
                         thisPrjSPObj.vol_type = vol_type
@@ -165,17 +314,17 @@ class ProjectService(BaseService):
                     self.DBManager.setIntoCache(ProjectSpread, thisPrjSPObj, vol_type=vol_type, project_id=thisPrjSPObj.project_id, serv_uuid=thisPrjSPObj.serv_uuid, part=thisPrjSPObj.part)
         return ResDict
 
-    def getVolumeIDs(self,prjname,servers=None) :
+    def get_volume_IDs(self, prjname, servers=None) :
         """
         return list of Volume IDs part of this project.
         servers is an optional list of server_uuids to be used. 
         """
         self.Logger.debug("Entering with prjname=%s and servers=%s" % (prjname,servers))
-        thisProject=self.getProjectByName(prjname)
-        if not thisProject : 
+        this_Project = self.getProjectByName(prjname)
+        if not this_Project : 
             self.Logger.debug("Invalid project-name %s given.", prjname)
             return None
-        list = self.DBManager.getFromCacheByListElement(ExtVolAttr,ExtVolAttr.projectIDs_js,thisProject.id,mustBeUnique=False)
+        list = self.DBManager.getFromCacheByListElement(ExtVolAttr, ExtVolAttr.projectIDs_js, this_Project.id, fresh_only=False, mustBeUnique=False)
         if list == None :
             self.Logger.debug("Results from DB: %s" % list )
             return []
@@ -188,22 +337,22 @@ class ProjectService(BaseService):
             if servers == None :
                 VolIDList.append(l.vid) 
             else  :
-                for v in self._VS.getVolume(l.vid,cached=True) :
+                for v in self._VS.get_volume(l.vid,cached=True) :
                     self.Logger.debug("Comparing '%s' to '%s'" % (v.serv_uuid,servers))
                     if v.serv_uuid in servers :
                         VolIDList.append(l.vid)
         return VolIDList
 
-    def getStorageUsage(self,prjname) :
+    def get_storage_usage(self, prjname) :
         """
         return dict of storage usage for given project.
         """
-        thisProject=self.getProjectByName(prjname)
-        if not thisProject : return None
-        resDict={}
+        this_Project=self.getProjectByName(prjname)
+        if not this_Project : return None
+        res_dict={}
         conn = self._CFG.DB_ENGINE.connect()
         transa = conn.begin()
-        RegEx="\\\[({0}|.*, {0}|{0},.*|.*, {0},.*)\\\]".format(thisProject.id)
+        RegEx="\\\[({0}|.*, {0}|{0},.*|.*, {0},.*)\\\]".format(this_Project.id)
         # openafs volumes
         # this is not very efficient
         # for external RO we need the list of vids
@@ -217,8 +366,8 @@ class ProjectService(BaseService):
             VolIDs.append(vid[0])
         
         self.Logger.debug("VolIDs=%s" % (VolIDs))
-        resDict["diskused"]=0  
-        resDict["filecount"]=0  
+        res_dict["diskused"]=0  
+        res_dict["filecount"]=0  
        
         for vid in VolIDs :
             for field in ["diskused","filecount"] :
@@ -227,10 +376,10 @@ class ProjectService(BaseService):
                 res = conn.execute(rawsql).fetchall()
                 self.Logger.debug("got res=%s" % res)
                 try :
-                    resDict[field] += res[0][0]
+                    res_dict[field] += res[0][0]
                 except :
-                    resDict[field] = 0
-                if resDict[field] == None : resDict[field] = 0
+                    res_dict[field] = 0
+                if res_dict[field] == None : res_dict[field] = 0
 
             for field in ["diskused","filecount"] :
                 rawsql='SELECT SUM(VOL.%s) FROM tbl_volume AS Vol2 JOIN tbl_volume AS VOL on Vol2.vid = VOL.parentID WHERE Vol2.vid="%s" AND VOL.servername != Vol2.servername;' % (field,vid)
@@ -238,34 +387,17 @@ class ProjectService(BaseService):
                 res = conn.execute(rawsql).fetchall()
                 self.Logger.debug("got res=%s" % res)
                 try :
-                    resDict[field] += res[0][0]
+                    res_dict[field] += res[0][0]
                 except :
                     pass
         transa.commit()
         conn.close()  
-        resDict["blocks_fs"] += resDict["diskused"]*1024 # XXX diskused is in Kbytes    
-        resDict["files_fs"] += resDict["filecount"]    
-        self.Logger.debug("getStorageUsage: returning %s" % resDict) 
-        return resDict
+        res_dict["blocks_fs"] += res_dict["diskused"]*1024 # XXX diskused is in Kbytes    
+        res_dict["files_fs"] += res_dict["filecount"]    
+        self.Logger.debug("get_storage_uUsage: returning %s" % res_dict) 
+        return res_dict
         
-    def getProjectList(self) :
-        """
-        return list of ProjectDicts
-        """
-        projList=self.DBManager.get_from_cache(Project, mustBeUnique=False) 
-        if projList == None :
-            projList = []
-        return projList
-
-    def saveProject(self,prjObj):
-        """
-        store object into DBCache
-        """
-        self.Logger.debug("saveProject: Class=%s\nObj=%s" % (Project,prjObj))
-        self.DBManager.setIntoCache(Project,prjObj,name=prjObj.name)
-        return 
-
-    def getNewVolumeLocation(self, prjname, VolObj, reservedSpace={}) :
+    def get_new_volume_location(self, obj_or_param, VolObj, reservedSpace={}) :
         """
         get a new volume location for a volume in the given project.
         Has to be called separately for RW and external RO.
@@ -275,14 +407,14 @@ class ProjectService(BaseService):
         so that parallel transfers/creations are possible.
         must be of form {"serv_uuid" : {"partname" : reservedSpace/kB } }
         """
-        self.Logger.debug("called with Prj=%s, VolObj=%s"  % (prjname,VolObj))
-        thisProject = self.getProjectByName(prjname)
-        if not thisProject : return None
+        self.Logger.debug("called with Prj=%s, VolObj=%s"  % (obj_or_param, VolObj))
+        this_Project = self.get_object(obj_or_param)
+        if not this_Project : return None
 
         if VolObj.type == "RW" :
-            sps = thisProject.rw_serverparts 
+            sps = this_Project.rw_serverparts 
         elif VolObj.type == "RO" :
-            sps = thisProject.ro_serverparts
+            sps = this_Project.ro_serverparts
         else :
             raise RuntimeError("Invalid Voltype : %s" % VolObj.type)    
 
@@ -292,16 +424,16 @@ class ProjectService(BaseService):
         ## XXX does it work with RO, where the RW has been deleted ??
        
         try :
-            existingVol = self._VS.getVolume(VolObj.name, cached=False)
+            existing_volume = self._VS.get_volume(VolObj.name, cached=False)
         except :
-            existingVol = []
+            existing_volume = []
 
-        if len(existingVol) > 0 :
-            existingVol = self._VS.getVolume(VolObj.name, cached=False)[0]
-            RWVolLocation = (existingVol.serv_uuid,existingVol.part)
+        if len(existing_volume) > 0 :
+            existing_volume = self._VS.get_volume(VolObj.name, cached=False)[0]
+            RWVolLocation = (existing_volume.serv_uuid,existing_volume.part)
         else :
             self.Logger.debug("Volume of name %s doesn't exist" % VolObj.name)
-            RWVolLocation=()
+            RWVolLocation = ()
             if VolObj.type != "RW" :
                 raise ProjectServiceError("RW-Volume %s does not exist. Cannot create non-RW volumes for that name." % VolObj.name)
 
@@ -311,39 +443,39 @@ class ProjectService(BaseService):
         else :
             use_vol_name = VolObj.name
         try :
-            existingROVols=self._VS.getVolume(use_vol_name, cached=False)
+            existingROVols = self._VS.get_volume(use_vol_name, cached=False)
         except :
-            existingROVols=[]
+            existingROVols = []
 
         for v in existingROVols :
-            ROVolLocations.append((v.serv_uuid,v.part)) 
+            ROVolLocations.append((v.serv_uuid, v.part)) 
         # get PartInfos from livesystem
 
-        PartInfos={}
+        PartInfos = {}
         for serv_uuid, thisPart in sps :
-            thisFSName = afs.LookupUtil[self._CFG.cell].getHostnameByFSUUID(serv_uuid)
+            this_fs_name = afs.LOOKUP_UTIL[self._CFG.cell].get_hostname_by_fsuuid(serv_uuid)
             if not serv_uuid in PartInfos : 
                 PartInfos[serv_uuid] = {}
-                for p in self._fsLLA.getPartList(thisFSName) :
-                    PartInfos[serv_uuid][p["name"]] = p["free"] 
+                for p in self._fsLLA.get_partitions(this_fs_name) :
+                    PartInfos[serv_uuid][p.name] = p.free 
         # XXX partinfo contains now all partitions    
-        self.Logger.debug("PartInfos of Prj %s: %s" % (thisProject.name,PartInfos)) 
-        self.Logger.debug("ServerPartitions of Prj %s: %s" % (thisProject.name,sps)) 
+        self.Logger.debug("PartInfos of Prj %s: %s" % (this_Project.name, PartInfos)) 
+        self.Logger.debug("ServerPartitions of Prj %s: %s" % (this_Project.name, sps)) 
         self.Logger.debug("VolumeLocations: RW: %s  RO:%s" % (RWVolLocation, ROVolLocations)) 
         # find one with most Free size        
         # we need to iterate over sps again, since we might have more partitions
         # than belonging to this project
         maxFree = -1
-        FsName = Part = None
+        fs_name = Part = None
         for serv_uuid, thisPart in sps :
             self.Logger.debug("serv_uuid =%s, thisPart = %s" % (serv_uuid,thisPart)) 
-            thisFSName = afs.LookupUtil[self._CFG.CELL_NAME].getHostnameByFSUUID(serv_uuid)
+            this_fs_name = afs.LOOKUP_UTIL[self._CFG.CELL_NAME].get_hostname_by_fsuuid(serv_uuid)
             if not thisPart in PartInfos[serv_uuid].keys() :
-                raise ProjectServiceError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,thisFSName,thisPart)) 
+                raise ProjectServiceError("Project %s incorrectly defined. Server %s has no partition %s" % (prjname,this_fs_name,thisPart)) 
             if VolObj.type == "RW" :
                 # ignore the original SP
                 if (serv_uuid, thisPart) == RWVolLocation : continue
-                haveVolonOtherPart=False
+                haveVolonOtherPart = False
                 # if Vol already on dst Server, just consider the corresponding partition
                 for o_serv_uuid,o_part in ROVolLocations :
                     if o_serv_uuid == serv_uuid and o_part != thisPart : 
@@ -366,69 +498,69 @@ class ProjectService(BaseService):
                  raise ProjectServiceError("Internal Error. Got invalid volume-type %s" % VolObj.type)
             # substract reservedSpace
             try :
-                effectiveSpace = PartInfos[serv_uuid][thisPart] - reservedSpace[serv_uuid][thisPart]
+                effective_space = PartInfos[serv_uuid][thisPart] - reservedSpace[serv_uuid][thisPart]
             except :
-                effectiveSpace = PartInfos[serv_uuid][thisPart]
+                effective_space = PartInfos[serv_uuid][thisPart]
             # leave at least 100 GB free on destination server
-            if effectiveSpace > maxFree and effectiveSpace > 1024*1024*100 : 
+            if effective_space > maxFree and effective_space > 1024*1024*100 : 
                 maxFree = PartInfos[serv_uuid][thisPart]
-                FsName = thisFSName
+                fs_name = this_fs_name
                 Part = thisPart
-                self.Logger.debug("best bet so far: srv %s, part %s, max_free: %s" % (FsName,Part,maxFree) )
-        return FsName, Part
+                self.Logger.debug("best bet so far: srv %s, part %s, max_free: %s" % (fs_name,Part,maxFree) )
+        return fs_name, Part
 
-    def updateVolumeMappings(self) :
+    def update_volume_mappings(self) :
         """
         update all ExtVolAttr to current Project definitions
         """
         # cycle through all Projects, collect volumes matching their regex in a dict
-        RWVols={}
-        Projects=self.getProjectList()
+        RWVols = {}
+        Projects = self.getProjectList()
         for prj in Projects :
             self.Logger.debug("Updating Project %s" % prj.name)
             if len(prj.volnameRegEx) > 0 :
-                regEXSQL='AND ( name REGEXP ("%s")' % prj.volnameRegEx[0]
+                regEXSQL = 'AND ( name REGEXP ("%s")' % prj.volnameRegEx[0]
                 if len (prj.volnameRegEx) > 1 :
                     for i in range(1,len(prj.volnameRegEx)) :
                         regEXSQL += 'OR name REGEXP ("%s") ' %  prj.volnameRegEx[1]
                 rawSQL='SELECT vid,name FROM tbl_volume WHERE type="RW" %s );'  % regEXSQL
-                for vid,name in self.DBManager.executeRaw(rawSQL).fetchall() :
+                for vid, name in self.DBManager.executeRaw(rawSQL).fetchall() :
                     if name in prj.excludedVolnames : continue
                     if RWVols.has_key(vid) :
                         RWVols[vid].append(prj.id)
                     else :
-                        RWVols[vid]=[prj.id,]
+                        RWVols[vid] = [prj.id,]
             # additional volumes 
             for name in prj.additionalVolnames :
                 if len(name) == 0 : continue
-                res=self.DBManager.executeRaw('SELECT vid,name FROM tbl_volume WHERE type="RW" and name="%s"'% name ).fetchone()
+                res = self.DBManager.executeRaw('SELECT vid,name FROM tbl_volume WHERE type="RW" and name="%s"'% name ).fetchone()
                 if res == None : raise ProjectServiceError('Project %s corrupted. additional Volume "%s" does not exist.' % (prj.name,name))
-                vid,vname=res
+                vid, vname = res
                 if RWVols.has_key(vid) :
                     if prj.id in RWVols[vid] :
                         self.Logger.warning("Project %s: Volume %s already caught by regexes." % (prj.name,vname))
                     RWVols[vid].append(prj.id)
                 else :
-                    RWVols[vid]=[prj.id,]
+                    RWVols[vid] = [prj.id,]
    
 
         # create dict of Projects, prjid is key
         Prjs={} 
         for p in Projects :
-            Prjs[p.id]=p
+            Prjs[p.id] = p
         # clean list of nested projects for one volume. 
 
-        # a volume should have only the one with the lowest nesting-level
+        # a volume should have only a leaf project
         for v in RWVols :
             if len(RWVols[v]) <= 1 : continue
             self.Logger.debug("clean up nested projects for RWVols[%s]=%s" % (v,RWVols[v]))
-            lowestNest=-1
+            lowestNest = -1
             for prjid in RWVols[v] :
                 if lowestNest == -1 : lowestNest=Prjs[prjid].NestingLevel
                 if Prjs[prjid].NestingLevel < lowestNest :
                     lowestNest = Prjs[prjid].NestingLevel    
             self.Logger.debug("got lowest nesting-level = %s" % lowestNest) 
-            removals=[]
+            removals = []
             for prjid in RWVols[v] :
                 if Prjs[prjid].NestingLevel == 0 : continue
                 if Prjs[prjid].NestingLevel > lowestNest :
@@ -442,7 +574,7 @@ class ProjectService(BaseService):
         transa = conn.begin()
         # scan  server/partition for volids to insert/update
         cdate = udate =datetime.datetime(1970, 1, 1).now()
-        updates=[]
+        updates = []
         for v in RWVols :
             rawsql = 'SELECT vid FROM tbl_extvolattr WHERE vid="%s"' % (v)
             for _vid in conn.execute(rawsql).fetchall() :
@@ -456,16 +588,16 @@ class ProjectService(BaseService):
                 continue
             self.Logger.debug("processing v=%s"  % RWVols[vid])
             #projectIDs_js=json.dumps(map(lambda x: "%s" % x ,RWVols[vid]))
-            projectIDs_js=json.dumps(RWVols[vid])
+            projectIDs_js = json.dumps(RWVols[vid])
             self.Logger.debug("projectIDs_js=%s"  % projectIDs_js)
             if vid in updates :
-                rawsql="""UPDATE tbl_extvolattr SET projectIDs_js='%s', udate='%s' WHERE vid = '%s';""" % (projectIDs_js, udate,vid)
+                rawsql = """UPDATE tbl_extvolattr SET projectIDs_js='%s', udate='%s' WHERE vid = '%s';""" % (projectIDs_js, udate,vid)
                 self.Logger.debug("Updating: %s" % vid)
             else :
                 mincopy = 2
                 owner = "N/A"
-                pinnedOnServer=0
-                rawsql="""INSERT INTO tbl_extvolattr (vid, mincopy, owner, projectIDs_js, pinnedOnServer,udate, cdate) VALUES ('%s','%s','%s','%s','%s','%s','%s');""" % (vid, mincopy, owner, projectIDs_js, pinnedOnServer, udate, cdate)
+                pinnedOnServer = 0
+                rawsql = """INSERT INTO tbl_extvolattr (vid, mincopy, owner, projectIDs_js, pinnedOnServer,udate, cdate) VALUES ('%s','%s','%s','%s','%s','%s','%s');""" % (vid, mincopy, owner, projectIDs_js, pinnedOnServer, udate, cdate)
                 self.Logger.debug("Inserting: %s" % vid)
             res = conn.execute(rawsql)
         transa.commit()
