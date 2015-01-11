@@ -63,6 +63,12 @@ def parse_configs(my_parser=None):
     else :
         afs.CONFIG.DB_CACHE = False
 
+    # cast DB_HISTORY to Boolean
+    if afs.CONFIG.DB_HISTORY.upper() == "TRUE" :  
+        afs.CONFIG.DB_HISTORY = True
+    else :
+        afs.CONFIG.DB_HISTORY = False
+
     # LogLevels
     # don't do any logging with globalLogLevel == off
     # if empty loglevel, set to NOTSET
