@@ -13,7 +13,7 @@ class ExtVolAttr(BaseModel):
     ## SHOULD point to RWID
     vid = -1
     ## number of RO required for this volume, overrrides project
-    num_min_copy = -1
+    num_min_ro = -1
     ## Owner of the volume (string)
     owner = ""
     ## json-encodedlist of projectIDs this Volume belongs to

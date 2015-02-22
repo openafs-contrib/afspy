@@ -296,7 +296,7 @@ def setup_db_mappings(conf = None) :
     ##################################################
     tbl_extvolattr = Table('tbl_extvolattr', metadata,
         Column('vid', Integer, primary_key = True),
-        Column('num_min_copy', Integer),
+        Column('num_min_ro', Integer),
         Column('owner', String(255)),
         Column('project_ids_js', TEXT),
         Column('pinned_on_server', Integer),
