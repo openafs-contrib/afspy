@@ -7,6 +7,7 @@ the latter overrides the earlier configs in the oerder given above.
 """
 import logging
 import os 
+import sys
 import types
 
 import afs
@@ -34,6 +35,15 @@ def parse_configs(my_parser=None):
     # an empty-string
     
     afs.CONFIG = my_parser.parse_args()
+
+    if afs.CONFIG.show_all_options :
+        all_options =  my_parser._optionals._option_string_actions.keys()      
+        all_options.sort()
+        print "available options:"
+        for o in all_options :
+            print o
+        sys.exit(0)
+
     if afs.CONFIG.config  :
         afs.CONFIG = load_config_from_file(afs.CONFIG, \
             afs.CONFIG.config)
