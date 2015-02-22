@@ -50,7 +50,7 @@ class FSService (BaseService):
 
         vols = []
         if cached :
-            vols = self.DBManager.get_from_cache(Volume, mustBeUnique=False, fileserver_uuid=this_fileserver.uuid) 
+            vols = self.DBManager.get_from_cache(Volume, must_be_unique=False, fileserver_uuid=this_fileserver.uuid) 
             this_fileserver.volumes = vols
             return this_fileserver
                 
@@ -80,9 +80,9 @@ class FSService (BaseService):
                 v.partition = part.name
             # update cache
             if self._CFG.DB_CACHE :
-                self.DBManager.set_into_cache(Volume, v, mustBeUnique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part.name);
+                self.DBManager.set_into_cache(Volume, v, must_be_unique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part.name);
 
-                self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, mustBeUnique=True, \
+                self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, must_be_unique=True, \
                     fileserver_uuid=this_fileserver.uuid, name=part.name)    
 
         if kw.get("async", True) :
@@ -128,9 +128,9 @@ class FSService (BaseService):
             else :
                 this_fileserver.parts = []
                 for part in self.DBManager.get_from_cache(Partition, \
-                    mustBeUnique=False, fileserver_uuid=uuid) :
+                    must_be_unique=False, fileserver_uuid=uuid) :
                     part.ExtAttr = self.DBManager.get_from_cache(ExtPartAttr, \
-                        mustBeUnique=True, fileserver_uuid=uuid, name=part.name)
+                        must_be_unique=True, fileserver_uuid=uuid, name=part.name)
                     if part.ExtAttr == None :
                         part.ExtAttr = ExtPartAttr()
                     # XXX if there's no entry, fix default value of projectIDS

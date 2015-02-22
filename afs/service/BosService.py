@@ -38,7 +38,7 @@ class BosService (BaseService):
             if cached :
                 cached_BosServer = self.DBManager.get_from_cache_by_list_element(BosServer, BosServer.servernames_js, this_BosServer.servernames[0], True)
                 if cached_BosServer != None :
-                    cached_BosServer.bnodes = self.DBManager.get_from_cache(BNode, mustBeUnique=False, bos_db_id=cached_BosServer.db_id)
+                    cached_BosServer.bnodes = self.DBManager.get_from_cache(BNode, must_be_unique=False, bos_db_id=cached_BosServer.db_id)
                     self.Logger.debug("get_bosserver: returning cached object")
                     return cached_BosServer
 
