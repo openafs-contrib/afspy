@@ -102,7 +102,10 @@ def examine(ret, output, outerr, parse_param_list, logger):
             splits = output[line_num+25].split()
             volume_list[obj_num].spare3        = splits[1]
             splits = output[line_num+27].split()
-            volume_list[obj_num].readonly_id = splits[3]
+            if len(splits) >= 4 :
+                volume_list[obj_num].readonly_id = splits[3]
+            else :
+                volume_list[obj_num].readonly_id = 0
             line_num += 27
         else :
             logger.debug("Skipping line: %s" % output[line_num])
