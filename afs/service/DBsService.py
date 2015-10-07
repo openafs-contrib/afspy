@@ -16,47 +16,41 @@ class DBsService(BaseService) :
     def __init__(self,conf=None):
         BaseService.__init__(self, conf, LLAList=["vl","ubik","rx"])
 
-    def getDBServer(self, name_or_ip, DBType,_user="",cached=False) :
+    def get_db_server(self, name_or_ip, DBType, _user="", cached=False) :
         """
         Return DB-Server object
         """ 
 
-        self.Logger.debug("Entering getDBServer with name_or_ip=%s, DBType=%s" % (name_or_ip,DBType) )
+        self.Logger.debug("Entering get_db_server with name_or_ip=%s, DBType=%s" % (name_or_ip, DBType) )
 
         if not DBType in ["vldb","ptdb" ] : raise DBsServiceError ("invalid DBType DB-Type %s. Valid DBTypes are vldb and ptdb." % DBType)
 
-        DNSInfo=afs.LookupUtil[self._CFG.cell].getDNSInfo(name_or_ip)
-        mandIP=""
-        if len(DNSInfo["ipaddrs"]) != 0 :
-            for ip in DNSInfo["ipaddrs"] :
-                if not ip in self._CFG.ignoreIPList :
-                    if mandIP != "" : DBsServiceError ("DB-Servers may only be registered with one IP here for the time being. Please add all non.used IPs to the ignoreList.")
-                mandIP=ip
+        dns_info = afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(name_or_ip)
+
+        true_ip = ""
+        if len(dns_info["ipaddrs"]) != 0 :
+            for ip in dns_info["ipaddrs"] :
+                if not ip in self._CFG.ignore_ip_list :
+                    if true_ip != "" : DBsServiceError ("DB-Servers may only be registered with one IP here for the time being. Please add all non.used IPs to the ignoreList.")
+                true_ip = ip
         else :
-            mandIP=ip
+            mandIP = ip
     
         if cached :
-            this_DBServer=self.DBManager.getFromCache(DBServer,ipaddr=mandIP)
-            return this_DBServer
+            this_db_server = self.DBManager.get_from_cache(DBServer, ipaddr=true_ip)
+            return this_db_server 
 
-        if DBType == "vldb" :
-            port=7003
-        elif DBType == "ptdb": 
-            port=7002
-        else :
-            raise DBsServiceError("Invalid DBType %s" % DBType)
-
-        this_DBServer = DBServer()
-        this_DBServer.type = DBType
-        this_DBServer.servernames=DNSInfo["names"]
-        this_DBServer.ipaddr=mandIP
-        shortInfo=self._ubikLLA.getShortInfo(mandIP,port, _cfg=self._CFG, _user=_user)
-        this_DBServer.isClone=shortInfo["isClone"]
-        this_DBServer.localDBVersion =  shortInfo["localDBVersion"]
-        this_DBServer.version,this_DBServer.build_date=self._rxLLA.getVersionandBuildDate(mandIP,port, _user=_user, _cfg=self._CFG)
+        this_db_server = DBServer()
+        this_db_server.type = DBType
+        this_db_server.servernames=dns_info["names"]
+        this_db_server.ipaddr=true_ip
+        shortInfo = self._ubikLLA.getShortInfo(true_ip,port, _cfg=self._CFG, _user=_user)
+        this_db_server.isClone=shortInfo["isClone"]
+        this_db_server.localDBVersion =  shortInfo["localDBVersion"]
+        this_db_server.version,this_db_server.build_date = self._rxLLA.getVersionandBuildDate(true_ip, port, _user=_user, _cfg=self._CFG)
 
         if self._CFG.DB_CACHE :
-            self.DBManager.setIntoCache(DBServer,this_DBServer,ipaddr=this_DBServer.ipaddr,type=DBType)
+            self.DBManager.setIntoCache(DBServer,this_db_server,ipaddr = this_db_server.ipaddr,type=DBType)
  
-        return this_DBServer
+        return this_db_server
 

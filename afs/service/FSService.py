@@ -1,10 +1,13 @@
 """
 Provides Service about a FileServer
 """
-import thread
+
+import datetime
+
 from afs.service.BaseService import BaseService, task_wrapper
 from afs.service.FSServiceError import FSServiceError
 from afs.model.ExtendedPartitionAttributes import ExtPartAttr
+from afs.model.ExtendedFileServerAttributes import ExtFileServAttr
 from afs.model.FileServer import FileServer
 from afs.model.Partition import Partition
 from afs.model.Volume import Volume
@@ -45,7 +48,9 @@ class FSService (BaseService):
 
         this_fileserver = self.get_object(obj_or_param, cached)
 
-        self.Logger.debug("get_volume_list: called with obj=%s, kw=%s"\
+        stale_date = ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.STALE_DAYS)))
+
+        self.Logger.debug("get_details: called with obj=%s, kw=%s"\
             % (obj_or_param,kw))
 
         vols = []
@@ -65,9 +70,17 @@ class FSService (BaseService):
             part.ExtAttr.num_vol_ro = 0
             part.ExtAttr.num_vol_bk = 0
             part.ExtAttr.num_vol_offline = 0
+            part.ExtAttr.allocated = 0
+            part.ExtAttr.allocated_stale = 0
             part.ExtAttr.name = part.name
             part.ExtAttr.fileserver_uuid = this_fileserver.uuid
             for v in this_vols :
+                if v.status  == "UNATTACHABLE" :
+                    part.ExtAttr.num_vol_offline += 1
+                    continue
+                if v.status  == "BUSY" :
+                    self.Logger.warn("get_details: skipping %s on fileserver=%s. It's busy." % (v.vid, this_fileserver.servernames[0]))
+                    continue
                 if v.type == "RW" :
                     part.ExtAttr.num_vol_rw += 1
                 elif v.type == "RO" :
@@ -75,15 +88,27 @@ class FSService (BaseService):
                 elif v.type == "BK" :
                     part.ExtAttr.num_vol_bk += 1
                 else :
-                    raise RuntimeError("wrong volume type '%s' found" % v.type)
+                    raise RuntimeError("wrong volume type '%s' for vid=%s on fileserver=%s found." % (v.type, v.vid, this_fileserver.servernames[0]))
+                if v.update_date < stale_date :
+                     part.ExtAttr.allocated_stale += v.maxquota
+                else :
+                     part.ExtAttr.allocated += v.maxquota
                 v.fileserver_uuid = this_fileserver.uuid
                 v.partition = part.name
-            # update cache
-            if self._CFG.DB_CACHE :
-                self.DBManager.set_into_cache(Volume, v, must_be_unique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part.name);
+                # update cache
+                if self._CFG.DB_CACHE :
+                    self.DBManager.set_into_cache(Volume, v, must_be_unique=True, vid = v.vid, fileserver_uuid = this_fileserver.uuid, partition = part.name)
 
+            if self._CFG.DB_CACHE :
+                self.DBManager.set_into_cache(Partition, part, must_be_unique=True,  \
+                    fileserver_uuid=this_fileserver.uuid, name=part.name)    
                 self.DBManager.set_into_cache(ExtPartAttr, part.ExtAttr, must_be_unique=True, \
                     fileserver_uuid=this_fileserver.uuid, name=part.name)    
+        # update cache
+        if self._CFG.DB_CACHE :
+            self.DBManager.set_into_cache(FileServer, this_fileserver, must_be_unique=True, uuid = this_fileserver.uuid)
+
+        this_fileserver.volumes = vols
 
         if kw.get("async", True) :
             self.task_results[kw["_thread_name"]] = this_fileserver
@@ -123,28 +148,44 @@ class FSService (BaseService):
             this_fileserver = self.DBManager.get_from_cache(FileServer, \
                  uuid=uuid)
             if this_fileserver == None : # not in the cache. 
-                self.Logger.warn("getFileServer: FS with uuid=%s not in DB."\
-                    % uuid)
+                self.Logger.warn("get_fileserver: FS with name_or_ip=%s, uuid=%s not in DB or outdated."\
+                    % (name_or_ip, uuid))
             else :
+                this_fileserver.ExtAttr = self.DBManager.get_from_cache(ExtFileServAttr, \
+			must_be_unique=True, fileserver_uuid=uuid)
+                if this_fileserver.ExtAttr == None :
+                    this_fileserver.ExtAttr = ExtFileServAttr()
                 this_fileserver.parts = []
-                for part in self.DBManager.get_from_cache(Partition, \
-                    must_be_unique=False, fileserver_uuid=uuid) :
-                    part.ExtAttr = self.DBManager.get_from_cache(ExtPartAttr, \
-                        must_be_unique=True, fileserver_uuid=uuid, name=part.name)
-                    if part.ExtAttr == None :
-                        part.ExtAttr = ExtPartAttr()
-                    # XXX if there's no entry, fix default value of projectIDS
-                    this_fileserver.parts.append(part)
-                return this_fileserver
+                try :
+                    for part in self.DBManager.get_from_cache(Partition, \
+                        must_be_unique=False, fileserver_uuid=uuid) :
+                        part.ExtAttr = self.DBManager.get_from_cache(ExtPartAttr, \
+                            must_be_unique=True, fileserver_uuid=uuid, name=part.name)
+                        if part.ExtAttr == None :
+                            part.ExtAttr = ExtPartAttr()
+                        # XXX if there's no entry, fix default value of projectIDS
+                        this_fileserver.parts.append(part)
+                    return this_fileserver
+                except TypeError : # no info from DB, let's pass onto live-system
+                    self.Logger.warn("get_fileserver: Partition info about FS with uuid=%s not in DB. Maybe it has no partitions ?"\
+                         % uuid)
+                    return this_fileserver
 
         this_fileserver = FileServer()
         this_fileserver.servernames = dns_info["names"]
         this_fileserver.ipaddrs = dns_info["ipaddrs"]
         # UUID
         this_fileserver.uuid = uuid
-        this_fileserver.version, this_fileserver.build_date = \
-            self._rxLLA.getVersionandBuildDate(this_fileserver.servernames[0], \
-            7000, _cfg=self._CFG, _user=_user)
+        try :
+            this_fileserver.version, this_fileserver.build_date = \
+                self._rxLLA.getVersionandBuildDate(this_fileserver.servernames[0], \
+                7000, _cfg=self._CFG, _user=_user)
+        except :
+            self.Logger.error("get_fileserver: cannot get information from fileserver %s. Is it up? Returning dummy-info" % this_fileserver.servernames[0])
+            this_fileserver.version = -1
+            this_fileserver.build_date = -1
+            this_fileserver.parts = []
+            return this_fileserver
 
         # update cache
         if self._CFG.DB_CACHE :
