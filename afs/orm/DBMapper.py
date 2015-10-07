@@ -62,6 +62,8 @@ def safe_mapping(model_class, table_definition) :
     base_model_attributes = dir(BaseModel())
     _mapper = mapper(model_class, table_definition)
     mapped_columns = _mapper.columns.keys()
+    LOGGER.debug("model_attributes = %s" % model_attributes)
+    LOGGER.debug("got columns: %s" % mapped_columns)
 
     for k in model_attributes :
         # ignore private sqlalchemy methods
@@ -119,7 +121,7 @@ def setup_db_mappings(conf = None) :
 
     tbl_extfileservattr = Table('tbl_extfileservattr', metadata,
         Column('db_id', Integer, primary_key = True),
-        Column('server_db_id', Integer),
+        Column('fileserver_uuid', String(255) ),
         Column('location', String(32) ),
         Column('owner', String(32) ),
         Column('description', TEXT ),
@@ -295,7 +297,8 @@ def setup_db_mappings(conf = None) :
     #  Volume Ext Param
     ##################################################
     tbl_extvolattr = Table('tbl_extvolattr', metadata,
-        Column('vid', Integer, primary_key = True),
+        Column('db_id', Integer, primary_key = True),
+        Column('vid', Integer),
         Column('num_min_ro', Integer),
         Column('owner', String(255)),
         Column('project_ids_js', TEXT),
@@ -344,9 +347,6 @@ def setup_db_mappings(conf = None) :
         Column('project_id', Integer),
         Column('fileserver_uuid',  String(255)),
         Column('part', String(2)),
-        Column('blocks_fs', BigInteger),
-        Column('blocks_osd_on' , BigInteger),
-        Column('blocks_osd_off', BigInteger),
         Column('vol_type', String(2)),
         Column('used_kb', BigInteger),
         Column('num_vol', Integer ),
@@ -393,7 +393,6 @@ def setup_db_mappings(conf = None) :
     from afs.model.Cell import Cell
     safe_mapping(Cell, tbl_cell)
 
-    metadata.create_all(conf.DB_ENGINE)
     try  :
         metadata.create_all(conf.DB_ENGINE)
     except :

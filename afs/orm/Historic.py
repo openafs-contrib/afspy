@@ -40,7 +40,7 @@ def setup_db_mappings(conf = None) :
     tbl_hist_extfileservattr = Table('tbl_hist_extfileservattr', metadata,
         Column('db_id', Integer, primary_key = True),
         Column('real_db_id', Integer),
-        Column('server_db_id', Integer),
+        Column('fileserver_uuid', String(255) ),
         Column('location', String(32) ),
         Column('owner', String(32) ),
         Column('description', TEXT ),
@@ -223,8 +223,9 @@ def setup_db_mappings(conf = None) :
     #  Volume Ext Param
     ##################################################
     tbl_hist_extvolattr = Table('tbl_hist_extvolattr', metadata,
-        Column('vid', Integer, primary_key = True),
+        Column('db_id', Integer, primary_key = True),
         Column('real_db_id', Integer),
+        Column('vid', Integer),
         Column('num_min_ro', Integer),
         Column('owner', String(255)),
         Column('project_ids_js', TEXT),
@@ -275,9 +276,6 @@ def setup_db_mappings(conf = None) :
         Column('project_id', Integer),
         Column('fileserver_uuid',  String(255)),
         Column('part', String(2)),
-        Column('blocks_fs', BigInteger),
-        Column('blocks_osd_on' , BigInteger),
-        Column('blocks_osd_off', BigInteger),
         Column('vol_type', String(2)),
         Column('used_kb', BigInteger),
         Column('num_vol', Integer ),
@@ -325,7 +323,6 @@ def setup_db_mappings(conf = None) :
     from afs.model.Historic import historic_Cell
     safe_mapping(historic_Cell, tbl_hist_cell)
 
-    metadata.create_all(conf.DB_ENGINE)
     try  :
         metadata.create_all(conf.DB_ENGINE)
     except :
