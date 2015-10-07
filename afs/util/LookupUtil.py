@@ -103,6 +103,8 @@ class LookupUtil :
         # check if resolved ip-address matches (if hostalias was used)
         for hostname in afs.CONFIG.hosts :
             for ipaddr in ipaddrs :
+                # ignore IP if we're asked to do so.
+                if ipaddr in afs.CONFIG.ignoreIPList : continue
                 if ipaddr in afs.CONFIG.hosts[hostname] :
                     self._logger.debug("%s is hard-mapped to (%s,%s)" % \
                         (ipaddrs, [hostname,],afs.CONFIG.hosts[hostname]))
