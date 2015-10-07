@@ -230,8 +230,9 @@ class DBManager :
         unique is a list of (Attribute-Name = value)-pairs which identifies 
         the object within the DB using filter_by() if Attribute is directly mapped.
         A complex Attribute which is json encoded has to be dealt with differently.
-        See setIntoCacheByDictKey,set_into_cache_by_dict_value and set_into_cache_by_list_element for this.
+        See set_into_cache_by_dict_key,set_into_cache_by_dict_value and set_into_cache_by_list_element for this.
         """ 
+
         self.Logger.debug("setIntoCache: called with class=%s, Obj=%s, **unique=%s " % (Class, Obj, unique))
         # we have to detach the Obj from the sqlalchemy session, otherwise
         # we mix Obj and mapped_object

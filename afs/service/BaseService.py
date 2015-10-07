@@ -45,18 +45,18 @@ class BaseService(object):
             elif lla == "vol" :
                 from afs.lla.VolServerLLA import VolServerLLA
                 self._volLLA = VolServerLLA()
-            elif lla == "BosServer" :
+            elif lla == "bos" :
                 from afs.lla.BosServerLLA import BosServerLLA
-                self._bosserver_lla = BosServerLLA()
+                self._bosLLA = BosServerLLA()
             elif lla == "fs" :
                 from afs.lla.FileServerLLA import FileServerLLA
                 self._fsLLA = FileServerLLA()
             elif lla == "rx" :
                 from afs.lla import RXPeerLLA
-                self._rxLLA=RXPeerLLA.RXPeerLLA()
+                self._rxLLA = RXPeerLLA.RXPeerLLA()
             elif lla == "ubik" :
                 from afs.lla import UbikPeerLLA
-                self._ubikLLA=UbikPeerLLA.UbikPeerLLA()
+                self._ubikLLA = UbikPeerLLA.UbikPeerLLA()
             else :
                 raise AFSError("internal Error. invalid LLA '%s' requested" % lla)
 
