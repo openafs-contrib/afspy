@@ -11,18 +11,18 @@ class BosService (BaseService):
     """
     
     def __init__(self, _cfg = None):
-        BaseService.__init__(self, _cfg, LLAList=["BosServer" ])
+        BaseService.__init__(self, _cfg, LLAList=["bos" ])
         return
 
     def get_object(self, obj_or_param) :
         if isinstance(obj_or_param, BosServer) :
-             this_BosServer = obj_or_param
+             this_bos_server = obj_or_param
         else : 
              DNSInfo=afs.LOOKUP_UTIL[self._CFG.cell].get_dns_info(obj_or_param)
-             this_BosServer = BosServer()
-             this_BosServer.servernames = DNSInfo["names"]
+             this_bos_server = BosServer()
+             this_bos_server.servernames = DNSInfo["names"]
 
-        return this_BosServer
+        return this_bos_server
 
     def get_bos_server(self, obj_or_param, cached=True) :
         """
@@ -32,42 +32,42 @@ class BosService (BaseService):
         """
         self.Logger.debug("Entering get_bos_server")
 
-        this_BosServer = self.get_object(obj_or_param)
+        this_bos_server = self.get_object(obj_or_param)
         
         if self._CFG.DB_CACHE :
             if cached :
-                cached_BosServer = self.DBManager.get_from_cache_by_list_element(BosServer, BosServer.servernames_js, this_BosServer.servernames[0], True)
+                cached_BosServer = self.DBManager.get_from_cache_by_list_element(BosServer, BosServer.servernames_js, this_bos_server.servernames[0], True)
                 if cached_BosServer != None :
-                    cached_BosServer.bnodes = self.DBManager.get_from_cache(BNode, mustBeUnique=False, bos_db_id=cached_BosServer.db_id)
+                    cached_BosServer.bnodes = self.DBManager.get_from_cache(BNode, must_be_unique=False, bos_db_id=cached_BosServer.db_id)
                     self.Logger.debug("get_bosserver: returning cached object")
                     return cached_BosServer
 
         # get from live_system
-        this_BosServer = self._bosserver_lla.get_bos_server(this_BosServer.servernames[0], _cfg=self._CFG)
+        this_bos_server = self._bosLLA.get_bos_server(this_bos_server.servernames[0], _cfg=self._CFG)
 
         # update cache if present
         if self._CFG.DB_CACHE :
-            cached_BosServer = self.DBManager.set_into_cache_by_list_element(BosServer, this_BosServer, BosServer.servernames_js, this_BosServer.servernames[0])
+            cached_BosServer = self.DBManager.set_into_cache_by_list_element(BosServer, this_bos_server, BosServer.servernames_js, this_bos_server.servernames[0])
             # get Bnodes as well
-            for bn in this_BosServer.bnodes :
+            for bn in this_bos_server.bnodes :
                 bn.bos_db_id = cached_BosServer.db_id
                 self.DBManager.set_into_cache(BNode, bn, bos_db_id=bn.bos_db_id, instance_name=bn.instance_name)
-        return this_BosServer
+        return this_bos_server
 
     #
     # modifying methods
     #
 
     def set_restart_times(self, bosserver) :
-        self._bosserver_lla.set_restart_time(bosserver.servernames[0], "general", bosserver.restart_times["general"])
-        self._bosserver_lla.set_restart_time(bosserver.servernames[0], "newbinary", bosserver.restart_times["newbinary"])
+        self._bosLLA.set_restart_time(bosserver.servernames[0], "general", bosserver.restart_times["general"])
+        self._bosLLA.set_restart_time(bosserver.servernames[0], "newbinary", bosserver.restart_times["newbinary"])
         return
 
     def set_superusers(self, bosserver, remove=False) :
         """
         add / remove users to match the superusers in the object  
         """
-        current_superusers = self._bosserver_lla.get_superuserlist(bosserver.servernames[0])
+        current_superusers = self._bosLLA.get_superuserlist(bosserver.servernames[0])
         self.Logger.debug("set_superusers: current_superuser_list=%s" % current_superusers)
         to_be_removed = []
         for user in current_superusers :
@@ -75,7 +75,7 @@ class BosService (BaseService):
                 to_be_removed.append(user) 
         if len(to_be_removed) > 0  and remove :
             self.Logger.warn("set_superusers: to_be_removed=%s" % to_be_removed)
-            bosserver = self._bosserver_lla.remove_superuser(bosserver.servernames[0], to_be_removed)
+            bosserver = self._bosLLA.remove_superuser(bosserver.servernames[0], to_be_removed)
 
         to_be_added = []
         for user in bosserver.superusers :
@@ -83,7 +83,7 @@ class BosService (BaseService):
                 to_be_added.append(user) 
         if len(to_be_added) > 0:
             self.Logger.warn("set_superusers: to_be_added=%s" % to_be_added)
-            bosserver = self._bosserver_lla.add_superuser(bosserver.servernames[0], to_be_added)
+            bosserver = self._bosLLA.add_superuser(bosserver.servernames[0], to_be_added)
         return bosserver
 
     #
@@ -91,9 +91,9 @@ class BosService (BaseService):
     #
 
     def startup(self, bosserver) :
-        self._bosserver_lla.startup(bosserver.servernames[0])
+        self._bosLLA.startup(bosserver.servernames[0])
         return self.get_bos_server(bosserver, cached=False)
 
     def shutdown(self, bosserver) :
-        self._bosserver_lla.shutdown(bosserver.servernames[0])
+        self._bosLLA.shutdown(bosserver.servernames[0])
         return self.get_bos_server(bosserver, cached=False)

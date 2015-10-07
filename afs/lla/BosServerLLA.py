@@ -103,7 +103,7 @@ class BosServerLLA(BaseLLA) :
         get bosserver's superuserlist into given object
         """
         command_list = [_cfg.binaries["bos"], "listuser", "-server", \
-            "%s"  % bos_server_name]
+            "%s"  % bos_server_name, "-cell" , "%s" % _cfg.cell]
         return command_list, PM.get_superuserlist
     
     @exec_wrapper    

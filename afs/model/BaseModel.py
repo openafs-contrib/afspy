@@ -1,7 +1,12 @@
 """
 Declares the mother of all model-objects.
 """
-import datetime, json, logging, decimal, sys
+from datetime import datetime
+import decimal
+import json
+import logging
+import sys
+
 from types import StringType, IntType, LongType,  FloatType,  BooleanType,  \
     UnicodeType, ListType, DictType, NoneType
 
@@ -13,22 +18,14 @@ class BaseModel(object):
     The mother of all model-objects
     """
 
-    ## DB - ID
-    db_id = None
-    ## creation date of this db-entry
-    db_creation_date = datetime.datetime.now()
-    ## update date of this db-entry
-    db_update_date = datetime.datetime.now()
-    ## list of attributes not to put into the DB
-    ## overwrite in model definition if not empty
-    unmapped_attributes_list = []
-
     def __init__(self) :
-        """
-        set attributes known to all models
-        """
-        self.update_app_repr()
-        return 
+        ## DB - ID
+        self.db_id = None
+        ## creation date of this db-entry
+        self.db_creation_date = datetime.now()
+        ## update date of this db-entry
+        self.db_update_date = datetime.now()
+
 
     def update_app_repr(self) :
         """
@@ -63,7 +60,7 @@ class BaseModel(object):
             LOGGER.debug("update_db_repr: attr=%s, value=%s" % (attr, value))
             ignore = False
             if attr[0] == "_" : continue
-            if isinstance(value, datetime.datetime) :
+            if isinstance(value, datetime) :
                 ignore = True
             elif isinstance(value, decimal.Decimal) :
                 ignore = True
@@ -93,7 +90,7 @@ class BaseModel(object):
         for attr, value in self. __dict__.iteritems() :
             if attr[0] == "_" : continue
             if attr[-3:] == "_js" : continue
-            if isinstance(value, datetime.datetime):
+            if isinstance(value, datetime):
                 res[attr] = json.dumps(value.isoformat('-'))
             elif type(value) in [ StringType, IntType, UnicodeType, ListType, \
                 DictType, NoneType ] :
@@ -121,13 +118,3 @@ class BaseModel(object):
         repr += ")>"
         return repr
 
-    def __setattr__(self, name, value):
-        """
-        Raise an exception if attempting to assign to an atribute which does not exist in the model.
-        We're not checking if the attribute is an SQLAlchemy-mapped column because we also want it to work with properties etc.
-        See http://stackoverflow.com/questions/12032260/ for more details.
-        This is activated after the initialization in the models __init__ - method
-        """ 
-        if name != "_sa_instance_state" and not hasattr(self, name) and not name in self.unmapped_attributes_list :
-            raise ValueError("Attribute %s is not a mapped column of object %s" % (name, self))
-        super(BaseModel, self).__setattr__(name, value) 

@@ -1,6 +1,7 @@
 """
 Declares model object fot protection database
 """
+
 from afs.model.BaseModel import BaseModel
 
 class PTDB(BaseModel) :
@@ -11,17 +12,21 @@ class PTDB(BaseModel) :
     DBServer model.
     """
 
-    ## list of servers providing this DB
-    dbservers_ipaddrs__js = "[]"
-    dbservers_ipaddrs = []
-    ## syncsite, master-server
-    sync_server_ipaddrs = ""
-    ## FIXME: add more attributes like e.g. num_groups
-    ## DB-version
-    ptdb_version = -1
-
     def __init__(self):
         """
         Initializes empty model object
         """
+
+        # declare db-internal attributes
         BaseModel.__init__(self)
+    
+        ## list of servers providing this DB
+        self.dbservers_ipaddrs__js = "[]"
+        self.dbservers_ipaddrs = []
+        ## syncsite, master-server
+        self.sync_server_ipaddrs = ""
+        ## FIXME: add more attributes like e.g. num_groups
+        ## DB-version
+        self.ptdb_version = -1
+        ## list of attributes not to put into the DB
+        self.unmapped_attributes_list = [ 'parts', 'ExtServAttr' ]

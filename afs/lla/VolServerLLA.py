@@ -22,9 +22,9 @@ class VolServerLLA(BaseLLA) :
 
     def get_name_or_id(self, param) :
         try: 
-            if param.vid != None :
+            if param.vid != -1 :
                 name_or_id = "%s" % param.vid
-            elif param.name != None :
+            elif param.name != '' :
                 name_or_id = param.name
             else :
                 raise RuntimeError("Volume name or id required.")

@@ -2,7 +2,7 @@
 Cell=testenv.rzg.mpg.de
 User=
 Password=
-allDBServs=te01.testenv.rzg.mpg.de, te03.testenv.rzg.mpg.de
+allDBServs=te01.rzg.mpg.de
 min_ubikdb_version=1327470000
 # type of tests:
 enable_harmless_noauth_tests=True
@@ -15,7 +15,7 @@ enable_destructive_tests=False
 allDBIPs=130.183.100.10,130.183.14.14,130.183.9.5
 
 [BosServerLLA]
-server=te01.testenv.rzg.mpg.de
+server=te01.rzg.mpg.de
 salvage_volume=test
 logfile=FileLog
 files_to_prune=core
@@ -27,26 +27,23 @@ db_server_clone=
 start_stop_bnode=dafs
 vol_name=testzap 
 vol_part=a
-bnodes= kdc,kadmind,kpasswdd,vlserver,ptserver,dafs,rxosd,osddb
+bnodes= kdc,kadmind,kpasswdd,vlserver,ptserver,dafs
 
 [BosService]
-server=te01.testenv.rzg.mpg.de
+server=te01.rzg.mpg.de
 newbinary_restart_time=4:00 am
 general_restart_time=4:00 am
-bnodes= kdc,kadmind,kpasswdd,vlserver,ptserver,dafs,rxosd,osddb
+bnodes= kdc,kadmind,kpasswdd,vlserver,ptserver,dafs
 superuser_list=admin,tick,trick,track
 
-
-[CacheManagerLLA]
-aliases=rzg=ipp-garching.mpg.de,@cell=ipp-garching.mpg.de,ipp=ipp-garching.mpg.de,mpa=mpa-garching.mpg.de,mpe=mpe.mpg.de,rzg.mpg.de=ipp-garching.mpg.de
 
 [VolService]
 VolID=536870990
 VolName=root.afs
-minCopy=2
+minCopy=1
 Owner="afspy"
 FS=130.183.4.16
-FSName=te01.testenv.rzg.mpg.de
+FSName=te01.rzg.mpg.de
 Part=a
 Type=RW
 
@@ -65,25 +62,25 @@ Part=a
 allParts=a 
 
 [UbikLLA]
-SyncSite=130.183.14.14
+SyncSite=
 DBPort=7002
-allDBs=194.94.214.140,194.94.214.4,130.183.100.10,130.183.14.14,130.183.9.5
+allDBs=
 DBState=OK
 MinDBVersion=100000
 
 [CellService]
-FS=130.183.4.16
-FsUUID=00430d64-8e1b-1cef-b3-f7-371eb782aa77
-allDBIPs=130.183.4.16
-realDBHostnames=te01.rzg.mpg.de
+FS=
+FsUUID=
+allDBIPs=
+realDBHostnames=
 cloneDBHostnames=
 numFSs=2
 MinUbikDBVersion=1000
 
 [VolServerLLA]
-FS=te01.testenv.rzg.mpg.de
+FS=te01.rzg.mpg.de
 Part=a
-DST_FS=te03.testenv.rzg.mpg.de
+DST_FS=te03.rzg.mpg.de
 DST_Part=a
 VolID=536870990
 ROVolID=536871079
@@ -91,7 +88,7 @@ DumpFile=/tmp/afspy.test.dumpvolume
 TmpVolName=afspy.tmp
 
 [VLDBLLA]
-FS=te01.testenv.rzg.mpg.de
+FS=te01.rzg.mpg.de
 FS_UUID=000a3232-4d1f-1b4c-92-f3-f0a2b782aa77
 Part=a
 TmpVolName=afspy.tmp
@@ -99,11 +96,13 @@ TmpVolName=afspy.tmp
 [ProjectService]
 ProjectName=UNITTEST
 ProjectDescription=Just for testing
-ServerPart=te01.testenv.rzg.mpg.de,a
+ServerPart=te01.rzg.mpg.de,a
+TestVolumeName=unittest_volume
+TestVolumeRegEx=^unittest.*
 
 [LookupUtil]
-HostAlias=jack.ipp-hgw.mpg.de
-primaryHostName=afs-db-hgw.ipp-hgw.mpg.de
-IPAddr=194.94.214.140
-FsUUID=00274cf0-5006-1460-b9-d9-8cd65ec2aa77
+HostAlias=
+primaryHostName=
+IPAddr=
+FsUUID=
 

@@ -44,13 +44,13 @@ class VolumeService (BaseService):
         volume_group = {"RW" : None, "RO" : [], "BK": None}
         if cached :
             if this_Volume.name != "" :
-               volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, mustBeUnique=False)
+               volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, must_be_unique=False)
             else :
-               volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, mustBeUnique=False)
+               volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, must_be_unique=False)
             self.Logger.debug("volume_list=%s" % volume_list)
             if volume_list != [] and volume_list != None :
                 parent_id = volume_list[0].parent_id
-                volume_list = self.DBManager.get_from_cache(Volume, parent_id=parent_id, mustBeUnique=False)
+                volume_list = self.DBManager.get_from_cache(Volume, parent_id=parent_id, must_be_unique=False)
                 for v in volume_list :
                     if v.type == "RW" :
                         volume_group["RW"] = v  
@@ -114,14 +114,14 @@ class VolumeService (BaseService):
         if cached :
             if fileserver != "" : 
                 if this_Volume.name != "" :
-                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, fileserver_uuid=wanted_fileserver_uuid, mustBeUnique=False)
+                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, fileserver_uuid=wanted_fileserver_uuid, must_be_unique=False)
                 else :
-                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, fileserver_uuid=wanted_fileserver_uuid, mustBeUnique=False)
+                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, fileserver_uuid=wanted_fileserver_uuid, must_be_unique=False)
             else :
                 if this_Volume.name != "" :
-                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, mustBeUnique=False)
+                    volume_list = self.DBManager.get_from_cache(Volume, name=this_Volume.name, must_be_unique=False)
                 else :
-                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, mustBeUnique=False)
+                    volume_list = self.DBManager.get_from_cache(Volume, vid=this_Volume.vid, must_be_unique=False)
                 
             if volume_list != [] and volume_list != None :
                 return self.do_return(_thread_name, volume_list)

@@ -102,12 +102,15 @@ def examine(ret, output, outerr, parse_param_list, logger):
             splits = output[line_num+25].split()
             volume_list[obj_num].spare3        = splits[1]
             splits = output[line_num+27].split()
-            volume_list[obj_num].readonly_id = splits[3]
+            if len(splits) >= 4 :
+                volume_list[obj_num].readonly_id = splits[3]
+            else :
+                volume_list[obj_num].readonly_id = 0
             line_num += 27
         else :
             logger.debug("Skipping line: %s" % output[line_num])
             line_num += 1
-    if obj.servername != None  :
+    if obj.servername != ""  :
         for vol in volume_list :
             DNSInfo = afs.LOOKUP_UTIL[_cfg.cell].get_dns_info(vol.servername)
             # strictly, we should only check in "names". But DNS is a mess anyway.

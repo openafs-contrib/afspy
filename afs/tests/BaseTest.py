@@ -97,6 +97,7 @@ def parse_commandline():
       default=False, help="enable modifying tests")
     my_parser.add_argument("--interrupting", dest="enable_interrupting_tests", action='store_const', const=True, \
       default=False, help="enable interrupting tests")
+   
     parse_configs(my_parser)
     if not os.path.exists(afs.CONFIG.setup) :
         sys.stderr.write("Test setup file %s does not exist.\n" % \

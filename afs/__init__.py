@@ -46,6 +46,10 @@ ARGPARSER.add_argument("--hostmap",  default = [], action = "append", \
     help = argparse.SUPPRESS)
 ARGPARSER.add_argument("--binconfig", default = "", \
     help = argparse.SUPPRESS )
+ARGPARSER.add_argument("--STALE_DAYS", default = "", \
+    help = argparse.SUPPRESS )
+ARGPARSER.add_argument("--show_all_options", action='store_const', const=True, \
+    default=False, help="show all available options")
 
 # a Namespace Object to be created from __argparser__
 CONFIG = None

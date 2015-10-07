@@ -3,3 +3,4 @@
 afspy.e4p
 afspy.cfg
 build/*
+afs/etc/*.cfg

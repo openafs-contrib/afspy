@@ -37,25 +37,25 @@ class DBManager :
 	return
 
 
-    def executeRaw(self, rawsql) :
+    def execute_raw(self, rawsql) :
         """
         execute directly a SQL-statement
         """
-        self.Logger.debug("executeRaw: statement=%s" % (rawsql))
+        self.Logger.debug("execute_raw: statement=%s" % (rawsql))
         conn = self._CFG.DB_ENGINE.connect()
         t = conn.begin()
         try:
             res = conn.execute(rawsql)
             t.commit()
-            self.Logger.debug("executeRaw: returning %s rows." % (res.rowcount))
+            self.Logger.debug("execute_raw: returning %s rows." % (res.rowcount))
         except:
-            self.Logger.warn("executeRaw: statement=%s failed." % (rawsql))
+            self.Logger.warn("execute_raw: statement=%s failed." % (rawsql))
             t.rollback()
             res=None
         t.close()
         return res
        
-    def get_from_cache(self, Class, mustBeUnique=True, fresh_only=True, **where) :
+    def get_from_cache(self, Class, must_be_unique=True, fresh_only=True, **where) :
         """
         get an object from the cache.
         returns None if object is not found in cache
@@ -73,7 +73,7 @@ class DBManager :
             # expunge Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("get_from_cache: got fromDB: %s" % (cachedObjList))
-        if mustBeUnique :
+        if must_be_unique :
             if len(cachedObjList) > 1 :
                 raise AFSError("Constraints %s return no unique Object from DB" % where)
             elif len(cachedObjList) == 1 :
@@ -88,31 +88,34 @@ class DBManager :
         self.Logger.debug("get_from_cache: returning %s" % res)
         return res 
 
-    def get_from_cache_by_list_element(self, Class, Attr, Elem, mustBeUnique=True) :
+    def get_from_cache_by_list_element(self, Class, Attr, Elem, fresh_only=True, must_be_unique=True) :
         """
         use hand-craftet query to search for a single element
         in a json-encoded list.
         """
       
+        emptyObj=Class()
         if type(Elem) == StringType :
             RegEx="\[.*\"{0}\".*\]".format(Elem)
         else :
             RegEx="\[({0}|.*, {0}|{0},.*|.*, {0},.*)\]".format(Elem)
         
-        emptyObj=Class()
+        query = self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx))
+        if fresh_only == True :
+            query = query.filter( Class.db_update_date > ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.DB_TIME_TO_CACHE))) )
         self.Logger.debug("get_from_cache_by_list_element: using regexp=%s" % RegEx)
-        cachedObjList=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        cachedObjList = query.all()
         if len(cachedObjList) == 0 :
             self.Logger.debug("get_from_cache_by_list_element: returning None")
             return None
         for r in cachedObjList :
             r.update_app_repr()
             # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
-            r.unmapped_attributes_list=emptyObj.unmapped_attributes_list
+            r.unmapped_attributes_list = emptyObj.unmapped_attributes_list
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("get_from_cache_by_list_element: returning: %s" % (cachedObjList))
-        if mustBeUnique :
+        if must_be_unique :
             if len(cachedObjList) > 1 :
                 raise AFSError("get_from_cache_by_list_element: constraint Elem=%s returns no unique Object from DB" % (Elem))
             elif len(cachedObjList) == 1 :
@@ -123,15 +126,18 @@ class DBManager :
             return cachedObjList
         return cachedObjList
 
-    def get_from_cache_by_dict_key(self, Class, Attr, Key, mustBeUnique=True) :
+    def get_from_cache_by_dict_key(self, Class, Attr, Key, fresh_only=True, must_be_unique=True) :
         """
         use hand-craftet query to search for a single key
         in a json-encoded dict.
         """
+        emptyObj=Class()
         RegEx='{{.*"{0}":.*}}'.format(Key)
         self.Logger.debug("get_from_cache_by_dict_key: regex=%s" % (RegEx))
-        emptyObj=Class()
-        cachedObjList=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        query = self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx))
+        if fresh_only == True :
+            query = query.filter( Class.db_update_date > ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.DB_TIME_TO_CACHE))) )
+        cachedObjList = query.all()
         if len(cachedObjList) == 0 :
             self.Logger.debug("get_from_cache_by_dict_key: returning None")
             return None
@@ -142,7 +148,7 @@ class DBManager :
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("get_from_cache_by_dict_key: returning: %s" % (cachedObjList))
-        if mustBeUnique :
+        if must_be_unique :
             if len(cachedObjList) > 1 :
                 raise AFSError("get_from_cache_by_dict_key: constraint Key=%s returns no unique Object from DB" % (Key))
             elif len(cachedObjList) == 1 :
@@ -153,7 +159,7 @@ class DBManager :
             return cachedObjList
         return cachedObjList
 
-    def get_from_cache_by_dict_value(self, Class, Attr, Value, mustBeUnique=True) :
+    def get_from_cache_by_dict_value(self, Class, Attr, Value, fresh_only=True, must_be_unique=True) :
         """
         use hand-craftet query to search for a single Value
         in a json-encoded dict.
@@ -161,7 +167,10 @@ class DBManager :
         RegEx='{{.*: "{0}".*}}'.format(Value)
         self.Logger.debug("get_from_cache_by_dict_value: regex=%s" % (RegEx))
         emptyObj=Class()
-        cachedObjList=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        query = self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx))
+        if fresh_only == True :
+            query = query.filter( Class.db_update_date > ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.DB_TIME_TO_CACHE))) )
+        cachedObjList = query.all()
         if len(cachedObjList) == 0 :
             self.Logger.debug("get_from_cache_by_dict_value : returning None")
             return None
@@ -172,7 +181,7 @@ class DBManager :
             # expung Obj from Session, we don't want to use it outside
             self.DbSession.expunge(r)
         self.Logger.debug("get_from_cache_by_dict_value : returning: %s" % (cachedObjList))
-        if mustBeUnique :
+        if must_be_unique :
             if len(cachedObjList) > 1 :
                 raise AFSError("get_from_cache_by_dict_keyValue: constraint Value=%s returns no unique Object from DB" % (Value))
             elif len(cachedObjList) == 1 :
@@ -183,7 +192,7 @@ class DBManager :
             return cachedObjList
         return cachedObjList
 
-    def get_from_cache_by_dict_key_value_pair(self, Class, Attr, Key, Value, mustBeUnique=True) :
+    def get_from_cache_by_dict_key_value_pair(self, Class, Attr, Key, Value, fresh_only=True, must_be_unique=True) :
         """
         use hand-craftet query to search for a single Value
         in a json-encoded dict.
@@ -191,7 +200,12 @@ class DBManager :
         RegEx='{{.*"{0}": "{1}".*}}'.format(Key,Value)
         self.Logger.debug("get_from_cache_by_dict_key_value_pair: regex=%s" % (RegEx))
         emptyObj=Class()
-        cachedObjList=self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx)).all()
+        query = self.DbSession.query(Class).filter(Attr.op('regexp')(RegEx))
+        if fresh_only == True :
+            query = query.filter( Class.db_update_date > ( datetime.datetime.now() -  datetime.timedelta(seconds=int(self._CFG.DB_TIME_TO_CACHE))) )
+
+        cachedObjList = query.all()
+
         if len(cachedObjList) == 0 :
             self.Logger.debug("get_from_cache_by_dict_key_value_pair: returning None")
             return None
@@ -200,7 +214,7 @@ class DBManager :
             r.update_app_repr()
             # the unmapped_attributes_list is not stored in DB, thus add it here explictly.
         self.Logger.debug("get_from_cache_by_dict_key_value_pair: returning: %s" % (cachedObjList))
-        if mustBeUnique :
+        if must_be_unique :
             if len(cachedObjList) > 1 :
                 raise AFSError("get_from_cache_by_dict_key_value_pair: constraint Key=%s, Value=%s return no unique Object from DB" % (Key,Value))
             elif len(cachedObjList) == 1 :
@@ -216,8 +230,9 @@ class DBManager :
         unique is a list of (Attribute-Name = value)-pairs which identifies 
         the object within the DB using filter_by() if Attribute is directly mapped.
         A complex Attribute which is json encoded has to be dealt with differently.
-        See setIntoCacheByDictKey,set_into_cache_by_dict_value and set_into_cache_by_list_element for this.
+        See set_into_cache_by_dict_key,set_into_cache_by_dict_value and set_into_cache_by_list_element for this.
         """ 
+
         self.Logger.debug("setIntoCache: called with class=%s, Obj=%s, **unique=%s " % (Class, Obj, unique))
         # we have to detach the Obj from the sqlalchemy session, otherwise
         # we mix Obj and mapped_object
@@ -362,7 +377,7 @@ class DBManager :
             keep_num_days = self._CFG.DB_HISTORY_NUM_DAYS
 
         # delete objects with no db_update_date (should not happen anyway)
-        to_be_deleted_objs = self.get_from_cache(Class, db_update_date=None, mustBeUnique=False, fresh_only=False) 
+        to_be_deleted_objs = self.get_from_cache(Class, db_update_date=None, must_be_unique=False, fresh_only=False) 
         if to_be_deleted_objs != None :
             for obj in to_be_deleted_objs :
                 self.Logger.debug("deleting invalid obj: %s db_id %s" % (obj, obj.db_id) ) 
