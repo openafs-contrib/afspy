@@ -1,6 +1,8 @@
 """
 Declares model object of a fileserver
 """
+from datetime import datetime
+
 from afs.model.BaseModel import BaseModel
 
 class FileServer(BaseModel):
@@ -11,24 +13,22 @@ class FileServer(BaseModel):
     Server, so the attribute 'partitions' will be inserted by the FsService
     """
 
-    ## AFS Server UUID
-    uuid = ""
-    ## list of DNS-hostnames
-    servernames_js = '[]'
-    servernames = []
-    ## list of ipaddrs
-    ipaddrs_js = '[]'
-    ipaddrs = []
-    ## rxdebug version string 
-    version = ""
-    ## build-date of binary according to rxdebug
-    build_date = ""
-    ## list of attributes not to put into the DB
-    unmapped_attributes_list = [ 'parts', 'ExtServAttr' ]
+    def __init__(self):   
 
-    def __init__(self):
-        """
-        base initialiser   
-        """
+        # declare db-internal attributes
         BaseModel.__init__(self)
-        return
+    
+        ## AFS Server UUID
+        self.uuid = ""
+        ## list of DNS-hostnames
+        self.servernames_js = '[]'
+        self.servernames = []
+        ## list of ipaddrs
+        self.ipaddrs_js = '[]'
+        self.ipaddrs = []
+        ## rxdebug version string 
+        self.version = ""
+        ## build-date of binary according to rxdebug
+        self.build_date = ""
+        ## list of attributes not to put into the DB
+        self.unmapped_attributes_list = [ 'parts', 'ExtAttr' ]
